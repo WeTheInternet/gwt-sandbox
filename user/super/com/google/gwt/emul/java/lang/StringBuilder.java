@@ -114,6 +114,11 @@ public final class StringBuilder extends AbstractStringBuilder {
     return this;
   }
 
+  public StringBuilder append(StringBuilder x) {
+    impl.append(data, x);
+    return this;
+  }
+
   public StringBuilder appendCodePoint(int x) {
     appendCodePoint0(x);
     return this;
