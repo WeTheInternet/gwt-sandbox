@@ -484,4 +484,26 @@ public final class Character implements Comparable<Character>, Serializable {
   public String toString() {
     return String.valueOf(value);
   }
+  
+  public static boolean isJavaIdentifierPart(char c) {
+    return isJavaIdentifierStart(c) || isDigit(c);
+  }
+  
+  public static boolean isJavaIdentifierStart(char c) {
+    return isLetter(c) || c == '_' || c == '$';
+  }
+  
+  public static boolean isWhitespace(char c) {
+    switch(c) {
+      case ' ':
+      case '\n':
+      case '\r':
+      case '\f':
+      case '\t':
+        return true;
+      default:
+        return false;
+    }
+  }
+  
 }

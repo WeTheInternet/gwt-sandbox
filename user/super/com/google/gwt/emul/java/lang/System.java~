@@ -108,6 +108,7 @@ public final class System {
   public static void gc() {
   }
 
+<<<<<<< HEAD
   /**
    * The compiler replaces getProperty by the actual value of the property.
    */
@@ -120,14 +121,38 @@ public final class System {
    */
   public static String getProperty(String key, String def) {
     throw new AssertionError("System.getProperty should have been replaced by the compiler.");
+=======
+  // TODO make this a magic method that can translate constant strings into a lookup of compile-time
+  // properties; either an extendable configuration property, or a properties file (gwt.properties)
+  public static String getProperty(String key) {
+    return getPropertyGwt(key);
+  }
+  public static String getProperty(String key, String def) {
+    String check = getPropertyGwt(key);
+    return check==null?def:check;
   }
 
-  public static void setProperty(String key, String value) {
-    throw new AssertionError("System.setProperty should have been replaced by the compiler.");
+  static{
+    initProps();
   }
+  private static native void initProps() /*-{
+    if(!$wnd.Gwt_Prop)$wnd.Gwt_Prop = {};
+  }-*/;
+
+  private static native String getPropertyGwt(String key)/*-{
+    return $wnd.Gwt_Prop[key];
+  }-*/;
+
+  public static void setProperty(String key, String value) {
+    setPropertyGwt(key, value);
+  }
+  private static native void setPropertyGwt(String key, String value)/*-{
+    $wnd.Gwt_Prop[key] = value;
+  }-*/;
 
   public static SecurityManager getSecurityManager() {
     return null;// never any security manager!
+>>>>>>> More emulation support in preparation for java reflection
   }
 
   public static int identityHashCode(Object o) {

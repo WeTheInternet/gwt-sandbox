@@ -337,27 +337,6 @@ java.lang.reflect.AnnotatedElement
     clazz.@Class::canonicalName = clazz.@Class::typeName;
     clazz.@Class::simpleName = clazz.@Class::typeName;
   }-*/;
-
-  static void setName(Class<?> clazz, String packageName, String className,
-      int seedId) {
-    if (Class.isClassMetadataEnabled()||clazz.isPrimitive()) {
-      clazz.pkgName = packageName.length() == 0 ? "" : packageName;
-      clazz.typeName = className;
-    } else {
-      /*
-       * The initial "" + in the below code is to prevent clazz.hashCode() from
-       * being autoboxed. The class literal creation code is run very early
-       * during application start up, before class Integer has been initialized.
-       */
-      clazz.pkgName = "";
-      clazz.typeName = "Class$"
-          + (isInstantiableOrPrimitive(seedId) ? asString(seedId) : "" + clazz.hashCode());
-    }
-    if (isInstantiable(seedId)) {
-      setClassLiteral(seedId, clazz);
-    }
-    clazz.constId = clazz.remember();
-  }
   
   /**
    * This is a magic-method hook used by Package.java; it is wired up the same as 
