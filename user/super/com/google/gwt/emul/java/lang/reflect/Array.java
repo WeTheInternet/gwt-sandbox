@@ -1,3 +1,4 @@
+<<<<<<< 2559ef031ab307cda2f55d2f88bc69f5b567ede5
 /*
  * Copyright 2017 Google Inc.
  *
@@ -357,25 +358,51 @@ public final class Array {
     typedArray[index] = value;
   }
 
-  // There is a good reason to not implement the generic newInstance methods:
-  //
-  // In GWT we would need access from a class literal to the castable type map, which
-  // could be done, but would require some serious work.
-  // But it would also mean that we can not compute all Array types being instantiated anymore and
-  // thus would have to retain more castable type information (bloat).
-  //
-  // In J2CL the problem is slightly different. Most checking is deferred to runtime in J2CL and
-  // we retain constructor functions of leaf types. To ensure that we are not just retaining
-  // all constructors in a program we make sure that access to these always gets inlined with
-  // array creation. By allowing a generic method we would not be able to ensure this anymore
-  // and might cause serious bloat in a program.
-  // A middle ground for J2CL could be to treat this method special in the compiler and fail the
-  // compile if its not called with a compile time constant for the class literal.
+   /**
+     * Creates a new array.
+     *
+     * Uses the same semantics as java, expects a non-array component type,
+     * followed by the length of the single-dimensional array returned.
+     *
+     * newInstance(String.class, 1) -> new String[1]
+     *
+     * All instances of this method call must be replaced by the GWT compiler.
+     *
+     * TODO: consider hooking up some runtime backup wiring, in case this is called outside of GWT
+     * (like in J2CL), such that other transpilers can fill in that wiring dynamically, and have
+     * a real method body here.
+     *
+     */
+    public static Object newInstance(Class<?> componentType, int length)
+    throws NegativeArraySizeException {
+        assert false : new IllegalArgumentException("Replaced by GWT compiler");
+        return null;
+    }
 
-  // Not implemented:
-  // public static Object newInstance(Class<?> componentType, int... dimensions)
-  // public static Object newInstance(Class<?> componentType, int length)
+    /**
+     * Creates a new array.
+     *
+     * Uses the same semantics as java, expects a non-array component type,
+     * followed by an array containing the expected lengths of each dimension of the array.
+     *
+     * newInstance(String.class, 1) -> new String[1]
+     * newInstance(String.class, 1, 2, 3) -> new String[1][2][3]
+     *
+     * All instances of this method call must be replaced by the GWT compiler.
+     *
+     * TODO: consider hooking up some runtime backup wiring, in case this is called outside of GWT
+     * (like in J2CL), such that other transpilers can fill in that wiring dynamically, and have
+     * a real method body here.
+     *
+     */
+    public static Object newInstance(Class<?> componentType, int... dimensions)
+    throws IllegalArgumentException, NegativeArraySizeException {
+        assert false : new IllegalArgumentException("Replaced by GWT compiler");
+        return null;
+    }
 
-  private Array() {
+
+    private Array() {
   }
+
 }

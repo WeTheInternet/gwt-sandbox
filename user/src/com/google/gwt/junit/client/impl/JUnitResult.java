@@ -59,7 +59,6 @@ public class JUnitResult implements Serializable {
     return thrown != null;
   }
 
-  @GwtIncompatible
   public boolean isExceptionOf(Class<?> expectedException) {
     try {
       return thrown == null ? false
