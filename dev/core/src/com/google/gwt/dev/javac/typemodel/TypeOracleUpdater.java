@@ -77,8 +77,8 @@ public class TypeOracleUpdater {
   }
 
   protected JAnnotationType newAnnotationType(JPackage pkg,
-      String enclosingSimpleName, String simpleName) {
-    return new JAnnotationType(typeOracle, pkg, enclosingSimpleName, simpleName);
+      String enclosingSimpleName, String simpleName, String location) {
+    return new JAnnotationType(typeOracle, pkg, enclosingSimpleName, simpleName, location);
   }
 
   protected JConstructor newConstructor(JRealClassType type, String name,
@@ -94,8 +94,8 @@ public class TypeOracleUpdater {
   }
 
   protected JEnumType newEnumType(JPackage pkg, String enclosingSimpleName,
-      String simpleName) {
-    return new JEnumType(typeOracle, pkg, enclosingSimpleName, simpleName);
+      String simpleName, String location) {
+    return new JEnumType(typeOracle, pkg, enclosingSimpleName, simpleName, location);
   }
 
   protected JField newField(JRealClassType type, String name,
@@ -118,9 +118,9 @@ public class TypeOracleUpdater {
   }
 
   protected JRealClassType newRealClassType(JPackage pkg,
-      String enclosingSimpleName, String simpleName, boolean isInterface) {
+      String enclosingSimpleName, String simpleName, String location, boolean isInterface) {
     return new JRealClassType(typeOracle, pkg, enclosingSimpleName, simpleName,
-        isInterface);
+        isInterface, location);
   }
 
   protected void setEnclosingType(JRealClassType type, JClassType enclosingType) {

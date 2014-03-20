@@ -27,8 +27,8 @@ public class JAnnotationType extends JRealClassType implements
     com.google.gwt.core.ext.typeinfo.JAnnotationType {
 
   JAnnotationType(TypeOracle oracle, JPackage declaringPackage,
-      String enclosingSimpleName, String simpleName) {
-    super(oracle, declaringPackage, enclosingSimpleName, simpleName, true);
+      String enclosingSimpleName, String simpleName, String location) {
+    super(oracle, declaringPackage, enclosingSimpleName, simpleName, true, location);
   }
 
   @Override

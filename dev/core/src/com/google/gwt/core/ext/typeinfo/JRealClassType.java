@@ -23,4 +23,9 @@ public interface JRealClassType extends JClassType {
    * Retrieve last modified time for this type.
    */
   long getLastModifiedTime();
+
+  /**
+   * @return the location of the source file
+   */
+  String getLocation();
 }

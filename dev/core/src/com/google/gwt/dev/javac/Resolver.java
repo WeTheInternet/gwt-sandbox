@@ -52,7 +52,7 @@ public interface Resolver {
       boolean argNamesAreReal);
 
   JRealClassType newRealClassType(JPackage pkg, String enclosingTypeName,
-      boolean isLocalType, String className, boolean isIntf);
+      boolean isLocalType, String className, String location, boolean isIntf);
 
   boolean resolveAnnotations(TreeLogger logger,
       List<CollectAnnotationData> annotations,

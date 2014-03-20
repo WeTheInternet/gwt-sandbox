@@ -31,9 +31,9 @@ public class JGenericType extends JRealClassType implements
   private List<JTypeParameter> typeParams = Lists.create();
 
   public JGenericType(TypeOracle oracle, JPackage declaringPackage,
-      String enclosingSimpleName, String simpleName, boolean isInterface,
+      String enclosingSimpleName, String simpleName, String location, boolean isInterface,
       JTypeParameter[] jtypeParameters) {
-    super(oracle, declaringPackage, enclosingSimpleName, simpleName, isInterface);
+    super(oracle, declaringPackage, enclosingSimpleName, simpleName, isInterface, location);
 
     if (jtypeParameters != null) {
       for (JTypeParameter jtypeParameter : jtypeParameters) {
