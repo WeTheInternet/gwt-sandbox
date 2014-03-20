@@ -207,9 +207,10 @@ public abstract class TypeOracleUpdaterTestBase extends TestCase {
     private TypeData[] getTypeData(Class<?> aClass) throws IOException {
       List<TypeData> results = new ArrayList<TypeData>();
       String packageName = Shared.getPackageName(aClass.getName());
+      String location = classLocation(aClass);
       TypeData newData =
           new TypeData(packageName, aClass.getSimpleName(), aClass.getName().replace(".", "/"),
-              getByteCode(aClass), System.currentTimeMillis());
+              location, getByteCode(aClass), System.currentTimeMillis());
       results.add(newData);
       Class<?>[] subclasses = aClass.getDeclaredClasses();
       for (Class<?> subclass : subclasses) {
@@ -219,8 +220,9 @@ public abstract class TypeOracleUpdaterTestBase extends TestCase {
       }
       return results.toArray(new TypeData[results.size()]);
     }
-  }
 
+  }
+  
   protected static final CheckedJavaResource CU_AfterAssimilate = new CheckedJavaResource(
       AfterAssimilate.class) {
     @Override
@@ -683,7 +685,7 @@ public abstract class TypeOracleUpdaterTestBase extends TestCase {
               + "0052AB70008B100000002000A00000006000100000003000B0000000C000100000005000C000D00000"
               + "001000E00000002000F");
           TypeData classData = new TypeData("com.google.gwt.dev.javac.mediatortest", "Pseudo$Inner",
-              "com/google/gwt/dev/javac/mediatortest/Pseudo$Inner", classBytes,
+              "com/google/gwt/dev/javac/mediatortest/Pseudo$Inner", "/tmp", classBytes,
               System.currentTimeMillis());
           return new TypeData[] {classData};
         }
@@ -763,6 +765,14 @@ public abstract class TypeOracleUpdaterTestBase extends TestCase {
     assertFalse(to + " should not be assignable to " + from, to.isAssignableFrom(from));
   }
 
+  protected static String classLocation(Class<?> aClass) {
+    try {
+      return aClass.getProtectionDomain().getCodeSource().getLocation().toExternalForm().replace("file://", "");
+    } catch (Exception e) {
+      return null;
+    }
+  }
+  
   protected static void recordAssignability(Map<JClassType, Set<JClassType>> assignabilityMap,
       JClassType from, JClassType to) {
     Set<JClassType> set = assignabilityMap.get(from);

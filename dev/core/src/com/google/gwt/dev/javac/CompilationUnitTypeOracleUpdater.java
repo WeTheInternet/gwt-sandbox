@@ -96,12 +96,14 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
     private final long lastModifiedTime;
     private final String packageName;
     private final String sourceName;
+    private final String location;
 
-    protected TypeData(String packageName, String sourceName, String internalName, byte[] byteCode,
+    protected TypeData(String packageName, String sourceName, String internalName, String location, byte[] byteCode,
         long lastModifiedTime) {
       this.packageName = packageName;
       this.sourceName = sourceName;
       this.internalName = internalName;
+      this.location = location;
       this.byteCode = byteCode;
       this.lastModifiedTime = lastModifiedTime;
     }
@@ -170,9 +172,9 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
 
     @Override
     public JRealClassType newRealClassType(JPackage pkg, String enclosingTypeName,
-        boolean isLocalType, String simpleSourceName, boolean isInterface) {
+        boolean isLocalType, String simpleSourceName, String location, boolean isInterface) {
       return CompilationUnitTypeOracleUpdater.this.newRealClassType(
-          pkg, enclosingTypeName, simpleSourceName, isInterface);
+          pkg, enclosingTypeName, simpleSourceName, location, isInterface);
     }
 
     @Override
@@ -482,7 +484,8 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
       for (CompiledClass compiledClass : compilationUnit.getCompiledClasses()) {
         TypeData typeData = new TypeData(compiledClass.getPackageName(),
             compiledClass.getSourceName(), compiledClass.getInternalName(),
-            compiledClass.getBytes(), compiledClass.getUnit().getLastModified());
+            compilationUnit.getResourceLocation(), compiledClass.getBytes(), 
+            compiledClass.getUnit().getLastModified());
         typeDataList.add(typeData);
       }
     }
@@ -555,6 +558,7 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
     JRealClassType type = null;
     String packageName = typeData.packageName;
     JPackage pkg = typeOracle.getOrCreatePackage(packageName);
+    String location = typeData.location;
     boolean isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
     assert !collectClassData.hasNoExternalName();
     String enclosingSimpleName = null;
@@ -562,17 +566,17 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
       enclosingSimpleName = enclosingClassData.getNestedSourceName();
     }
     if ((access & Opcodes.ACC_ANNOTATION) != 0) {
-      type = newAnnotationType(pkg, enclosingSimpleName, simpleName);
+      type = newAnnotationType(pkg, enclosingSimpleName, simpleName, location);
     } else if ((access & Opcodes.ACC_ENUM) != 0) {
-      type = newEnumType(pkg, enclosingSimpleName, simpleName);
+      type = newEnumType(pkg, enclosingSimpleName, simpleName, location);
     } else {
       JTypeParameter[] typeParams = getTypeParametersForClass(collectClassData);
       if ((typeParams != null && typeParams.length > 0)
           || nonStaticInsideGeneric(collectClassData, enclosingClassData)) {
         type = new JGenericType(
-            typeOracle, pkg, enclosingSimpleName, simpleName, isInterface, typeParams);
+            typeOracle, pkg, enclosingSimpleName, simpleName, location, isInterface, typeParams);
       } else {
-        type = newRealClassType(pkg, enclosingSimpleName, simpleName, isInterface);
+        type = newRealClassType(pkg, enclosingSimpleName, simpleName, location, isInterface);
       }
     }
 

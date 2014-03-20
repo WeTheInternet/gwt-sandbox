@@ -75,6 +75,8 @@ public class JRealClassType extends JClassType implements
 
   private long lastModifiedTime;
 
+  private String location;
+
   /**
    * Create a class type that reflects an actual type.
    *
@@ -87,11 +89,12 @@ public class JRealClassType extends JClassType implements
    * @param isInterface
    */
   JRealClassType(TypeOracle typeOracle, JPackage declaringPackage, String enclosingSimpleName,
-      String simpleName, boolean isInterface) {
+      String simpleName, boolean isInterface, String location) {
     this.typeOracle = typeOracle;
     this.declaringPackage = declaringPackage;
     this.simpleName = StringInterner.get().intern(simpleName);
     this.isInterface = isInterface;
+    this.location = location;
     if (enclosingSimpleName == null) {
       // Add myself to my package.
       declaringPackage.addType(this);
@@ -204,6 +207,11 @@ public class JRealClassType extends JClassType implements
   @Override
   public long getLastModifiedTime() {
     return lastModifiedTime;
+  }
+
+  @Override
+  public String getLocation() {
+    return location;
   }
 
   @Override
