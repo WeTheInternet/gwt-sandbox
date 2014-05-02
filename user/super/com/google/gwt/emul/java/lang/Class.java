@@ -371,7 +371,6 @@ java.lang.reflect.AnnotatedElement
   int modifiers;
 
   protected JavaScriptObject enumConstantsFunc;
-  protected String pkgName;
   protected String typeName;
   protected Class<?> componentType;
   protected Class<? super T> enumSuperclass;
@@ -391,6 +390,8 @@ java.lang.reflect.AnnotatedElement
   }
 
   private String canonicalName;
+
+  private String simpleName;
 
   private String packageName;
 

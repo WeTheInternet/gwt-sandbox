@@ -15,6 +15,9 @@
  */
 package java.util;
 
+import java.util.function.Predicate;
+import java.util.function.Consumer;
+
 /**
  * General-purpose interface for storing collections of objects. <a
  * href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collection.html">[Sun
@@ -53,4 +56,37 @@ public interface Collection<E> extends Iterable<E> {
   Object[] toArray();
 
   <T> T[] toArray(T[] a);
+
+  default boolean removeIf(Predicate<? super E> predicate) {
+    Objects.requireNonNull(predicate);
+    boolean modified = false;
+    final Iterator<E> iter = iterator();
+    while (iter.hasNext()) {
+        if (predicate.test(iter.next())) {
+            iter.remove();
+            modified = true;
+        }
+    }
+    return modified;
+  }
+
+//  TODO implement Spliterator and Stream
+//  default Spliterator<E> spliterator() {
+//      return Spliterators.spliterator(this, 0);
+//  }
+//
+//  default Stream<E> stream() {
+//      return StreamSupport.stream(spliterator(), false);
+//  }
+//
+//  default Stream<E> parallelStream() {
+//      return StreamSupport.stream(spliterator(), true);
+//  }
+  
+  default void forEach(Consumer<E> c) {
+    for (E e : this) {
+      c.accept(e);
+    }
+  }
+
 }

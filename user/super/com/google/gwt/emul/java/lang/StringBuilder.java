@@ -113,7 +113,7 @@ public final class StringBuilder extends AbstractStringBuilder implements CharSe
   }
 
   public StringBuilder append(StringBuilder x) {
-    impl.append(data, x);
+    string += x;
     return this;
   }
 

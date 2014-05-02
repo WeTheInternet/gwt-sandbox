@@ -96,12 +96,12 @@ public class IdentityHashMap<K, V> extends AbstractHashMap<K, V> implements
   }
 
   @Override
-  boolean equals(Object value1, Object value2) {
+  protected boolean equals(Object value1, Object value2) {
     return value1 == value2;
   }
 
   @Override
-  int getHashCode(Object key) {
+  protected int getHashCode(Object key) {
     return Impl.getHashCode(key);
   }
 }

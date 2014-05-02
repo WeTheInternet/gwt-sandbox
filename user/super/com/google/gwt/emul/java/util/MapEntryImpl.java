@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 Google Inc.
+ * Copyright 2008 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,24 +16,33 @@
 package java.util;
 
 /**
- * See <a
- * href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/ConcurrentModificationException.html">the
- * official Java API doc</a> for details.
+ * A {@link Map.Entry} shared by several {@link Map} implementations.
  */
-public class ConcurrentModificationException extends RuntimeException {
+class MapEntryImpl<K, V> extends AbstractMapEntry<K, V> {
 
-  public ConcurrentModificationException() {
+  private K key;
+
+  private V value;
+
+  /**
+   * Constructor for <code>MapEntryImpl</code>.
+   */
+  public MapEntryImpl(K key, V value) {
+    this.key = key;
+    this.value = value;
   }
 
-  public ConcurrentModificationException(String message) {
-    super(message);
+  public K getKey() {
+    return key;
   }
 
-  public ConcurrentModificationException(Throwable cause) {
-    super(cause);
+  public V getValue() {
+    return value;
   }
 
-  public ConcurrentModificationException(String message, Throwable cause) {
-    super(message, cause);
+  public V setValue(V value) {
+    V old = getValue();
+    this.value = value;
+    return old;
   }
 }
