@@ -117,6 +117,22 @@ public interface Map<K, V> {
     return value;
   }
 
+  default V compute(K key,
+      BiFunction<? super K, ? super V, ? extends V> function) {
+    Objects.requireNonNull(function);
+    V existing = get(key);
+    V newValue = function.apply(key, existing);
+    if (newValue == null) {
+      if (existing != null || containsKey(key)) {
+        remove(key);
+      }
+      return null;
+    } else {
+      put(key, newValue);
+      return newValue;
+    }
+}
+
   boolean containsKey(Object key);
 
   boolean containsValue(Object value);
@@ -134,10 +150,19 @@ public interface Map<K, V> {
 
   V get(Object key);
 
+  @JsIgnore
   default V getOrDefault(Object key, V defaultValue) {
     V currentValue = get(key);
     return (currentValue == null && !containsKey(key)) ? defaultValue : currentValue;
   }
+
+  @Override
+  default V getOrDefault(Object key, V defaultValue) {
+    V v = get(key);
+    return v != null || containsKey(key) ? v : defaultValue;
+  }
+
+  int hashCode();
 
   boolean isEmpty();
 
@@ -166,6 +191,14 @@ public interface Map<K, V> {
   }
 
   void putAll(Map<? extends K, ? extends V> t);
+
+  default V putIfAbsent(K key, V value) {
+    V existing = get(key);
+    if (existing == null) {
+      existing = put(key, value);
+    }
+    return existing;
+  }
 
   V remove(Object key);
 

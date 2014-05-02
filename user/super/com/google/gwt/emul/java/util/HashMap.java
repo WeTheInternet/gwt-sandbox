@@ -64,12 +64,12 @@ public class HashMap<K, V> extends AbstractHashMap<K, V> implements Cloneable,
   }
 
   @Override
-  boolean equals(Object value1, Object value2) {
+  protected boolean equals(Object value1, Object value2) {
     return Objects.equals(value1, value2);
   }
 
   @Override
-  int getHashCode(Object key) {
+  protected int getHashCode(Object key) {
     int hashCode = key.hashCode();
     // Coerce to int -- our classes all do this, but a user-written class might not.
     return ensureInt(hashCode);

@@ -23,6 +23,8 @@ import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsType;
 
+import java.util.function.UnaryOperator;
+
 /**
  * Represents a sequence of objects.
  * See <a href="https://docs.oracle.com/javase/8/docs/api/java/util/List.html">
@@ -63,6 +65,14 @@ public interface List<E> extends Collection<E> {
     }
   }
 
+  @Override
+  boolean remove(Object o);
+
+  @Override
+  boolean removeAll(Collection<?> c);
+
+  boolean retainAll(Collection<?> c);
+
   @JsMethod(name = "setAtIndex")
   E set(int index, E element);
 
@@ -81,6 +91,14 @@ public interface List<E> extends Collection<E> {
   default Spliterator<E> spliterator() {
     return Spliterators.spliterator(this, Spliterator.ORDERED);
   }
+
+  default void sort(Comparator<? super E> comp) {
+    Collections.sort(this, comp);
+  }
+//  TODO implement Spliterator
+//  default Spliterator<E> spliterator() {
+//    return Spliterators.spliterator(this, Spliterator.ORDERED);
+//  }
 
   List<E> subList(int fromIndex, int toIndex);
 }

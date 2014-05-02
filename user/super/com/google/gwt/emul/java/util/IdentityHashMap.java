@@ -96,7 +96,7 @@ public class IdentityHashMap<K, V> extends AbstractHashMap<K, V> implements
   }
 
   @Override
-  boolean equals(Object value1, Object value2) {
+  protected boolean equals(Object value1, Object value2) {
     return value1 == value2;
   }
 

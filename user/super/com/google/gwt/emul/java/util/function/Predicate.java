@@ -15,8 +15,6 @@
  */
 package java.util.function;
 
-import java.util.Objects;
-
 import static javaemul.internal.InternalPreconditions.checkCriticalNotNull;
 
 /**

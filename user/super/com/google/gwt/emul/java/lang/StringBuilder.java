@@ -115,7 +115,7 @@ public final class StringBuilder extends AbstractStringBuilder {
   }
 
   public StringBuilder append(StringBuilder x) {
-    impl.append(data, x);
+    string += x;
     return this;
   }
 
