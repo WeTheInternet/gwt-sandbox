@@ -102,6 +102,29 @@ public class Java8AstTest extends JJSTestBase {
         "  public int method2() { return DefaultInterface.super.method2(); }",
         "}"
     ));
+
+    addAll(JavaResourceBase.createMockJavaResource("test.DefaultInterface",
+        "package test;",
+        "public interface DefaultInterface {",
+        "  void method1();",
+        "  default int method2() { return 42; }",
+        "}"
+    ));
+
+    addAll(JavaResourceBase.createMockJavaResource("test.DefaultInterfaceImpl",
+        "package test;",
+        "public class DefaultInterfaceImpl implements DefaultInterface {",
+        "  public void method1() {}",
+        "}"
+    ));
+
+    addAll(JavaResourceBase.createMockJavaResource("test.DefaultInterfaceImpl2",
+        "package test;",
+        "public class DefaultInterfaceImpl2 implements DefaultInterface {",
+        "  public void method1() {}",
+        "  public int method2() { return DefaultInterface.super.method2(); }",
+        "}"
+    ));
   }
 
   public void testCompileLambdaNoCapture() throws Exception {

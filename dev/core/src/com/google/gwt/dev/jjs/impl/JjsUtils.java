@@ -287,6 +287,41 @@ public class JjsUtils {
           .put(JStringLiteral.class, LiteralTranslators.STRING_LITERAL_TRANSLATOR)
           .build();
 
+  public static void createForwardingMethod(JDeclaredType classToBeModified,
+      JMethod methodToDelegate) {
+    JMethod delegate = new JMethod(methodToDelegate.getSourceInfo(), methodToDelegate.getName(),
+        classToBeModified, methodToDelegate.getType(), false, false, false,
+        methodToDelegate.getAccess());
+    delegate.addThrownExceptions(methodToDelegate.getThrownExceptions());
+    delegate.setSynthetic();
+
+    // copy params
+    for (JParameter p : methodToDelegate.getParams()) {
+      delegate.addParam(
+          new JParameter(p.getSourceInfo(), p.getName(), p.getType(), p.isFinal(),
+              p.isThis(), delegate));
+    }
+    JMethodBody body = new JMethodBody(methodToDelegate.getSourceInfo());
+    // invoke methodToDelegate
+    JMethodCall delegateCall = new JMethodCall(methodToDelegate.getSourceInfo(),
+        new JThisRef(methodToDelegate.getSourceInfo(), methodToDelegate.getEnclosingType()),
+        methodToDelegate);
+    delegateCall.setStaticDispatchOnly();
+    // copy params
+    for (JParameter p : delegate.getParams()) {
+      delegateCall.addArg(new JParameterRef(p.getSourceInfo(), p));
+    }
+    // return statement if not void return type
+    body.getBlock().addStmt(delegate.getType() == JPrimitiveType.VOID ?
+        delegateCall.makeStatement() :
+        new JReturnStatement(methodToDelegate.getSourceInfo(), delegateCall));
+    delegate.setBody(body);
+    delegate.freezeParamTypes();
+    // we are adding this before instantiate() flows into the methods, so this will get processed
+    classToBeModified.addMethod(delegate);
+    delegate.addOverriddenMethod(methodToDelegate);
+  }
+
   private enum LiteralTranslators {
     BOOLEAN_LITERAL_TRANSLATOR() {
       @Override

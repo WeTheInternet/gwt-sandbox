@@ -2948,6 +2948,10 @@ public class GwtAstBuilder {
     private JExpression resolveThisReference(SourceInfo info, ReferenceBinding targetType,
         boolean exactMatch, BlockScope scope) {
       targetType = (ReferenceBinding) targetType.erasure();
+//      if (targetType.isInterface()) {
+//        // Java8 super reference to default method from subtype, X.super.someDefaultMethod
+//        return makeThisRef(info);
+//      }
 
       Object[] path = scope.getEmulationPath(targetType, exactMatch, false);
       if (path == null) {
