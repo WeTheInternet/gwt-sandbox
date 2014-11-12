@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path=""/>
+	<classpathentry kind="var" path="GWT_TOOLS/lib/eclipse/org.eclipse.jdt.core_3.11.0.v20150126-2015.jar"/>
+	<classpathentry kind="var" path="GWT_TOOLS/lib/guava/guava-18.0/guava-18.0-rebased.jar"/>
+	<classpathentry kind="var" path="GWT_TOOLS/lib/objectweb/asm-3.1.jar"/>
+	<classpathentry kind="var" path="GWT_TOOLS/lib/objectweb/asm-commons-3.1.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
