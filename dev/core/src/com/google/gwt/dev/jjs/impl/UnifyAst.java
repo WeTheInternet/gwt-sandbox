@@ -15,9 +15,26 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+
+import com.google.gwt.core.ext.ConfigurationProperty;
+import com.google.gwt.core.ext.PropertyOracle;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.TreeLogger.Type;
 import com.google.gwt.core.ext.UnableToCompleteException;
+import com.google.gwt.core.ext.typeinfo.TypeOracle;
 import com.google.gwt.dev.CompilerContext;
 import com.google.gwt.dev.MinimalRebuildCache;
 import com.google.gwt.dev.Permutation;
@@ -25,11 +42,16 @@ import com.google.gwt.dev.javac.CompilationProblemReporter;
 import com.google.gwt.dev.javac.CompilationState;
 import com.google.gwt.dev.javac.CompilationUnit;
 import com.google.gwt.dev.javac.CompiledClass;
+import com.google.gwt.dev.jjs.PrecompilationContext;
+import com.google.gwt.dev.javac.Shared;
+import com.google.gwt.dev.javac.StandardGeneratorContext;
 import com.google.gwt.dev.jdt.RebindPermutationOracle;
 import com.google.gwt.dev.jjs.InternalCompilerException;
-import com.google.gwt.dev.jjs.PrecompilationContext;
+import com.google.gwt.dev.jjs.MagicMethodGenerator;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
+import com.google.gwt.dev.jjs.UnifyAstListener;
+import com.google.gwt.dev.jjs.UnifyAstView;
 import com.google.gwt.dev.jjs.ast.Context;
 import com.google.gwt.dev.jjs.ast.HasName;
 import com.google.gwt.dev.jjs.ast.JArrayType;
@@ -133,7 +155,7 @@ import java.util.Set;
 // don't need to index compilation units by both source and binary name
 // TODO(stalcup): shrink the translate/flowInto graph for reference only types to eliminate
 // unnecessary loading of types and increase performance.
-public class UnifyAst {
+public class UnifyAst implements UnifyAstView {
 
   /**
    * Embodies the access methods for the compiled class, compilation unit and type for a flavor of
@@ -168,7 +190,7 @@ public class UnifyAst {
     }
   }
 
-  private class UnifyVisitor extends JModVisitor {
+  public class UnifyVisitor extends JModVisitor {
 
     private JMethod currentMethod;
 
@@ -591,6 +613,34 @@ public class UnifyAst {
       }
       throw new InternalCompilerException("Unknown magic method");
     }
+    private JExpression handleMagicMethodCall(JMethodCall x, Context ctx) {
+      JMethod target = x.getTarget();
+      String methodSignature = target.getEnclosingType().getName() + '.' + target.getSignature();
+
+      if (GWT_CREATE.equals(methodSignature) || OLD_GWT_CREATE.equals(methodSignature)) {
+        return createRebindExpression(x);
+      } else if (IMPL_GET_NAME_OF.equals(methodSignature)) {
+        return handleImplNameOf(x);
+      } else if (magicMethodMap.containsKey(methodSignature)) {
+        MagicMethodGenerator method = magicMethodMap.get(methodSignature);
+        try {
+          JExpression expr = method.injectMagic(logger, x, currentMethod, ctx, UnifyAst.this);
+          if (logger.isLoggable(Type.DEBUG)) {
+            logger.log(Type.DEBUG, "Magic method " + method
+              + " converted:\n" + x + "\ninto: " + expr);
+          }
+          if (expr instanceof JMethodCall) {
+            flowInto(((JMethodCall) expr).getTarget());
+          }
+          return expr;
+        } catch (Exception e) {
+          logger.log(Type.ERROR, "Fatal error calling magic method " + method + " on " + x, e);
+          throw new InternalCompilerException("Unable to implement magic method " + method + "()", e);
+        }
+      }
+      throw new InternalCompilerException("Unknown magic method error");
+    }
+
   }
 
   private boolean isMultivaluedProperty(String propertyName) {
@@ -696,6 +746,7 @@ public class UnifyAst {
   private final TreeLogger logger;
   private final CompilerContext compilerContext;
   private final Map<String, JMethod> methodMap = Maps.newHashMap();
+  private final Map<String, MagicMethodGenerator> magicMethodMap = Maps.newHashMap();
   private final JProgram program;
   private final RebindPermutationOracle rpo;
   private final Set<String> reboundTypeNames = Sets.newHashSet();
@@ -832,6 +883,8 @@ public class UnifyAst {
       fullFlowIntoRemainingStaleTypes();
     }
 
+
+
     /*
      * Since we're not actually optimizing here, it's easier to just visit
      * certain things up front instead of duplicating the exacting semantics of
@@ -911,6 +964,107 @@ public class UnifyAst {
       // Already logged.
       throw new UnableToCompleteException();
     }
+  }
+
+  private List<UnifyAstListener> setupMagicMethods() {
+    // we use a config property to allow use-defined magic methods.
+    List<UnifyAstListener> listeners = new ArrayList<UnifyAstListener>();
+    try {
+      PropertyOracle props = rpo.getGeneratorContext().getPropertyOracle();
+      ConfigurationProperty methods = props.getConfigurationProperty("gwt.magic.methods");
+      Map<Class<?>, MagicMethodGenerator> generators = new HashMap<Class<?>, MagicMethodGenerator>();
+      for (String prop : methods.getValues()) {
+        String[] bits = prop.split("[*]=");
+        if (bits.length == 2) {
+          final String clientMethod = bits[0].trim();
+          String methodName;
+          String[] magicMethod = bits[1].trim().split("::");
+          if (magicMethod.length == 1) {
+            methodName = "injectMagic";
+          } else {
+            methodName = magicMethod[1];
+          }
+          // find the magic method.
+          if (magicMethod.length > 0) {
+            try {
+              final Class<?> magicClass = Thread.currentThread().getContextClassLoader().loadClass(magicMethod[0]);
+              final Method method = magicClass.getMethod(methodName,
+                TreeLogger.class, JMethodCall.class, JMethod.class, Context.class, UnifyAstView.class);
+              if (magicMethodMap.containsKey(clientMethod)) {
+                MagicMethodGenerator existing = magicMethodMap.get(clientMethod);
+                if (existing.getClass() != magicClass) {
+                  logger.log(Type.WARN, "Duplicate magic method mappings found; " + existing +
+                    "already exists; not replacing with " + method + "; which was encountered later in compile");
+                }
+              } else {
+                if ((method.getModifiers() & Modifier.STATIC) > 0) {
+                  magicMethodMap.put(clientMethod, new MagicMethodGenerator() {
+                    @Override
+                    public JExpression injectMagic(TreeLogger logger, JMethodCall methodCall, JMethod currentMethod,
+                        Context context, UnifyAstView ast) throws UnableToCompleteException {
+                      try {
+                        return (JExpression) method.invoke(null, logger, methodCall, currentMethod, context, ast);
+                      } catch (Exception e) {
+                        logger.log(Type.ERROR, magicClass.getName() + "::" + method.getName()
+                          + " failed during ast generation", e);
+                        throw new UnableToCompleteException();
+                      }
+                    }
+
+                    @Override
+                    public String toString() {
+                      return method.toString();
+                    }
+                  });
+                  if (UnifyAstListener.class.isAssignableFrom(magicClass)) {
+                    listeners.add(UnifyAstListener.class.cast(magicClass.newInstance()));
+                  }
+                } else {
+                  assert MagicMethodGenerator.class.isAssignableFrom(magicClass) : "An instance-scoped magic method, "
+                    + magicClass.getName() + "::" + method.getName()
+                    + " must inherit " + MagicMethodGenerator.class.getName();
+                  assert !magicMethodMap.containsKey(clientMethod) : "Duplicate magic instance declarations for "
+                    + clientMethod + ";" +
+                    " \nexisting: " + magicMethodMap.get(clientMethod) + "" +
+                    "\nreplacement: new " + magicClass.getName() + "()";
+                  MagicMethodGenerator generator = generators.get(magicClass);
+                  if (generator == null) {
+                    generator = (MagicMethodGenerator) magicClass.newInstance();
+                    generators.put(magicClass, generator);
+                  }
+                  magicMethodMap.put(clientMethod, generator);
+                  if (generator instanceof UnifyAstListener) {
+                    listeners.add((UnifyAstListener) generator);
+                  }
+                }
+              }
+              MAGIC_METHOD_CALLS.add(clientMethod);
+              logger.log(Type.TRACE, "Magic method " + clientMethod + " -> " + magicClass.getCanonicalName() + "::"
+                + method.getName());
+            } catch (Exception e) {
+              logger.log(Type.WARN, "Parsing error for Magic Method " + bits[0] + "; failure looking up " +
+                "method " + bits[1] + " from the classpath.\n" +
+                "Please ensure this method exists, is on the classpath, and has the method signature:\n" +
+                "\t\tpublic " + (magicMethod.length == 2 ? "static" : "") +
+                "JExpression " + methodName + "(TreeLogger, JMethodCall, JMethod, JProgram, UnifyAstView)", e);
+            }
+          } else {
+            logger.log(Type.WARN,
+                "Parsing error for Magic Method " + bits[0] + "; could not parse "
+                  + bits[1] + ".\n" + "the correct format to use is: p.k.g.Client::method(Ls/i/g;)Lr/e/t/u/r/n *= p.k.g.Magic::method\n"
+                  + "You do not need to specifiy the magic method parameter or return types as they all have the same signature.");
+          }
+        } else {
+          logger.log(Type.WARN,
+              "Parsing error for Magic Method " + bits[0] + ";\n"
+                + "the correct format to use is: p.k.g.Client::method(Ls/i/g;)Lr/e/t/u/r/n *= p.k.g.Magic::method\n"
+                + "You do not need to specifiy the magic method parameter or return types as they all have the same signature.");
+        }
+      }
+    } catch (Exception e) {
+      logger.log(Type.WARN, "Error encountered looking up user-defined magic methods", e);
+    }
+    return listeners;
   }
 
   /**
@@ -1074,7 +1228,8 @@ public class UnifyAst {
     return true;
   }
 
-  private void error(JNode x, String errorMessage) {
+  @Override
+  public void error(JNode x, String errorMessage) {
     errorsFound = true;
     TreeLogger branch =
         logger
@@ -1374,11 +1529,38 @@ public class UnifyAst {
    * Main loop: run through the queue doing deferred resolution. We could have
    * made this entirely recursive, but a work queue uses much less max stack.
    */
-  private void mainLoop() {
+  private void mainLoop() throws UnableToCompleteException {
     UnifyVisitor visitor = new UnifyVisitor();
-    while (!todo.isEmpty()) {
-      visitor.accept(todo.poll());
+    List<UnifyAstListener> listeners = setupMagicMethods();
+    try {
+      boolean loop = true;
+      int maxLoop = 50;
+
+      for (; loop && maxLoop-- > 0;) {
+        // Normal behavior for mainLoop()
+        while (!todo.isEmpty()) {
+          visitor.accept(todo.poll());
+        }
+        loop = false;
+        for (UnifyAstListener listener : listeners) {
+          // Allows listeners to inject code at the end of an iteration
+          loop |= listener.onUnifyAstPostProcess(logger, this, visitor, todo);
+        }
+      }// end loop
+      if (maxLoop == 0) {
+        logger.log(Type.WARN, "A unify ast listener caused 50 iterations, and is likely " +
+          "returning true ad infinitum in onUnifyAstPostProcess"
+          + "\nListeners: " + listeners);
+      }
+    } catch (Throwable e) {
+      throw CompilationProblemReporter.logAndTranslateException(logger, e);
+      // Always cleanup
+    } finally {
+      for (UnifyAstListener listener : listeners) {
+        listener.destroy(logger);
+      }
     }
+
   }
 
   private void mapApi(JDeclaredType type) {
@@ -1387,6 +1569,7 @@ public class UnifyAst {
       String sig = type.getName() + '.' + field.getSignature();
       fieldMap.put(sig, field);
     }
+
     for (JMethod method : type.getMethods()) {
       String methodSignature = method.getQualifiedName();
       methodMap.put(methodSignature, method);
@@ -1511,7 +1694,8 @@ public class UnifyAst {
    * Replaces an external (stub) reference node to a particular class by the actual AST node if
    * necessary.
    */
-  private JClassType translate(JClassType type) {
+  @Override
+  public JClassType translate(JClassType type) {
     return (JClassType) translate((JDeclaredType) type);
   }
 
@@ -1519,7 +1703,8 @@ public class UnifyAst {
    * Replaces an external (stub) reference node to a particular type by the actual AST node if
    * necessary.
    */
-  private JDeclaredType translate(JDeclaredType type) {
+  @Override
+  public JDeclaredType translate(JDeclaredType type) {
     if (!type.isExternal()) {
       return type;
     }
@@ -1537,7 +1722,8 @@ public class UnifyAst {
    * Replaces an external (stub) reference node to a particular field by the actual AST node if
    * necessary.
    */
-  private JField translate(JField field) {
+  @Override
+  public JField translate(JField field) {
     if (!field.isExternal()) {
       return field;
     }
@@ -1571,7 +1757,8 @@ public class UnifyAst {
    * Replaces an external (stub) reference node to a particular method by the actual AST node if
    * necessary.
    */
-  private JMethod translate(JMethod method) {
+  @Override
+  public JMethod translate(JMethod method) {
     if (!method.isExternal()) {
       return method;
     }
@@ -1603,7 +1790,8 @@ public class UnifyAst {
    * Replaces an external (stub) reference node to a particular type by the actual AST node if
    * necessary.
    */
-  private JReferenceType translate(JReferenceType type) {
+  @Override
+  public JReferenceType translate(JReferenceType type) {
     JReferenceType result = type.getUnderlyingType();
 
     if (type instanceof JArrayType) {
@@ -1622,10 +1810,51 @@ public class UnifyAst {
     return result;
   }
 
-  private JType translate(JType type) {
+  @Override
+  public JType translate(JType type) {
     if (type instanceof JPrimitiveType) {
       return type;
     }
     return translate((JReferenceType) type);
+  }
+
+  @Override
+  public JDeclaredType searchForTypeByBinary(String binaryTypeName) {
+    try {
+      return findType(binaryTypeName, binaryNameBasedTypeLocator);
+    } catch (UnableToCompleteException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  @Override
+  public JDeclaredType searchForTypeBySource(String sourceTypeName) {
+    try {
+      return findType(sourceTypeName, sourceNameBasedTypeLocator);
+    } catch (UnableToCompleteException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  @Override
+  public RebindPermutationOracle getRebindPermutationOracle() {
+    return rpo;
+  }
+
+  @Override
+  public JProgram getProgram() {
+    return program;
+  }
+
+  @Override
+  public TypeOracle getTypeOracle() {
+    return rpo.getGeneratorContext().getTypeOracle();
+  }
+
+  @Override
+  public StandardGeneratorContext getGeneratorContext() {
+    return rpo.getGeneratorContext();
   }
 }
