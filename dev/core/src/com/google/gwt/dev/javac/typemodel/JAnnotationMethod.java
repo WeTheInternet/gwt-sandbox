@@ -32,7 +32,7 @@ public class JAnnotationMethod extends JMethod implements
   JAnnotationMethod(JClassType enclosingType, String name,
       Map<Class<? extends Annotation>, Annotation> declaredAnnotations,
       JTypeParameter[] jtypeParameters, Object defaultValue) {
-    super(enclosingType, name, declaredAnnotations, jtypeParameters);
+    super(enclosingType, name, declaredAnnotations, jtypeParameters, defaultValue != null);
     this.defaultValue = defaultValue;
   }
 

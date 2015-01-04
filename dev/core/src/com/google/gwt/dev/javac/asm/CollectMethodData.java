@@ -21,6 +21,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,9 @@ public class CollectMethodData extends MethodVisitor {
   private int syntheticArgs;
   private int longDoubleCounter;
 
+  private boolean isMethodInInterface;
+  private boolean isDefaultMethod;
+
   /**
    * Prepare to collect data for a method from bytecode.
    *
@@ -57,13 +61,14 @@ public class CollectMethodData extends MethodVisitor {
   @SuppressWarnings("unchecked")
   // for new List[]
   public CollectMethodData(CollectClassData.ClassType classType, int access,
-      String name, String desc, String signature, String[] exceptions) {
+      String name, String desc, String signature, String[] exceptions, int classAccess) {
     super(Opcodes.ASM5);
     this.access = access;
     this.name = name;
     this.desc = desc;
     this.signature = signature;
     this.exceptions = exceptions;
+    isMethodInInterface = (classAccess & Modifier.INTERFACE) > 0;
     syntheticArgs = 0;
     argTypes = Type.getArgumentTypes(desc);
     // Non-static instance methods and constructors of non-static inner
@@ -210,6 +215,12 @@ public class CollectMethodData extends MethodVisitor {
       longDoubleCounter++;
     }
   }
+  
+  @Override
+  public void visitCode() {
+    isDefaultMethod = isMethodInInterface;
+    super.visitCode();
+  }
 
   @Override
   public AnnotationVisitor visitParameterAnnotation(int parameter, String desc,
@@ -221,5 +232,9 @@ public class CollectMethodData extends MethodVisitor {
       paramAnnots[parameter - syntheticArgs].add(av);
     }
     return av;
+  }
+
+  public boolean isDefaultMethod() {
+    return isDefaultMethod;
   }
 }

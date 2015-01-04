@@ -44,4 +44,6 @@ public interface JMethod extends JAbstractMethod {
   boolean isNative();
 
   boolean isStatic();
+  
+  boolean isDefaultMethod();
 }
