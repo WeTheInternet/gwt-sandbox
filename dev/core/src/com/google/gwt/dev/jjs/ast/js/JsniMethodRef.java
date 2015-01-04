@@ -18,6 +18,7 @@ package com.google.gwt.dev.jjs.ast.js;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.ast.Context;
 import com.google.gwt.dev.jjs.ast.JClassType;
+import com.google.gwt.dev.jjs.ast.JDeclaredType;
 import com.google.gwt.dev.jjs.ast.JMethod;
 import com.google.gwt.dev.jjs.ast.JMethodCall;
 import com.google.gwt.dev.jjs.ast.JNullLiteral;
@@ -30,9 +31,9 @@ import com.google.gwt.dev.jjs.ast.JVisitor;
 public class JsniMethodRef extends JMethodCall {
 
   private final String ident;
-  private JClassType jsoType;
+  private JDeclaredType jsoType;
 
-  public JsniMethodRef(SourceInfo info, String ident, JMethod method, JClassType jsoType) {
+  public JsniMethodRef(SourceInfo info, String ident, JMethod method, JDeclaredType jsoType) {
     // Just use a null literal as the qualifier on a non-static method
     super(info, method.isStatic() ? null : JNullLiteral.INSTANCE, method);
     assert ident != null;
@@ -45,7 +46,7 @@ public class JsniMethodRef extends JMethodCall {
   }
 
   @Override
-  public JClassType getType() {
+  public JDeclaredType getType() {
     return jsoType;
   }
 

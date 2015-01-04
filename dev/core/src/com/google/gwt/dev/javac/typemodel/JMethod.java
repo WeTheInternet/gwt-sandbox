@@ -30,17 +30,21 @@ public class JMethod extends JAbstractMethod implements
 
   private JType returnType;
 
+	private boolean isDefault;
+
   JMethod(JClassType enclosingType, JMethod srcMethod) {
     super(srcMethod);
     this.enclosingType = enclosingType;
+    this.isDefault = srcMethod.isDefault;
     this.returnType = srcMethod.returnType;
   }
 
   JMethod(JClassType enclosingType, String name,
       Map<Class<? extends Annotation>, Annotation> declaredAnnotations,
-      JTypeParameter[] jtypeParameters) {
+      JTypeParameter[] jtypeParameters, boolean isDefault) {
     super(name, declaredAnnotations, jtypeParameters);
     this.enclosingType = enclosingType;
+    this.isDefault = isDefault;
     enclosingType.addMethod(this);
   }
 
@@ -105,6 +109,11 @@ public class JMethod extends JAbstractMethod implements
     return null;
   }
 
+  @Override
+  public boolean isDefaultMethod() {
+    return isDefault;
+  }
+  
   @Override
   public boolean isFinal() {
     return 0 != (getModifierBits() & TypeOracle.MOD_FINAL);

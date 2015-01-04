@@ -45,7 +45,7 @@ public interface Resolver {
 
   JMethod newMethod(JClassType type, String name,
       Map<Class<? extends Annotation>, Annotation> declaredAnnotations,
-      JTypeParameter[] typeParams);
+      JTypeParameter[] typeParams, boolean isDefaultMethod);
 
   void newParameter(JAbstractMethod method, JType argType, String argName,
       Map<Class<? extends Annotation>, Annotation> declaredAnnotations,

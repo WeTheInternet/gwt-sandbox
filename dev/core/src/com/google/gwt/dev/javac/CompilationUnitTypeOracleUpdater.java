@@ -156,9 +156,9 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
     @Override
     public JMethod newMethod(JClassType type, String name,
         Map<Class<? extends Annotation>, Annotation> declaredAnnotations,
-        JTypeParameter[] typeParams) {
+        JTypeParameter[] typeParams, boolean isDefaultMethod) {
       return CompilationUnitTypeOracleUpdater.this.newMethod(
-          type, name, declaredAnnotations, typeParams);
+          type, name, declaredAnnotations, typeParams, isDefaultMethod);
     }
 
     @Override
@@ -1116,7 +1116,7 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
         // TODO(jat): actually resolve the default annotation value.
         method = newAnnotationMethod(unresolvedType, name, declaredAnnotations, typeParams, null);
       } else {
-        method = newMethod(unresolvedType, name, declaredAnnotations, typeParams);
+        method = newMethod(unresolvedType, name, declaredAnnotations, typeParams, methodData.isDefaultMethod());
       }
     }
 

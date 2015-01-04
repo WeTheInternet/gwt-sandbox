@@ -105,8 +105,8 @@ public class TypeOracleUpdater {
 
   protected JMethod newMethod(JClassType type, String name,
       Map<Class<? extends Annotation>, Annotation> declaredAnnotations,
-      JTypeParameter[] typeParams) {
-    return new JMethod(type, name, declaredAnnotations, typeParams);
+      JTypeParameter[] typeParams, boolean isDefaultMethod) {
+    return new JMethod(type, name, declaredAnnotations, typeParams, isDefaultMethod);
   }
 
   protected void newParameter(JAbstractMethod method, JType argType,

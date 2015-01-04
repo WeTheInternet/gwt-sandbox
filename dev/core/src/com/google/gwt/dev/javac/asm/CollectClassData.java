@@ -361,7 +361,7 @@ public class CollectClassData extends EmptyVisitor {
       return null;
     }
     CollectMethodData mv = new CollectMethodData(classType, access, name, desc,
-        signature, exceptions);
+        signature, exceptions, getAccess());
     methods.add(mv);
     return mv;
   }
