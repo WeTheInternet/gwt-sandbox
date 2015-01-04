@@ -32,10 +32,10 @@ public class JNewInstance extends JMethodCall {
   }
 
   public JNewInstance(SourceInfo info, JConstructor ctor) {
-    this(info, ctor, enclosingType, new JExpression[0]);
+    this(info, ctor, new JExpression[0]);
   }
   
-  public JNewInstance(SourceInfo info, JConstructor ctor, JDeclaredType enclosingType, JExpression ... args) {
+  public JNewInstance(SourceInfo info, JConstructor ctor, JExpression ... args) {
     super(info, null, ctor, args);
     setStaticDispatchOnly();
   }
