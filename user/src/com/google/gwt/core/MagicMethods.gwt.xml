@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.7.0//EN" "http://gwtproject.org/doctype/2.7.0/gwt-module.dtd">
+<module>
+
+  
+  <!-- Configuration Property: gwt.magic.methods -> extend to add magic method injection.
+  
+  Allows end users to extend GWT.create()-like abilities using custom magic methods,
+  by replacing any method call site with custom AST (and a chance to call any generators).
+  
+  This enables bloat-free code to create factory methods that can take parameters.
+
+  These method overrides only work in the gwt compiler (super dev mode).
+  GwtDev will call the original method, without injection. 
+  -->
+  <define-configuration-property name="gwt.magic.methods" is-multi-valued="true"/>
+  
+</module>
