@@ -34,7 +34,7 @@ import com.google.gwt.core.client.impl.SpecializeMethod;
  * @param <K> key type
  * @param <V> value type
  */
-abstract class AbstractHashMap<K, V> extends AbstractMap<K, V> {
+public abstract class AbstractHashMap<K, V> extends AbstractMap<K, V> {
 
   private final class EntrySet extends AbstractSet<Entry<K, V>> {
 
@@ -218,13 +218,13 @@ abstract class AbstractHashMap<K, V> extends AbstractMap<K, V> {
    * Subclasses must override to return a whether or not two keys or values are
    * equal.
    */
-  abstract boolean equals(Object value1, Object value2);
+  protected abstract boolean equals(Object value1, Object value2);
 
   /**
    * Subclasses must override to return a hash code for a given key. The key is
    * guaranteed to be non-null and not a String.
    */
-  abstract int getHashCode(Object key);
+  protected abstract int getHashCode(Object key);
 
   /**
    * Returns the Map.Entry whose key is Object equal to <code>key</code>,
@@ -301,4 +301,8 @@ abstract class AbstractHashMap<K, V> extends AbstractMap<K, V> {
   private static native String unsafeCast(Object string) /*-{
     return string;
   }-*/;
+  
+  public Object clone() {
+    throw new UnsupportedOperationException();
+  }
 }
