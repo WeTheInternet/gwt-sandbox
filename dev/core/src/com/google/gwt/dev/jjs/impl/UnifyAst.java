@@ -15,7 +15,6 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
-import com.google.gwt.core.ext.ConfigurationProperty;
 import com.google.gwt.core.ext.PropertyOracle;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.TreeLogger.Type;
@@ -24,6 +23,7 @@ import com.google.gwt.core.ext.linker.ArtifactSet;
 import com.google.gwt.core.ext.typeinfo.TypeOracle;
 import com.google.gwt.dev.CompilerContext;
 import com.google.gwt.dev.MinimalRebuildCache;
+import com.google.gwt.dev.cfg.Properties;
 import com.google.gwt.dev.javac.CompilationProblemReporter;
 import com.google.gwt.dev.javac.CompilationState;
 import com.google.gwt.dev.javac.CompilationUnit;
@@ -282,6 +282,20 @@ public class UnifyAst implements UnifyAstView {
         assert errorsFound;
         return;
       }
+      String targetSignature = target.getQualifiedName();
+      if (MAGIC_METHOD_CALLS.contains(targetSignature)) {
+        if (GWT_DEBUGGER_METHOD_CALLS.contains(targetSignature)) {
+          return; // handled in endVisit for JExpressionStatement
+        }
+        JExpression result = handleMagicMethodCall(x, ctx);
+        if (result == null) {
+          // Error of some sort.
+          result = JNullLiteral.INSTANCE;
+        }
+        result = this.accept(result);
+        ctx.replaceMe(result);
+        return;
+      }
       // Should not have an overridden type at this point.
       assert x instanceof JNewInstance || x.getType() == target.getType();
 
@@ -358,7 +372,7 @@ public class UnifyAst implements UnifyAstView {
       // potentially different from the one in the exception variable.
       for (JTryStatement.CatchClause clause : x.getCatchClauses()) {
         List<JType> types = clause.getTypes();
-        for (int i = 0; i <  types.size(); i++) {
+        for (int i = 0; i < types.size(); i++) {
           JReferenceType resolvedType = translate((JReferenceType) types.get(i));
           assert resolvedType.replaces(types.get(i));
           types.set(i, resolvedType);
@@ -445,8 +459,10 @@ public class UnifyAst implements UnifyAstView {
           gwtGetPropertyCall.getArgs().get(1) : null;
 
       if (!(propertyNameExpression instanceof JStringLiteral)) {
-        error(gwtGetPropertyCall,
-            "Only string constants may be used as property name in System.getProperty()");
+        error(
+            gwtGetPropertyCall,
+            "Only string constants may be used as property name in System.getProperty()"
+        );
         return null;
       }
       String propertyName = ((JStringLiteral) propertyNameExpression).getValue();
@@ -473,14 +489,17 @@ public class UnifyAst implements UnifyAstView {
       }
       JClassLiteral classLiteral = (JClassLiteral) arg;
       if (!(classLiteral.getRefType() instanceof JDeclaredType)) {
-        error(gwtCreateCall,
-            "Only classes and interfaces may be used as arguments to GWT.create()");
+        error(
+            gwtCreateCall,
+            "Only classes and interfaces may be used as arguments to GWT.create()"
+        );
         return null;
       }
 
       Event event = SpeedTracerLogger.start(CompilerEventType.VISIT_GWT_CREATE,
           "argument", classLiteral.getRefType().getName(),
-          "caller", gwtCreateCall.getSourceInfo().getFileName());
+          "caller", gwtCreateCall.getSourceInfo().getFileName()
+      );
       try {
         return createStaticRebindExpression(gwtCreateCall, classLiteral);
       } finally {
@@ -488,8 +507,10 @@ public class UnifyAst implements UnifyAstView {
       }
     }
 
-    private JExpression createStaticRebindExpression(JMethodCall gwtCreateCall,
-        JClassLiteral classLiteral) {
+    private JExpression createStaticRebindExpression(
+        JMethodCall gwtCreateCall,
+        JClassLiteral classLiteral
+    ) {
       JDeclaredType type = (JDeclaredType) classLiteral.getRefType();
       String reboundTypeName = type.getName();
       // TODO(stalcup): below a MinimalRebuildCache pattern of "clear cache entries for a type" and
@@ -556,11 +577,15 @@ public class UnifyAst implements UnifyAstView {
           return null;
         }
         JExpression result = JjsUtils
-            .createDefaultConstructorInstantiation(gwtCreateCall.getSourceInfo(),
-                (JClassType) answerType);
+            .createDefaultConstructorInstantiation(
+                gwtCreateCall.getSourceInfo(),
+                (JClassType) answerType
+            );
         if (result == null) {
-          error(gwtCreateCall,
-              "Rebind result '" + answer + "' has no default (zero argument) constructors");
+          error(
+              gwtCreateCall,
+              "Rebind result '" + answer + "' has no default (zero argument) constructors"
+          );
           return null;
         }
         instantiationExpressions.add(result);
@@ -606,8 +631,11 @@ public class UnifyAst implements UnifyAstView {
       return new JNameOf(x.getSourceInfo(), program.getTypeJavaLangString(), (HasName) node);
     }
 
-    private JExpression handleMagicMethodCall(JMethodCall x, String targetSignature) {
-      switch (targetSignature) {
+    private JExpression handleMagicMethodCall(JMethodCall x, Context ctx) {
+      JMethod target = x.getTarget();
+      String methodSignature = target.getQualifiedName();
+
+      switch (methodSignature) {
         case GWT_CREATE:
         case OLD_GWT_CREATE:
           return createRebindExpression(x);
@@ -616,37 +644,27 @@ public class UnifyAst implements UnifyAstView {
         case SYSTEM_GET_PROPERTY:
         case SYSTEM_GET_PROPERTY_WITH_DEFAULT:
           return handleSystemGetProperty(x);
-      }
-      throw new InternalCompilerException("Unknown magic method");
-    }
-    private JExpression handleMagicMethodCall(JMethodCall x, Context ctx) {
-      JMethod target = x.getTarget();
-      String methodSignature = target.getEnclosingType().getName() + '.' + target.getSignature();
-
-      if (GWT_CREATE.equals(methodSignature) || OLD_GWT_CREATE.equals(methodSignature)) {
-        return createRebindExpression(x);
-      } else if (IMPL_GET_NAME_OF.equals(methodSignature)) {
-        return handleImplNameOf(x);
-      } else if (magicMethodMap.containsKey(methodSignature)) {
-        MagicMethodGenerator method = magicMethodMap.get(methodSignature);
-        try {
-          JExpression expr = method.injectMagic(logger, x, currentMethod, ctx, UnifyAst.this);
-          if (logger.isLoggable(Type.DEBUG)) {
-            logger.log(Type.DEBUG, "Magic method " + method
-              + " converted:\n" + x + "\ninto: " + expr);
+        default:
+          if (magicMethodMap.containsKey(methodSignature)) {
+            MagicMethodGenerator method = magicMethodMap.get(methodSignature);
+            try {
+              JExpression expr = method.injectMagic(logger, x, currentMethod, ctx, UnifyAst.this);
+              if (logger.isLoggable(Type.DEBUG)) {
+                logger.log(Type.DEBUG, "Magic method " + method
+                    + " converted:\n" + x + "\ninto: " + expr);
+              }
+              if (expr instanceof JMethodCall) {
+                flowInto(((JMethodCall) expr).getTarget());
+              }
+              return expr;
+            } catch (Exception e) {
+              logger.log(Type.ERROR, "Fatal error calling magic method " + method + " on " + x, e);
+              throw new InternalCompilerException("Unable to implement magic method " + method + "()", e);
+            }
           }
-          if (expr instanceof JMethodCall) {
-            flowInto(((JMethodCall) expr).getTarget());
-          }
-          return expr;
-        } catch (Exception e) {
-          logger.log(Type.ERROR, "Fatal error calling magic method " + method + " on " + x, e);
-          throw new InternalCompilerException("Unable to implement magic method " + method + "()", e);
-        }
+          throw new InternalCompilerException("Unknown magic method error");
       }
-      throw new InternalCompilerException("Unknown magic method error");
     }
-
   }
 
   private boolean isPropertyDefined(String propertyName) {
@@ -979,9 +997,19 @@ public class UnifyAst implements UnifyAstView {
     List<UnifyAstListener> listeners = new ArrayList<UnifyAstListener>();
     try {
       PropertyOracle props = rebindPermutationOracle.getGeneratorContext().getPropertyOracle();
-      ConfigurationProperty methods = props.getConfigurationProperty("gwt.magic.methods");
+      List<String> methods = new ArrayList<String>();
+      if (props == null) {
+        Properties properties = compilationState.getCompilerContext().getModule().getProperties();
+        for (com.google.gwt.dev.cfg.ConfigurationProperty prop : properties.getConfigurationProperties()) {
+          if (prop.getName().equals("gwt.magic.methods")) {
+            methods.addAll(prop.getValues());
+          }
+        }
+      } else {
+        methods = props.getConfigurationProperty("gwt.magic.methods").getValues();
+      }
       Map<Class<?>, MagicMethodGenerator> generators = new HashMap<Class<?>, MagicMethodGenerator>();
-      for (String prop : methods.getValues()) {
+      for (String prop : methods) {
         String[] bits = prop.split("[*]=");
         if (bits.length == 2) {
           final String clientMethod = bits[0].trim();
@@ -1024,7 +1052,13 @@ public class UnifyAst implements UnifyAstView {
                       return method.toString();
                     }
                   });
+                  maybeAdd:
                   if (UnifyAstListener.class.isAssignableFrom(magicClass)) {
+                    for (UnifyAstListener existing : listeners) {
+                      if (magicClass.isAssignableFrom(existing.getClass())) {
+                        break maybeAdd;
+                      }
+                    }
                     listeners.add(UnifyAstListener.class.cast(magicClass.newInstance()));
                   }
                 } else {
@@ -1039,11 +1073,11 @@ public class UnifyAst implements UnifyAstView {
                   if (generator == null) {
                     generator = (MagicMethodGenerator) magicClass.newInstance();
                     generators.put(magicClass, generator);
+                    if (generator instanceof UnifyAstListener) {
+                      listeners.add((UnifyAstListener) generator);
+                    }
                   }
                   magicMethodMap.put(clientMethod, generator);
-                  if (generator instanceof UnifyAstListener) {
-                    listeners.add((UnifyAstListener) generator);
-                  }
                 }
               }
               logger.log(Type.TRACE, "Magic method " + clientMethod + " -> " + magicClass.getCanonicalName() + "::"
@@ -1536,6 +1570,11 @@ public class UnifyAst implements UnifyAstView {
     try {
       boolean loop = true;
       int maxLoop = 50;
+
+      for (UnifyAstListener listener : listeners) {
+        // Allows listeners to inject code at the beginning of an iteration
+        listener.onUnifyAstStart(logger, this, visitor, todo);
+      }
 
       for (; loop && maxLoop-- > 0;) {
         // Normal behavior for mainLoop()
