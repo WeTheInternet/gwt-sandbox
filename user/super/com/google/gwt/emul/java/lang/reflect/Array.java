@@ -1,19 +1,12 @@
 package java.lang.reflect;
 
+import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.core.client.JsArray;
+import com.google.gwt.core.client.JsArrayMixed;
 import com.google.gwt.core.client.UnsafeNativeLong;
+import com.google.gwt.dev.jjs.JavaScriptCompiler;
 
-/**
- * The <code>Array</code> class provides static methods to dynamically create and
- * access Java arrays.
- *
- * <p><code>Array</code> permits widening conversions to occur during a get or set
- * operation, but throws an <code>IllegalArgumentException</code> if a narrowing
- * conversion would occur.
- *
- * @author Nakul Saraiya
- */
-public final
-class Array {
+public final class Array {
 
   private static void assertIsArray(Object o) {
     assert o != null : new NullPointerException();
@@ -25,6 +18,47 @@ class Array {
     assert o.getClass().getComponentType() == component : "Array class "+o.getClass().getName()+" does not have " +
       "claimed component type "+component.getName();
   }
+  
+  private static JavaScriptObject factories = JavaScriptObject.createArray();
+  private static JavaScriptObject classes = JavaScriptObject.createArray();
+  
+  public static <T> T[] register(T[] array, Class componentType) {
+    while (componentType.isArray()) {
+      int seedId = constId(componentType);
+      initFactory(seedId, array);
+      saveType(constId(componentType.getComponentType()), componentType);
+      componentType = componentType.getComponentType();
+    }
+    return array;
+  }
+  
+  private static native int constId(Class<?> cls)
+  /*-{
+     return cls.@java.lang.Class::constId;
+  }-*/;
+  private static native <T> boolean initFactory(int id, T[] seed)
+  /*-{
+     if (!@java.lang.reflect.Array::factories[id]) {
+       factories[id] = @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(seed, 0);
+     }
+   }-*/;
+
+  private static native void saveType(int id, Class<?> arrayClass)
+  /*-{
+     @java.lang.reflect.Array::classes[id] = arrayClass;
+  }-*/;
+  
+  private static native Class<?> findType(int id, int length)
+  /*-{
+     var cls = @java.lang.reflect.Array::classes[id];
+     while(length-->0) {
+       if (!cls) {
+         return null;
+       }
+       cls = @java.lang.reflect.Array::classes[cls.@java.lang.Class::constId];
+     }
+     return cls;
+   }-*/;
   
     /**
      * Constructor.  Class Array is not instantiable.
@@ -53,11 +87,34 @@ class Array {
      * @exception NegativeArraySizeException if the specified <code>length</code> 
      * is negative
      */
-    public static Object newInstance(Class<?> componentType, int length)
-  throws NegativeArraySizeException {
-      assert false : new IllegalArgumentException("Replaced by GWT compiler");
-      return null;
+    public static Object newInstance(Class<?> componentType, int length) 
+        throws NegativeArraySizeException {
+      // We defer to a different method so if the magic-method injector does not
+      // receive a class literal, it can just rewrite the call to #newArray()
+      return newSingleDimArray(componentType, length);
     }
+
+    public static Object newSingleDimArray(Class<?> componentType, int length) 
+        throws NegativeArraySizeException {
+      int seedId = constId(componentType);
+      Object result = newArray(seedId, length);
+      if (result == null) {
+        throw new UnsupportedOperationException("Array for type "+componentType+" not initialized. "
+            +"Call Array.newInstance("+componentType.getName()+".class, 0) to register this type");
+
+      }
+      return result;
+    }
+    
+    private static native <T> T[] newArray(int id, int length)
+    /*-{
+       if (@java.lang.reflect.Array::factories[id]) {
+         var from = @java.lang.reflect.Array::factories[id];
+         return @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(from, length);
+       }
+       return null;
+     }-*/;
+
 
     /**
      * Creates a new array
@@ -93,10 +150,32 @@ class Array {
      * the specified <code>dimensions</code> argument is negative.
      */
     public static Object newInstance(Class<?> componentType, int... dimensions)
-  throws IllegalArgumentException, NegativeArraySizeException {
-      assert false : new IllegalArgumentException("Replaced by GWT compiler");
-      return null;
+        throws IllegalArgumentException, NegativeArraySizeException {
+      return newMultiDimArray(componentType, dimensions);
     }
+
+    public static Object newMultiDimArray(Class<?> componentType, int[] dimensions)
+        throws IllegalArgumentException, NegativeArraySizeException {
+      Class<?> arrayType = findType(constId(componentType), dimensions.length);
+      int size = dimensions.length > 0 ? dimensions[0] : 0;
+      Object result = newArray(constId(arrayType), size);
+      fillArray(result, arrayType, dimensions, 0);
+      return result;
+    }
+    
+    private static void fillArray(Object array, Class<?> arrayType, int[] dimensions, int position) {
+      if (position < dimensions.length) {
+        int size = dimensions[position];
+        Class<?> component = arrayType.getComponentType();
+        while (size-->0) {
+          Object child = newArray(constId(component), 0);
+          setUnsafe(array, size, child);
+          fillArray(child, component, dimensions, position+1);
+        }
+      }
+    }
+    
+    
 
     /**
      * Returns the length of the specified array object, as an <code>int</code>.
@@ -353,7 +432,13 @@ class Array {
   /*-{
     @java.lang.reflect.Array::assertIsArray(Ljava/lang/Object;)(array);
     array[index] = value;
-  }-*/
+  }-*/;
+    
+  private static native void setUnsafe(Object array, int index, Object value)
+      throws IllegalArgumentException, ArrayIndexOutOfBoundsException
+      /*-{
+        array[index] = value;
+      }-*/
   ;
 
     /**
