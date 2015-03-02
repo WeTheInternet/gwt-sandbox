@@ -97,7 +97,7 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
       // At this time, there can only be a single
       // interface with a single non-default method
       for (JMethod m : iface.getMethods()) {
-        if (!m.isDefaultMethod() && !m.isSynthetic()) {
+        if (!m.isStatic() && !m.isDefaultMethod() && !m.isSynthetic()) {
           return m;
         }
       }
