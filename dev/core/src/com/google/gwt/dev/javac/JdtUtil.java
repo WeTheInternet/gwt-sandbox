@@ -240,6 +240,19 @@ public final class JdtUtil {
     }
     return null;
   }
+  
+  static AnnotationBinding getAnnotationBySimpleName(AnnotationBinding[] annotations, String nameToFind) {
+    if (annotations != null) {
+      for (AnnotationBinding a : annotations) {
+        ReferenceBinding annBinding = a.getAnnotationType();
+        String annName = new String(annBinding.sourceName);
+        if (nameToFind.equals(annName)) {
+          return a;
+        }
+      }
+    }
+    return null;
+  }
 
   public static AnnotationBinding getAnnotationByName(
       AnnotationBinding[] annotationsBindings, String name) {
@@ -253,12 +266,45 @@ public final class JdtUtil {
     }
     return null;
   }
+  
+  static AnnotationBinding getAnnotationBySimpleName(Annotation[] annotations, String nameToFind) {
+    if (annotations != null) {
+      for (Annotation a : annotations) {
+        AnnotationBinding annBinding = a.getCompilerAnnotation();
+        if (annBinding != null) {
+          String annName = new String(annBinding.getAnnotationType().sourceName);
+          if (nameToFind.equals(annName)) {
+            return annBinding;
+          }
+        }
+      }
+    }
+    return null;
+  }
 
   private static boolean matchAnnotationName(AnnotationBinding annotationBinding, String name) {
     if (annotationBinding == null) {
       return false;
     }
     return name.equals(CharOperation.toString(annotationBinding.getAnnotationType().compoundName));
+  }
+  
+  public static AnnotationBinding getAnnotationBySimpleName(Binding binding, String nameToFind) {
+    if (binding instanceof SourceTypeBinding) {
+      ClassScope scope = ((SourceTypeBinding) binding).scope;
+      return scope != null ? getAnnotationBySimpleName(scope.referenceType().annotations, nameToFind) : null;
+    } else if (binding instanceof ReferenceBinding) {
+      return getAnnotationBySimpleName(((ReferenceBinding) binding).getAnnotations(), nameToFind);
+    } else if (binding instanceof SyntheticMethodBinding) {
+      return null;
+    } else if (binding instanceof MethodBinding) {
+      AbstractMethodDeclaration abMethod = safeSourceMethod((MethodBinding) binding);
+      return abMethod != null ? getAnnotationBySimpleName(abMethod.annotations, nameToFind) : null;
+    } else if (binding instanceof FieldBinding) {
+      return getAnnotationBySimpleName(((FieldBinding) binding).sourceField().annotations, nameToFind);
+    } else {
+      return null;
+    }
   }
 
   public static TypeBinding getAnnotationParameterTypeBinding(
