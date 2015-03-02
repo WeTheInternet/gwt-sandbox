@@ -1,4 +1,3 @@
-<<<<<<< 2559ef031ab307cda2f55d2f88bc69f5b567ede5
 /*
  * Copyright 2017 Google Inc.
  *
@@ -52,15 +51,7 @@ public final class Array {
     }
   }
 
-  public static boolean getBoolean(Object array, int index) {
-    checkArgument(array instanceof boolean[]);
-    return getBooleanImpl(array, index);
-  }
-
-  private static boolean getBooleanImpl(Object array, int index) {
-    boolean[] typedArray = (boolean[]) array;
-    return typedArray[index];
-  }
+public final class Array {
 
   public static byte getByte(Object array, int index) {
     checkArgument(array instanceof byte[]);
@@ -358,49 +349,140 @@ public final class Array {
     typedArray[index] = value;
   }
 
-   /**
-     * Creates a new array.
-     *
-     * Uses the same semantics as java, expects a non-array component type,
-     * followed by the length of the single-dimensional array returned.
-     *
-     * newInstance(String.class, 1) -> new String[1]
-     *
-     * All instances of this method call must be replaced by the GWT compiler.
-     *
-     * TODO: consider hooking up some runtime backup wiring, in case this is called outside of GWT
-     * (like in J2CL), such that other transpilers can fill in that wiring dynamically, and have
-     * a real method body here.
-     *
-     */
-    public static Object newInstance(Class<?> componentType, int length)
-    throws NegativeArraySizeException {
-        assert false : new IllegalArgumentException("Replaced by GWT compiler");
-        return null;
-    }
+  private static JavaScriptObject factories = JavaScriptObject.createArray();
+  private static JavaScriptObject classes = JavaScriptObject.createArray();
 
-    /**
-     * Creates a new array.
-     *
-     * Uses the same semantics as java, expects a non-array component type,
-     * followed by an array containing the expected lengths of each dimension of the array.
-     *
-     * newInstance(String.class, 1) -> new String[1]
-     * newInstance(String.class, 1, 2, 3) -> new String[1][2][3]
-     *
-     * All instances of this method call must be replaced by the GWT compiler.
-     *
-     * TODO: consider hooking up some runtime backup wiring, in case this is called outside of GWT
-     * (like in J2CL), such that other transpilers can fill in that wiring dynamically, and have
-     * a real method body here.
-     *
-     */
-    public static Object newInstance(Class<?> componentType, int... dimensions)
-    throws IllegalArgumentException, NegativeArraySizeException {
-        assert false : new IllegalArgumentException("Replaced by GWT compiler");
-        return null;
+  public static <T> T[] register(T[] array, Class componentType) {
+    while (componentType.isArray()) {
+      int seedId = constId(componentType);
+      initFactory(seedId, array);
+      saveType(constId(componentType.getComponentType()), componentType);
+      componentType = componentType.getComponentType();
     }
+    return array;
+  }
 
+  private static native int constId(Class<?> cls)
+  /*-{
+    return cls.@java.lang.Class::constId;
+  }-*/;
+  private static native <T> boolean initFactory(int id, T[] seed)
+  /*-{
+    if (!@java.lang.reflect.Array::factories[id]) {
+      factories[id] = @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(seed, 0);
+    }
+  }-*/;
+
+  private static native void saveType(int id, Class<?> arrayClass)
+  /*-{
+    @java.lang.reflect.Array::classes[id] = arrayClass;
+  }-*/;
+
+  private static native Class<?> findType(int id, int length)
+  /*-{
+    var cls = @java.lang.reflect.Array::classes[id];
+    while(length-->0) {
+      if (!cls) {
+        return null;
+      }
+      cls = @java.lang.reflect.Array::classes[cls.@java.lang.Class::constId];
+    }
+    return cls;
+  }-*/;
+
+  /**
+   * Constructor.  Class Array is not instantiable.
+   */
+  private Array() {}
+
+
+  /**
+   * Creates a new sigle-dimensional array.
+   *
+   * Uses the same semantics as java, expects a non-array component type,
+   * followed by the length of the single-dimensional array returned.
+   *
+   * newInstance(String.class, 1) -> new String[1]
+   *
+   * All instances of this method call must be replaced by the GWT compiler.
+   *
+   * TODO: consider hooking up some runtime backup wiring, in case this is called outside of GWT
+   * (like in J2CL), such that other transpilers can fill in that wiring dynamically, and have
+   * a real method body here.
+   */
+  public static Object newInstance(Class<?> componentType, int length)
+  throws NegativeArraySizeException {
+    // We defer to a different method so if the magic-method injector does not
+    // receive a class literal, it can just rewrite the call to #newArray()
+    return newSingleDimArray(componentType, length);
+
+  public static Object newSingleDimArray(Class<?> componentType, int length)
+  throws NegativeArraySizeException {
+    int seedId = constId(componentType);
+    Object result = newArray(seedId, length);
+    if (result == null) {
+      throw new UnsupportedOperationException("Array for type "+componentType+" not initialized. "
+          +"Call Array.newInstance("+componentType.getName()+".class, 0) to register this type");
+
+    }
+    return result;
+  }
+
+  private static native <T> T[] newArray(int id, int length)
+    /*-{
+      if (@java.lang.reflect.Array::factories[id]) {
+        var from = @java.lang.reflect.Array::factories[id];
+        return @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(from, length);
+      }
+      return null;
+    }-*/;
+
+  /**
+   * Creates a new multi-dimensional array.
+   *
+   * Uses the same semantics as java, expects a non-array component type,
+   * followed by the length each dimension of the array returned.
+   *
+   * newInstance(String.class, 1) -> new String[1]
+   * newInstance(int.class, 1, 2, 3) -> new int[1][2][3]
+   *
+   * All instances of this method call must be replaced by the GWT compiler.
+   *
+   * TODO: consider hooking up some runtime backup wiring, in case this is called outside of GWT
+   * (like in J2CL), such that other transpilers can fill in that wiring dynamically, and have
+   * a real method body here.
+   */
+  public static Object newInstance(Class<?> componentType, int... dimensions)
+  throws IllegalArgumentException, NegativeArraySizeException {
+    return newMultiDimArray(componentType, dimensions);
+
+  public static Object newMultiDimArray(Class<?> componentType, int[] dimensions)
+  throws IllegalArgumentException, NegativeArraySizeException {
+    Class<?> arrayType = findType(constId(componentType), dimensions.length);
+    int size = dimensions.length > 0 ? dimensions[0] : 0;
+    Object result = newArray(constId(arrayType), size);
+    fillArray(result, arrayType, dimensions, 0);
+    return result;
+  }
+
+  private static void fillArray(Object array, Class<?> arrayType, int[] dimensions, int position) {
+    if (position < dimensions.length) {
+      int size = dimensions[position];
+      Class<?> component = arrayType.getComponentType();
+      while (size-->0) {
+        Object child = newArray(constId(component), 0);
+        setUnsafe(array, size, child);
+        fillArray(child, component, dimensions, position+1);
+      }
+    }
+  }
+
+  private static native void setUnsafe(Object array, int index, Object value)
+      throws IllegalArgumentException, ArrayIndexOutOfBoundsException
+      /*-{
+        array[index] = value;
+      }-*/
+  ;
 
     private Array() {
   }
