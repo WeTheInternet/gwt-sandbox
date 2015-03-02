@@ -110,9 +110,9 @@ public class ResolveGenericsTest extends AsmTestCase {
 
     @Override
     public JMethod newMethod(JClassType type, String name,
-        Map<Class<? extends Annotation>, Annotation> declaredAnnotations,
-        JTypeParameter[] typeParams) {
-      return delegate.newMethod(type, name, declaredAnnotations, typeParams);
+      Map<Class<? extends Annotation>, Annotation> declaredAnnotations,
+      JTypeParameter[] typeParams, boolean isDefaultMethod) {
+      return delegate.newMethod(type, name, declaredAnnotations, typeParams, isDefaultMethod);
     }
 
     @Override
@@ -302,7 +302,7 @@ public class ResolveGenericsTest extends AsmTestCase {
     }
     JTypeParameter[] typeParams = createTypeParams(method.getTypeParameters());
     Map<Class<? extends Annotation>, Annotation> emptyMap = Collections.emptyMap();
-    JMethod result = resolver.newMethod(type, methodName, emptyMap, typeParams);
+    JMethod result = resolver.newMethod(type, methodName, emptyMap, typeParams, false);
     reflectionMethods.put(result, method);
     return result;
   }
@@ -324,7 +324,7 @@ public class ResolveGenericsTest extends AsmTestCase {
     Method reflectionMethod = reflectionMethods.get(method);
     String desc = Type.getMethodDescriptor(reflectionMethod);
     CollectMethodData methodData = new CollectMethodData(ClassType.TopLevel,
-        access, method.getName(), desc, signature, null);
+        access, method.getName(), desc, signature, null, reflectionMethod.getDeclaringClass().getModifiers());
     Class<?>[] paramTypes = reflectionMethod.getParameterTypes();
     int n = paramTypes.length;
     Type[] argTypes = new Type[n];
