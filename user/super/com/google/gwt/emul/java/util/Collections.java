@@ -16,7 +16,6 @@
 package java.util;
 
 import static com.google.gwt.core.client.impl.Coercions.ensureInt;
-
 import static com.google.gwt.core.shared.impl.InternalPreconditions.checkArgument;
 import static com.google.gwt.core.shared.impl.InternalPreconditions.checkElementIndex;
 
@@ -1138,6 +1137,39 @@ public class Collections {
 
   public static void swap(List<?> list, int i, int j) {
     swapImpl(list, i, j);
+  }
+  
+
+  public static <T> Collection<T> synchronizedCollection(Collection<T> c) {
+      return c;
+  }
+  
+  public static <T> Set<T> synchronizedSet(Set<T> s) {
+    return s;
+  }
+  
+  public static <T> SortedSet<T> synchronizedSortedSet(SortedSet<T> s) {
+    return s;
+  }
+  
+  public static <T> NavigableSet<T> synchronizedNavigableSet(NavigableSet<T> s) {
+    return s;
+  }
+ 
+  public static <T> List<T> synchronizedList(List<T> list) {
+    return list;
+  }
+  
+  public static <K,V> Map<K,V> synchronizedMap(Map<K,V> m) {
+    return m;
+  }
+  
+  public static <K,V> SortedMap<K,V> synchronizedSortedMap(SortedMap<K,V> m) {
+    return m;
+  }
+  
+  public static <K,V> NavigableMap<K,V> synchronizedNavigableMap(NavigableMap<K,V> m) {
+    return m;
   }
 
   public static <T> Collection<T> unmodifiableCollection(
