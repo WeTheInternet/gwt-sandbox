@@ -8,7 +8,7 @@
         <version>4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.google.web.bindery</groupId>
+    <groupId>net.wetheinter</groupId>
     <artifactId>requestfactory</artifactId>
     <packaging>pom</packaging>
     <name>RequestFactory</name>
@@ -23,17 +23,17 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.google.web.bindery</groupId>
+                <groupId>net.wetheinter</groupId>
                 <artifactId>requestfactory-apt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.google.web.bindery</groupId>
+                <groupId>net.wetheinter</groupId>
                 <artifactId>requestfactory-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.google.web.bindery</groupId>
+                <groupId>net.wetheinter</groupId>
                 <artifactId>requestfactory-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
