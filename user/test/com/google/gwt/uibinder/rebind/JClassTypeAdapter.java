@@ -503,7 +503,9 @@ public class JClassTypeAdapter {
             }
           });
 
-      when(parameter.getAnnotation(any(Class.class))).thenAnswer(
+
+      Class any = any(Class.class);
+      when(parameter.getAnnotation(any)).thenAnswer(
           new Answer<Annotation>() {
             @Override
             public Annotation answer(InvocationOnMock invocation) throws Throwable {
@@ -596,8 +598,9 @@ public class JClassTypeAdapter {
             return realElement.isAnnotationPresent(annotationClass);
           }
         });
-
-    when(element.getAnnotation(any(Class.class))).thenAnswer(
+    @SuppressWarnings("rawtypes")
+    Class any = any(Class.class);
+    when(element.getAnnotation(any)).thenAnswer(
         new Answer<Annotation>() {
           @Override
           public Annotation answer(InvocationOnMock invocation) throws Throwable {
