@@ -1212,15 +1212,16 @@ public class GwtAstBuilder {
 
       // Lookup the JMethod version
       JMethod interfaceMethod = typeMap.get(samBinding);
+      
       // And its JInterface container we must implement
       // There may be more than more JInterface containers to be implemented
       // if the lambda expression is cast to a IntersectionCastType.
-      JInterfaceType[] funcType;
+      JDeclaredType[] funcType;
       if (binding instanceof IntersectionTypeBinding18) {
         funcType = processIntersectionTypeForLambda((IntersectionTypeBinding18) binding, blockScope,
             JdtUtil.signature(samBinding));
       } else {
-        funcType = new JInterfaceType[] {(JInterfaceType) typeMap.get(binding)};
+        funcType = new JDeclaredType[] {(JDeclaredType) typeMap.get(binding)};
       }
       SourceInfo info = makeSourceInfo(x);
 
@@ -1246,8 +1247,8 @@ public class GwtAstBuilder {
       // Now that we've added an implementation method for the lambda, we must create the inner class method
       // that implements the target interface type that delegates to the target lambda method
       JMethod samMethod = new JMethod(info, interfaceMethod.getName(), innerLambdaClass, interfaceMethod.getType(),
-          false, false, true, interfaceMethod.getAccess());
-
+            false, false, true, interfaceMethod.getAccess());
+      
       // implements the SAM, e.g. Callback.onCallback(), Runnable.run(), etc
       createLambdaSamMethod(x, interfaceMethod, info, innerLambdaClass, locals, outerField,
           lambdaMethod,
@@ -1434,13 +1435,20 @@ public class GwtAstBuilder {
     }
 
     private JClassType createInnerClass(String name, FunctionalExpression x, SourceInfo info,
-        JInterfaceType... funcType) {
-      JClassType innerLambdaClass = new JClassType(info, name + "$Type", false, true);
+        JDeclaredType... funcType) {
+      final JClassType innerLambdaClass = new JClassType(info, name + "$Type", false, true);
+      JClassType superClass = javaLangObject;
       innerLambdaClass.setEnclosingType((JDeclaredType) typeMap.get(x.binding.declaringClass));
-      for (JInterfaceType type : funcType) {
-        innerLambdaClass.addImplements(type);
+      for (JDeclaredType type : funcType) {
+        if (type instanceof JInterfaceType) {
+          innerLambdaClass.addImplements((JInterfaceType)type);
+        } else {
+          assert superClass == javaLangObject : "At most one superclass is supported for lambdas."+
+            "You supplied "+superClass+" and "+type;
+          superClass = (JClassType)type;
+        }
       }
-      innerLambdaClass.setSuperClass(javaLangObject);
+      innerLambdaClass.setSuperClass(superClass);
 
       createSyntheticMethod(info, CLINIT_NAME, innerLambdaClass, JPrimitiveType.VOID, false, true,
           true, AccessModifier.PRIVATE);
@@ -3368,8 +3376,6 @@ public class GwtAstBuilder {
           } else {
             throw new InternalCompilerException("Unknown emulation path.");
           }
-        } else {
-          result = makeLocalRef(info, b);
         }
       } else if (binding instanceof FieldBinding) {
         FieldBinding b = ((FieldBinding) x.binding).original();
@@ -3521,17 +3527,17 @@ public class GwtAstBuilder {
       }
     }
 
-    private JInterfaceType[] processIntersectionTypeForLambda(IntersectionTypeBinding18 type,
+    private JDeclaredType[] processIntersectionTypeForLambda(IntersectionTypeBinding18 type,
         BlockScope scope, String samSignature) {
-      List<JInterfaceType> interfaces = Lists.newArrayList();
+      List<JDeclaredType> interfaces = Lists.newArrayList();
       for (ReferenceBinding intersectingTypeBinding : type.intersectingTypes) {
         if (shouldImplements(intersectingTypeBinding, scope, samSignature)) {
           JType intersectingType = typeMap.get(intersectingTypeBinding);
           assert (intersectingType instanceof JInterfaceType);
-          interfaces.add(((JInterfaceType) intersectingType));
+          interfaces.add(((JDeclaredType) intersectingType));
         }
       }
-      return Iterables.toArray(interfaces, JInterfaceType.class);
+      return Iterables.toArray(interfaces, JDeclaredType.class);
     }
 
     private boolean isFunctionalInterfaceWithMethod(ReferenceBinding referenceBinding, Scope scope,
@@ -4031,6 +4037,7 @@ public class GwtAstBuilder {
       method =
           new JMethod(info, intern(b.selector), enclosingType, typeMap.get(b.returnType), b
               .isAbstract(), b.isStatic(), b.isFinal(), AccessModifier.fromMethodBinding(b));
+      MagicMethodUtil.maybeSetMagicMethodProperties(x, method);
     }
 
     // User args.

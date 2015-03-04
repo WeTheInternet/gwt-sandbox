@@ -64,6 +64,7 @@ public class JMethod extends JNode implements JMember, CanBeAbstract, CanBeNativ
   private boolean inliningAllowed = true;
   private boolean hasSideEffects = true;
   private boolean defaultMethod = false;
+  private boolean doNotVisit = false;
 
   @Override
   public void setExportInfo(String namespace, String name) {
@@ -229,6 +230,18 @@ public class JMethod extends JNode implements JMember, CanBeAbstract, CanBeNativ
 
   public boolean isDefaultMethod() {
     return defaultMethod;
+  }
+
+  public boolean isDoNotVisit() {
+    return doNotVisit;
+  }
+
+  /**
+   * Use this to tell the Gwt compiler that the method body should not be
+   * visited during the initial stitching in {@link UnifyAst}.
+   */
+  public void setDoNotVisit() {
+    this.doNotVisit = true;
   }
 
   /**

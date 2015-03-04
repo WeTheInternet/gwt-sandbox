@@ -24,7 +24,6 @@ import com.google.gwt.dev.jjs.ast.Context;
 import com.google.gwt.dev.jjs.ast.JBlock;
 import com.google.gwt.dev.jjs.ast.JDeclaredType;
 import com.google.gwt.dev.jjs.ast.JExpression;
-import com.google.gwt.dev.jjs.ast.JExpressionStatement;
 import com.google.gwt.dev.jjs.ast.JField;
 import com.google.gwt.dev.jjs.ast.JFieldRef;
 import com.google.gwt.dev.jjs.ast.JInterfaceType;
@@ -83,9 +82,10 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
             // Now we know the SAM, we can find the lambda method to rewrite.
             String samSig = sam.getSignature();
             JMethod samMethod = lambdaType.findMethod(samSig, false);
+            assert samMethod != null : "Could not find sam method "+samSig+" in "+lambdaType.toSource();
             JBlock block = ((JMethodBody)samMethod.getBody()).getBlock();
-            JExpressionStatement lambdaExpr = (JExpressionStatement)block.getStatements().get(0);
-            new LambdaRewriteVisitor(lambdaType).accept(lambdaExpr);
+            JStatement statement = block.getStatements().get(0);
+            new LambdaRewriteVisitor(lambdaType).accept(statement);
             return true;
           }
         }
@@ -241,10 +241,9 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
     // Avoid CoMod exceptions
     JsniMethodRef[] refs = x.getJsniMethodRefs().toArray(new JsniMethodRef[0]);
     for (JsniMethodRef method : refs) {
-      if (method.getTarget().isDefaultMethod() && x.isStaticDispatchOnly()) {
-        assert x.getInstance() instanceof JThisRef;
+      if (method.getTarget().isDefaultMethod() && method.isStaticDispatchOnly()) {
 
-        JMethod staticMethod = staticImplCreator.getOrCreateStaticImpl(program, targetMethod);
+        JMethod staticMethod = staticImplCreator.getOrCreateStaticImpl(program, method.getTarget());
         // We now mark the method we want to rewrite, so the visitor knows what to swap
         String stat = staticMethod.getJsniSignature(true, false);
         rewriter.mark(method.getIdent(), "@"+stat);
