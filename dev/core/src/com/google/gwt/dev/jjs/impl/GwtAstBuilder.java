@@ -28,6 +28,7 @@ import com.google.gwt.dev.common.InliningMode;
 import com.google.gwt.dev.javac.JdtUtil;
 import com.google.gwt.dev.javac.JsInteropUtil;
 import com.google.gwt.dev.javac.JsniMethod;
+import com.google.gwt.dev.javac.MagicMethodUtil;
 import com.google.gwt.dev.jdt.SafeASTVisitor;
 import com.google.gwt.dev.jjs.InternalCompilerException;
 import com.google.gwt.dev.jjs.SourceInfo;
@@ -1209,15 +1210,16 @@ public class GwtAstBuilder {
 
       // Lookup the JMethod version
       JMethod interfaceMethod = typeMap.get(samBinding);
+
       // And its JInterface container we must implement
       // There may be more than more JInterface containers to be implemented
       // if the lambda expression is cast to a IntersectionCastType.
-      JInterfaceType[] funcType;
+      JDeclaredType[] funcType;
       if (binding instanceof IntersectionTypeBinding18) {
         funcType = processIntersectionTypeForLambda((IntersectionTypeBinding18) binding, blockScope,
             JdtUtil.signature(samBinding));
       } else {
-        funcType = new JInterfaceType[] {(JInterfaceType) typeMap.get(binding)};
+        funcType = new JDeclaredType[] {(JDeclaredType) typeMap.get(binding)};
       }
       SourceInfo info = makeSourceInfo(x);
 
@@ -1476,7 +1478,7 @@ public class GwtAstBuilder {
       for (JInterfaceType type : superInterfaces) {
         innerLambdaClass.addImplements(type);
       }
-      innerLambdaClass.setSuperClass(javaLangObject);
+//      innerLambdaClass.setSuperClass(superClass);
 
       createSyntheticMethod(info, CLINIT_METHOD_NAME, innerLambdaClass, JPrimitiveType.VOID, false,
           true, true, AccessModifier.PRIVATE);
@@ -3666,17 +3668,17 @@ public class GwtAstBuilder {
       }
     }
 
-    private JInterfaceType[] processIntersectionTypeForLambda(IntersectionTypeBinding18 type,
+    private JDeclaredType[] processIntersectionTypeForLambda(IntersectionTypeBinding18 type,
         BlockScope scope, String samSignature) {
-      List<JInterfaceType> interfaces = Lists.newArrayList();
+      List<JDeclaredType> interfaces = Lists.newArrayList();
       for (ReferenceBinding intersectingTypeBinding : type.intersectingTypes) {
         if (shouldImplements(intersectingTypeBinding, scope, samSignature)) {
           JType intersectingType = typeMap.get(intersectingTypeBinding);
           assert (intersectingType instanceof JInterfaceType);
-          interfaces.add(((JInterfaceType) intersectingType));
+          interfaces.add(((JDeclaredType) intersectingType));
         }
       }
-      return Iterables.toArray(interfaces, JInterfaceType.class);
+      return Iterables.toArray(interfaces, JDeclaredType.class);
     }
 
     private boolean isFunctionalInterfaceWithMethod(ReferenceBinding referenceBinding, Scope scope,
@@ -4200,6 +4202,7 @@ public class GwtAstBuilder {
       method =
           new JMethod(info, intern(b.selector), enclosingType, typeMap.get(b.returnType), b
               .isAbstract(), b.isStatic(), b.isFinal(), AccessModifier.fromMethodBinding(b));
+      MagicMethodUtil.maybeSetMagicMethodProperties(x, method);
     }
 
     // User args.

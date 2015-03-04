@@ -61,6 +61,7 @@ public class JMethod extends JNode implements JMember, CanBeAbstract {
   private boolean defaultMethod = false;
   private boolean syntheticAccidentalOverride = false;
   private Set<String> suppressedWarnings;
+  private boolean doNotVisit = false;
 
   @Override
   public void setJsMemberInfo(JsMemberType type, String namespace, String name, boolean exported) {
@@ -322,6 +323,19 @@ public class JMethod extends JNode implements JMember, CanBeAbstract {
     JParameter lastParameter = Iterables.getLast(getParams());
     return lastParameter.isVarargs();
   }
+
+  public boolean isDoNotVisit() {
+    return doNotVisit;
+  }
+
+  /**
+   * Use this to tell the Gwt compiler that the method body should not be
+   * visited during the initial stitching in {@link UnifyAst}.
+   */
+  public void setDoNotVisit() {
+    this.doNotVisit = true;
+  }
+
   /**
    * AST representation of @SpecializeMethod.
    */
