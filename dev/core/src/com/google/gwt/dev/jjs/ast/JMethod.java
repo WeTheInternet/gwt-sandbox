@@ -51,6 +51,7 @@ public class JMethod extends JNode implements HasEnclosingType, HasName, HasType
   private boolean inliningAllowed = true;
   private boolean hasSideEffects = true;
   private boolean defaultMethod = false;
+  private boolean doNotVisit = false;
 
   public boolean isNoExport() {
     return noExport;
@@ -129,6 +130,18 @@ public class JMethod extends JNode implements HasEnclosingType, HasName, HasType
 
   public boolean isDefaultMethod() {
     return defaultMethod;
+  }
+
+  public boolean isDoNotVisit() {
+    return doNotVisit;
+  }
+
+  /**
+   * Use this to tell the Gwt compiler that the method body should not be
+   * visited during the initial stitching in {@link UnifyAst}.
+   */
+  public void setDoNotVisit() {
+    this.doNotVisit = true;
   }
 
   /**

@@ -23,6 +23,7 @@ import com.google.gwt.dev.javac.JSORestrictionsChecker;
 import com.google.gwt.dev.javac.JdtUtil;
 import com.google.gwt.dev.javac.JsInteropUtil;
 import com.google.gwt.dev.javac.JsniMethod;
+import com.google.gwt.dev.javac.MagicMethodUtil;
 import com.google.gwt.dev.jdt.SafeASTVisitor;
 import com.google.gwt.dev.jjs.InternalCompilerException;
 import com.google.gwt.dev.jjs.SourceInfo;
@@ -1212,7 +1213,7 @@ public class GwtAstBuilder {
       assert (samBinding != null && samBinding.isValidBinding());
 
       // Lookup the JMethod version
-      JMethod interfaceMethod = typeMap.get(samBinding);
+      final JDeclaredType funcType = (JDeclaredType) typeMap.get(binding);
       // And its JInterface container we must implement
       // There may be more than more JInterface containers to be implemented
       // if the lambda expression is cast to a IntersectionCastType.
@@ -1419,13 +1420,20 @@ public class GwtAstBuilder {
     }
 
     private JClassType createInnerClass(String name, FunctionalExpression x, SourceInfo info,
-        JInterfaceType... funcType) {
-      JClassType innerLambdaClass = new JClassType(info, name + "$Type", false, true);
+        JDeclaredType... funcType) {
+      final JClassType innerLambdaClass = new JClassType(info, name + "$Type", false, true);
+      JClassType superClass = javaLangObject;
       innerLambdaClass.setEnclosingType((JDeclaredType) typeMap.get(x.binding.declaringClass));
-      for (JInterfaceType type : funcType) {
-        innerLambdaClass.addImplements(type);
+      for (JDeclatedType type : funcType) {
+        if (type instanceof JInterfaceType) {
+          innerLambdaClass.addImplements((JInterfaceType)type);
+        } else {
+          assert superClass == javaLangObject : "At most one superclass is supported for lambdas."+
+            "You supplied "+superClass+" and "+type;
+          superClass = (JClassType)type;
+        }
       }
-      innerLambdaClass.setSuperClass(javaLangObject);
+      innerLambdaClass.setSuperClass(superClass);
 
       createSyntheticMethod(info, CLINIT_NAME, innerLambdaClass, JPrimitiveType.VOID, false, true,
           true, AccessModifier.PRIVATE);
@@ -4003,6 +4011,7 @@ public class GwtAstBuilder {
       method =
           new JMethod(info, intern(b.selector), enclosingType, typeMap.get(b.returnType), b
               .isAbstract(), b.isStatic(), b.isFinal(), AccessModifier.fromMethodBinding(b));
+      MagicMethodUtil.maybeSetMagicMethodProperties(x, method);
     }
 
     // User args.
