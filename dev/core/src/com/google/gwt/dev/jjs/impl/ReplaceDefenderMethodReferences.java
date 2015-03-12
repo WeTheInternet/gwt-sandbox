@@ -241,8 +241,7 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
     // Avoid CoMod exceptions
     JsniMethodRef[] refs = x.getJsniMethodRefs().toArray(new JsniMethodRef[0]);
     for (JsniMethodRef method : refs) {
-      if (method.getTarget().isDefaultMethod() && method.isStaticDispatchOnly()) {
-
+      if (method.getTarget().isDefaultMethod()) {
         JMethod staticMethod = staticImplCreator.getOrCreateStaticImpl(program, method.getTarget());
         // We now mark the method we want to rewrite, so the visitor knows what to swap
         String stat = staticMethod.getJsniSignature(true, false);
