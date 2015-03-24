@@ -22,6 +22,10 @@ package java.lang.reflect;
  */
 public interface Type {
 
-  // just a marker interface.
+  default String getTypeName() {
+    // All types will include a toString method, but if they wish to make toString
+    // more informative than the default typeName, they can override this method.
+    return toString();
+  }
 
 }

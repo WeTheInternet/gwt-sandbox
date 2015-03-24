@@ -1,12 +1,8 @@
 package java.lang.reflect;
 
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.core.client.JsArray;
-import com.google.gwt.core.client.JsArrayMixed;
 import com.google.gwt.core.client.UnsafeNativeLong;
-import com.google.gwt.dev.jjs.JavaScriptCompiler;
-
-import xapi.log.X_Log;
+import com.google.gwt.reflect.shared.GwtReflect;
 
 public final class Array {
 
@@ -656,5 +652,109 @@ public final class Array {
     array[index] = d;
   }-*/
   ;
+
+  public static <T> T[] clone(T[] array) {
+    return com.google.gwt.lang.Array.clone(array);
+  }
+  
+  public static native boolean[] clone(boolean[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  public static native byte[] clone(byte[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  public static native short[] clone(short[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  public static native char[] clone(char[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  public static native int[] clone(int[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  @UnsafeNativeLong
+  public static native long[] clone(long[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  public static native float[] clone(float[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  public static native double[] clone(double[] array)
+  /*-{
+    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+  }-*/;
+  
+  
+  public static native String join(Object array)
+  /*-{
+     // No type checking because the code that knows about this method will
+     // do it's own checking if required.  For now, this is only used by
+     // the annotation support, who can guarantee the value is never null,
+     // and always a native array.
+     return array.join(", ");
+   }-*/;
+  
+  public static String join(long[] array) {
+    String value = "";
+    for (int i = 0; i < array.length; i++) {
+      if (i > 0) {
+        value += ", ";
+      }
+      value += array[i]+"L";
+    }
+    return value;
+  }
+
+  public static String join(Class[] array) {
+    String value = "";
+    for (int i = 0; i < array.length; i++) {
+      if (i > 0) {
+        value += ", ";
+      }
+      value += array[i].getCanonicalName()+".class";
+    }
+    return value;
+  }
+  
+  public static String join(String[] array) {
+    String value = "";
+    for (int i = 0; i < array.length; i++) {
+      if (i > 0) {
+        value += ", ";
+      }
+      value += "\"" + escape(array[i]) + "\"";
+    }
+    return value;
+  }
+  
+  private native static String escape(String unescaped)
+  /*-{
+    return unescaped.replace(/(["'\\])/g, "\\$1").replace(/\n/g,"\\n");
+  }-*/;
+
+  public static <E extends Enum<E>> String join(E[] array) {
+    String value = "";
+    for (int i = 0; i < array.length; i++) {
+      if (i > 0) {
+        value += ", ";
+      }
+      value += array[i].getDeclaringClass().getCanonicalName()+"."+array[i].name();
+    }
+    return value;
+  }
 
 }
