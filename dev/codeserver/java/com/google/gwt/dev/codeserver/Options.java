@@ -428,10 +428,6 @@ public class Options {
             public void setGenerateJsInteropExports(boolean generateExports) {
               Options.this.generateJsInteropExports = generateExports;
             }
-            @Override
-            public WhitelistRegexFilter getJsInteropExportFilter() {
-              return Options.this.jsInteropExportFilter;
-            }
           };
       registerHandler(new ArgHandlerGenerateJsInteropExports(optionGenerateJsInteropExport));
       registerHandler(new ArgHandlerFilterJsInteropExports(optionGenerateJsInteropExport));
