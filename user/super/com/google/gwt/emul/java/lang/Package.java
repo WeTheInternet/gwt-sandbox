@@ -335,35 +335,21 @@ public class Package implements java.lang.reflect.AnnotatedElement {
     return packageInfo;
   }
 
-  /**
-   * @throws NullPointerException {@inheritDoc}
-   * @since 1.5
-   */
   @Override
   public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
     return getPackageInfo().getAnnotation(annotationClass);
   }
 
-  /**
-   * @throws NullPointerException {@inheritDoc}
-   * @since 1.5
-   */
   @Override
   public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
     return getPackageInfo().isAnnotationPresent(annotationClass);
   }
 
-  /**
-   * @since 1.5
-   */
   @Override
   public Annotation[] getAnnotations() {
     return getPackageInfo().getAnnotations();
   }
 
-  /**
-   * @since 1.5
-   */
   @Override
   public Annotation[] getDeclaredAnnotations() {
     return getPackageInfo().getDeclaredAnnotations();
