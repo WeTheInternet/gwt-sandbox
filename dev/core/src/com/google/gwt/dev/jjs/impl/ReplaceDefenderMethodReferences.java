@@ -246,8 +246,11 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
         // We now mark the method we want to rewrite, so the visitor knows what to swap
         String stat = staticMethod.getJsniSignature(true, false);
         rewriter.mark(method.getIdent(), "@"+stat);
-        // Finally, we want to add a method ref so our static rewrite gets rescued
-        x.addJsniRef(new JsniMethodRef(method.getSourceInfo(), "@"+staticMethod.getJsniSignature(true, false), staticMethod, staticMethod.getEnclosingType()));
+        // Next, we want to add a method ref so our static rewrite gets rescued
+        JsniMethodRef methodRef = new JsniMethodRef(method.getSourceInfo(), "@"+staticMethod.getJsniSignature(true, false), staticMethod, staticMethod.getEnclosingType());
+        x.addJsniRef(methodRef);
+        // Finally, visit the body of the statically rewritten method
+        accept(methodRef);
       }
     }
     if (rewriter.needsRewrite()) {
@@ -266,7 +269,6 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
   public void endVisit(JMethodCall x, Context ctx) {
     JMethod targetMethod = x.getTarget();
     if (targetMethod.isDefaultMethod() && x.isStaticDispatchOnly()) {
-      assert x.getInstance() instanceof JThisRef;
 
       JMethod staticMethod = staticImplCreator.getOrCreateStaticImpl(program, targetMethod);
       // Cannot use setStaticDispatchOnly() here because interfaces don't have prototypes
@@ -284,6 +286,7 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
       }
       callStaticMethod.addArgs(x.getArgs());
       ctx.replaceMe(callStaticMethod);
+      accept(callStaticMethod);
     }
   }
 
