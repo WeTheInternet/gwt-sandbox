@@ -15,9 +15,11 @@
  */
 package com.google.gwt.dev;
 
-import com.google.gwt.dev.Link.LinkOptionsImpl;
-
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.gwt.dev.Link.LinkOptionsImpl;
 
 /**
  * Concrete class to implement compiler process, precompile task and compile task options.
@@ -26,6 +28,7 @@ public class CompilerOptionsImpl extends PrecompileTaskOptionsImpl implements Co
 
   private LinkOptionsImpl linkOptions = new LinkOptionsImpl();
   private int localWorkers;
+  private List<String> sourcePath = new ArrayList<String>();
 
   public CompilerOptionsImpl() {
   }
@@ -38,6 +41,9 @@ public class CompilerOptionsImpl extends PrecompileTaskOptionsImpl implements Co
     super.copyFrom(other);
     linkOptions.copyFrom(other);
     localWorkers = other.getLocalWorkers();
+    if (other instanceof CompilerOptionsImpl) {
+      setSourcePath(((CompilerOptionsImpl)other).getSourcePath());
+    }
   }
 
   @Override
@@ -88,5 +94,19 @@ public class CompilerOptionsImpl extends PrecompileTaskOptionsImpl implements Co
   @Override
   public void setWarDir(File outDir) {
     linkOptions.setWarDir(outDir);
+  }
+
+  /**
+   * @return the sourcePath
+   */
+  public List<String> getSourcePath() {
+    return sourcePath;
+  }
+
+  /**
+   * @param sourcePath the sourcePath to set
+   */
+  public void setSourcePath(List<String> sourcePath) {
+    this.sourcePath = sourcePath;
   }
 }
