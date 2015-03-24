@@ -23,10 +23,17 @@ import com.google.gwt.util.tools.ArgHandlerEnum;
  */
 public class ArgHandlerJsInteropMode extends ArgHandlerEnum<Mode> {
   private final OptionJsInteropMode options;
+  private boolean wasSet;
 
   public ArgHandlerJsInteropMode(OptionJsInteropMode options) {
     super(Mode.class, options.getJsInteropMode(), false);
     this.options = options;
+    wasSet = options.getJsInteropMode() != Mode.DEFAULT;
+  }
+  
+  @Override
+  public String[] getDefaultArgs() {
+    return wasSet ? null : super.getDefaultArgs();
   }
 
   @Override
@@ -46,6 +53,7 @@ public class ArgHandlerJsInteropMode extends ArgHandlerEnum<Mode> {
 
   @Override
   public void setValue(Mode value) {
+    wasSet = true;
     if (options.getJsInteropMode() != value) {
       options.setJsInteropMode(value);
     }

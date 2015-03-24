@@ -15,6 +15,15 @@
  */
 package com.google.gwt.dev.shell;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.ServerSocket;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.TreeLogger.Type;
 import com.google.gwt.core.ext.UnableToCompleteException;
@@ -27,15 +36,6 @@ import com.google.gwt.dev.util.arg.OptionMethodNameDisplayMode;
 import com.google.gwt.thirdparty.guava.common.base.Stopwatch;
 import com.google.gwt.thirdparty.guava.common.collect.ListMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.Lists;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.ServerSocket;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Starts a superdev-mode codeserver.
@@ -166,7 +166,7 @@ public class SuperDevListener implements CodeServerListener {
       args.add("-logLevel");
       args.add(String.valueOf(options.getLogLevel()));
     }
-    if (options.getJsInteropMode() != OptionJsInteropMode.Mode.NONE) {
+    if (options.getJsInteropMode() != OptionJsInteropMode.Mode.DEFAULT) {
       args.add("-XjsInteropMode");
       args.add(options.getJsInteropMode().name());
     }

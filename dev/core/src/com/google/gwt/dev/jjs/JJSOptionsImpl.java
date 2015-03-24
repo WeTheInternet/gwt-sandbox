@@ -15,13 +15,13 @@
  */
 package com.google.gwt.dev.jjs;
 
+import java.io.Serializable;
+
 import com.google.gwt.dev.js.JsNamespaceOption;
 import com.google.gwt.dev.util.arg.OptionJsInteropMode;
 import com.google.gwt.dev.util.arg.OptionMethodNameDisplayMode;
 import com.google.gwt.dev.util.arg.OptionOptimize;
 import com.google.gwt.dev.util.arg.SourceLevel;
-
-import java.io.Serializable;
 
 /**
  * Concrete class to implement all JJS options.
@@ -54,7 +54,7 @@ public class JJSOptionsImpl implements JJSOptions, Serializable {
   private boolean strict = false;
   private boolean strictSourceResources = false;
   private boolean strictPublicResources = false;
-  private OptionJsInteropMode.Mode jsInteropMode = OptionJsInteropMode.Mode.NONE;
+  private OptionJsInteropMode.Mode jsInteropMode = OptionJsInteropMode.Mode.DEFAULT;
   private boolean useDetailedTypeIds = false;
   private OptionMethodNameDisplayMode.Mode methodNameDisplayMode =
       OptionMethodNameDisplayMode.Mode.NONE;

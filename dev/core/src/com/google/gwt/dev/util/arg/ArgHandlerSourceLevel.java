@@ -25,14 +25,17 @@ public class ArgHandlerSourceLevel extends ArgHandlerString {
   // TODO(rluble) simplify and make it extend ArgHandlerEnum.
   private static final String AUTO_SELECT = "auto";
   private final OptionSourceLevel options;
+  private boolean wasSet;
 
   public ArgHandlerSourceLevel(OptionSourceLevel options) {
-    this.options = options;
+    this.options = options; 
+    wasSet = options.getSourceLevel() != null &&
+      options.getSourceLevel() != SourceLevel.DEFAULT_SOURCE_LEVEL;
   }
 
   @Override
   public String[] getDefaultArgs() {
-    return new String[]{getTag(), SourceLevel.JAVA8.getStringValue()};
+    return wasSet ? null : new String[]{getTag(), SourceLevel.JAVA8.getStringValue()};
   }
 
   @Override
@@ -54,6 +57,7 @@ public class ArgHandlerSourceLevel extends ArgHandlerString {
   @Override
   public boolean setString(String value) {
     if (value.equals(AUTO_SELECT)) {
+      wasSet = true;
       options.setSourceLevel(SourceLevel.DEFAULT_SOURCE_LEVEL);
       return true;
     }
@@ -63,6 +67,7 @@ public class ArgHandlerSourceLevel extends ArgHandlerString {
           Joiner.on(", ").skipNulls().join(AUTO_SELECT, null, (Object[]) SourceLevel.values()) + "].");
       return false;
     }
+    wasSet = true;
     options.setSourceLevel(level);
     return true;
   }

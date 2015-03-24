@@ -32,6 +32,8 @@ public interface OptionJsInteropMode {
      * For hand coded, external JS, not run through an external compiler.
      */
     JS
+    ;
+    public static Mode DEFAULT = JS;
   }
 
   Mode getJsInteropMode();
