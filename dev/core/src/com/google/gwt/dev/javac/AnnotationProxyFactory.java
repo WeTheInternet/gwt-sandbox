@@ -42,8 +42,8 @@ class AnnotationProxyFactory {
      * from the actual return type or if the expected return type is a primitive
      * and the actual return type is the corresponding wrapper type.
      */
-    private static boolean isValidReturnType(Class<?> expectedReturnType,
-        Class<? extends Object> actualReturnType) {
+    private static boolean isValidReturnType(final Class<?> expectedReturnType,
+        final Class<? extends Object> actualReturnType) {
       if (expectedReturnType.isAssignableFrom(actualReturnType)) {
         return true;
       }
@@ -74,7 +74,7 @@ class AnnotationProxyFactory {
     /**
      * The resolved class of this annotation.
      */
-    private Class<? extends Annotation> annotationClass;
+    private final Class<? extends Annotation> annotationClass;
 
     /**
      * Maps method names onto values. Note that methods on annotation types
@@ -88,14 +88,14 @@ class AnnotationProxyFactory {
     private Annotation proxy;
 
     public AnnotationProxyInvocationHandler(
-        Map<String, Object> identifierToValue,
-        Class<? extends Annotation> annotationClass) {
+        final Map<String, Object> identifierToValue,
+        final Class<? extends Annotation> annotationClass) {
       this.identifierToValue = Maps.normalizeUnmodifiable(identifierToValue);
       this.annotationClass = annotationClass;
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
       // This is not actually an asymmetric equals implementation, as this
       // method gets called for our proxy instance rather than on the handler
       // itself.
@@ -107,15 +107,15 @@ class AnnotationProxyFactory {
         return false;
       }
 
-      Annotation otherAnnotation = (Annotation) other;
+      final Annotation otherAnnotation = (Annotation) other;
       if (annotationClass != otherAnnotation.annotationType()) {
         return false;
       }
 
       try {
-        for (Method method : annotationClass.getDeclaredMethods()) {
-          Object myVal = method.invoke(proxy);
-          Object otherVal = method.invoke(other);
+        for (final Method method : annotationClass.getDeclaredMethods()) {
+          final Object myVal = method.invoke(proxy);
+          final Object otherVal = method.invoke(other);
 
           if (myVal instanceof Object[]) {
             if (!Arrays.equals((Object[]) myVal, (Object[]) otherVal)) {
@@ -159,11 +159,11 @@ class AnnotationProxyFactory {
             }
           }
         }
-      } catch (IllegalArgumentException e) {
+      } catch (final IllegalArgumentException e) {
         throw new RuntimeException(e);
-      } catch (IllegalAccessException e) {
+      } catch (final IllegalAccessException e) {
         throw new RuntimeException(e);
-      } catch (InvocationTargetException e) {
+      } catch (final InvocationTargetException e) {
         throw new RuntimeException(e.getTargetException());
       }
       return true;
@@ -173,8 +173,8 @@ class AnnotationProxyFactory {
     public int hashCode() {
       int sum = 0;
       try {
-        for (Method method : annotationClass.getDeclaredMethods()) {
-          Object myVal = method.invoke(proxy);
+        for (final Method method : annotationClass.getDeclaredMethods()) {
+          final Object myVal = method.invoke(proxy);
           int memberHash;
           if (myVal instanceof Object[]) {
             memberHash = Arrays.hashCode((Object[]) myVal);
@@ -201,11 +201,11 @@ class AnnotationProxyFactory {
           memberHash ^= 127 * method.getName().hashCode();
           sum += memberHash;
         }
-      } catch (IllegalArgumentException e) {
+      } catch (final IllegalArgumentException e) {
         throw new RuntimeException(e);
-      } catch (IllegalAccessException e) {
+      } catch (final IllegalAccessException e) {
         throw new RuntimeException(e);
-      } catch (InvocationTargetException e) {
+      } catch (final InvocationTargetException e) {
         throw new RuntimeException(e.getTargetException());
       }
       return sum;
@@ -218,13 +218,13 @@ class AnnotationProxyFactory {
      *      java.lang.reflect.Method, java.lang.Object[])
      */
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args)
+    public Object invoke(final Object proxy, final Method method, final Object[] args)
         throws Throwable {
 
       Object value = null;
       if (args == null || args.length == 0) {
         // A no-arg method, try to process as an annotation method.
-        String name = method.getName();
+        final String name = method.getName();
         if (identifierToValue.containsKey(name)) {
           // The value was explicitly provided
           value = identifierToValue.get(name);
@@ -248,36 +248,55 @@ class AnnotationProxyFactory {
       return method.invoke(this, args);
     }
 
-    public void setProxy(Annotation proxy) {
+    public void setProxy(final Annotation proxy) {
       this.proxy = proxy;
     }
 
     @Override
     public String toString() {
       final StringBuilder msg = new StringBuilder();
-      String qualifiedSourceName = annotationClass.getName().replace('$', '.');
+      final String qualifiedSourceName = annotationClass.getName().replace('$', '.');
       msg.append('@').append(qualifiedSourceName).append('(');
       boolean first = true;
       try {
-        for (Method method : annotationClass.getDeclaredMethods()) {
+        for (final Method method : annotationClass.getDeclaredMethods()) {
           if (first) {
             first = false;
           } else {
             msg.append(", ");
           }
           msg.append(method.getName()).append('=');
-          Object myVal = method.invoke(proxy);
+          final Object myVal = method.invoke(proxy);
           if (myVal.getClass().isArray()) {
+
+          if (myVal instanceof boolean[]) {
+            msg.append(java.util.Arrays.toString((boolean[]) myVal));
+          } else if (myVal instanceof byte[]) {
+            msg.append(java.util.Arrays.toString((byte[]) myVal));
+          } else if (myVal instanceof char[]) {
+            msg.append(java.util.Arrays.toString((char[]) myVal));
+          } else if (myVal instanceof short[]) {
+            msg.append(java.util.Arrays.toString((short[]) myVal));
+          } else if (myVal instanceof int[]) {
+            msg.append(java.util.Arrays.toString((int[]) myVal));
+          } else if (myVal instanceof long[]) {
+            msg.append(java.util.Arrays.toString((long[]) myVal));
+          } else if (myVal instanceof float[]) {
+            msg.append(java.util.Arrays.toString((float[]) myVal));
+          } else if (myVal instanceof double[]) {
+            msg.append(java.util.Arrays.toString((double[]) myVal));
+          } else {
             msg.append(java.util.Arrays.deepToString((Object[]) myVal));
+          }
           } else {
             msg.append(myVal);
           }
         }
-      } catch (IllegalArgumentException e) {
+      } catch (final IllegalArgumentException e) {
         throw new RuntimeException(e);
-      } catch (IllegalAccessException e) {
+      } catch (final IllegalAccessException e) {
         throw new RuntimeException(e);
-      } catch (InvocationTargetException e) {
+      } catch (final InvocationTargetException e) {
         throw new RuntimeException(e.getTargetException());
       }
       msg.append(')');
@@ -285,11 +304,11 @@ class AnnotationProxyFactory {
     }
   }
 
-  public static Annotation create(Class<? extends Annotation> annotationClass,
-      Map<String, Object> identifierToValue) {
-    AnnotationProxyInvocationHandler annotationInvocationHandler = new AnnotationProxyInvocationHandler(
+  public static Annotation create(final Class<? extends Annotation> annotationClass,
+      final Map<String, Object> identifierToValue) {
+    final AnnotationProxyInvocationHandler annotationInvocationHandler = new AnnotationProxyInvocationHandler(
         identifierToValue, annotationClass);
-    Annotation proxy = (Annotation) Proxy.newProxyInstance(
+    final Annotation proxy = (Annotation) Proxy.newProxyInstance(
         Thread.currentThread().getContextClassLoader(), new Class<?>[] {
             java.lang.annotation.Annotation.class, annotationClass},
         annotationInvocationHandler);
