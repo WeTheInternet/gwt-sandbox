@@ -158,7 +158,7 @@
 
   <macrodef name="gwt.jar">
     <attribute name="destfile" default="${project.lib}"/>
-    <attribute name="duplicate" default="fail"/>
+    <attribute name="duplicate" default="preserve"/>
     <attribute name="update" default="true"/>
     <element name="jarcontents" implicit="true"/>
     <sequential>
