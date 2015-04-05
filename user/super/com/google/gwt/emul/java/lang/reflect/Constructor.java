@@ -438,7 +438,7 @@ public class Constructor<T> extends AccessibleObject implements
     }
 
     @UnsafeNativeLong
-    private native T create(JavaScriptObject func, Object[] args)
+    private static native <T> T create(JavaScriptObject func, Object[] args)
     /*-{
       return func.apply(null, args);
      }-*/;

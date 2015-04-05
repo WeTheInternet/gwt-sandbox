@@ -33,7 +33,7 @@ public abstract class ClassMap <T> {
 
   protected static native void remember(int constId, ClassMap<?> cls)
   /*-{
-    $wnd.Reflect.$[constId] = cls;
+    $wnd.GwtReflect.$[constId] = cls;
    }-*/;
   
   public Method getEnclosingMethod() {

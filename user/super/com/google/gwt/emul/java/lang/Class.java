@@ -70,7 +70,7 @@ java.lang.reflect.AnnotatedElement
 
   private static native JavaScriptObject initConstPool()
   /*-{
-    $wnd.Reflect = {
+    $wnd.GwtReflect = {
       $:[],// enhanced classes
       $$:[],// class members
       a:[],// annotations
@@ -96,7 +96,7 @@ java.lang.reflect.AnnotatedElement
       _t:[],// String arrays
       _z:[]// boolan arrays
     };
-    return $wnd.Reflect;
+    return $wnd.GwtReflect;
   }-*/;
 
   /**
@@ -375,7 +375,6 @@ java.lang.reflect.AnnotatedElement
   protected Class<?> componentType;
   protected Class<? super T> enumSuperclass;
   protected Class<? super T> superclass;
-  private AnnotationMap annotations;
   public ClassMap<T> classData;
   public JsMemberPool<T> members;
   private int constId;
@@ -539,27 +538,27 @@ java.lang.reflect.AnnotatedElement
   }
 
   public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-    if (annotations == null)
+    if (members == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
-    return annotations.hasAnnotation(annotationClass);
+    return members.getAnnotation(annotationClass) != null;
   }
 
   public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
-    if (annotations == null)
+    if (members == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
-    return annotations.getAnnotation(annotationClass);
+    return members.getAnnotation(annotationClass);
   }
 
   public Annotation[] getAnnotations() {
-    if (annotations == null)
+    if (members == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
-    return annotations.getAnnotations();
+    return members.getAnnotations();
   }
 
   public Annotation[] getDeclaredAnnotations() {
-    if (annotations == null)
+    if (members == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
-    return annotations.getDeclaredAnnotations();
+    return members.getDeclaredAnnotations();
   }
   
   public ProtectionDomain getProtectionDomain() {
