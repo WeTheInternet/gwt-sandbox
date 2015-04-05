@@ -15,6 +15,7 @@
  */
 package com.google.gwt.dev.jjs;
 
+import com.google.gwt.core.ext.PropertyOracle;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.dev.CompilerContext;
@@ -60,32 +61,38 @@ public class AstConstructor {
     InternalCompilerException.preload();
 
     PrecompilationContext precompilationContext = new PrecompilationContext(
-        new RebindPermutationOracle() {
-          @Override
-          public void clear() {
-          }
+      new RebindPermutationOracle() {
+        @Override
+        public void clear() {
+        }
 
-          @Override
-          public String[] getAllPossibleRebindAnswers(TreeLogger logger, String sourceTypeName)
-              throws UnableToCompleteException {
-            return new String[0];
-          }
+        @Override
+        public String[] getAllPossibleRebindAnswers(TreeLogger logger, String sourceTypeName)
+            throws UnableToCompleteException {
+          return new String[0];
+        }
 
-          @Override
-          public CompilationState getCompilationState() {
-            return state;
-          }
+        @Override
+        public CompilationState getCompilationState() {
+          return state;
+        }
 
-          @Override
-          public StandardGeneratorContext getGeneratorContext() {
-            return null;
-          }
-        });
+        @Override
+        public StandardGeneratorContext getGeneratorContext() {
+          return null;
+        }
 
-    JProgram jprogram = new JProgram(compilerContext.getMinimalRebuildCache());
-    JsProgram jsProgram = new JsProgram();
-    UnifyAst unifyAst = new UnifyAst(logger, compilerContext, jprogram, jsProgram,
-        precompilationContext);
+        @Override
+        public PropertyOracle getConfigurationPropertyOracle() {
+          return config.toConfigurationOnlyPropertyOracle();
+        }
+
+      }
+    );
+
+    final JProgram jprogram = new JProgram(compilerContext.getMinimalRebuildCache());
+    final JsProgram jsProgram = new JsProgram();
+    final UnifyAst unifyAst = new UnifyAst(logger, compilerContext, jprogram, jsProgram, precompilationContext);
     unifyAst.buildEverything();
 
     // Compute all super type/sub type info

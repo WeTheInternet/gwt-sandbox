@@ -15,6 +15,7 @@
  */
 package com.google.gwt.dev.jdt;
 
+import com.google.gwt.core.ext.PropertyOracle;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.dev.javac.CompilationState;
@@ -54,4 +55,10 @@ public interface RebindPermutationOracle {
    * Returns the StandardGeneratorContext.
    */
   StandardGeneratorContext getGeneratorContext();
+
+  /**
+   * Returns a property oracle which can only see configuration properties.
+   */
+  PropertyOracle getConfigurationPropertyOracle();
+
 }
