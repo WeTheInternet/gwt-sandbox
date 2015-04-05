@@ -1,14 +1,20 @@
 package com.google.gwt.reflect.shared;
 
+import com.google.gwt.core.client.JavaScriptObject;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import com.google.gwt.core.client.JavaScriptObject;
+public final class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>{
 
-public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>{
+  public static native int constId(Class<?> cls)
+  /*-{
+     cls.@java.lang.Class::getName()(); // ensures constId is initialized
+     return cls.@java.lang.Class::constId;
+   }-*/;
 
   public static native <T> JsMemberPool<T> createMemberPool(Class<T> type)
   /*-{
@@ -23,14 +29,57 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
       t:{},// inner types
     };
   }-*/;
- 
+
+  public static <T> JsMemberPool<T> getMembers(final Class<T> cls) {
+    final int constId = constId(cls);
+    JsMemberPool<T> members = findMembers(constId);
+    if (members == null) {
+      members = createMemberPool(cls);
+      setMembers(constId, members);
+    }
+    return members;
+  }
+
+  @SuppressWarnings("rawtypes")
+  static void addConstructor(final Class<?> cls, final Constructor c) {
+    final JsMemberPool<?> pool = getMembers(cls);
+    pool.addConstructor(c);
+  }
+
+  static void addField(final Class<?> cls, final Field f) {
+    final JsMemberPool<?> pool = getMembers(cls);
+    pool.addField(f);
+  }
+
+  static void addMethod(final Class<?> cls, final Method m) {
+    final JsMemberPool<?> pool = getMembers(cls);
+    pool.addMethod(m);
+  }
+
+  static void addAnnotation(final Class<?> cls, final Annotation a, final boolean declared) {
+    final JsMemberPool<?> pool = getMembers(cls);
+    pool.addAnnotation(a, declared);
+  }
+
+  static native int getSeedId(Class<?> cls)
+  /*-{
+    return cls.@java.lang.Class::typeId;
+  }-*/;
+
+  static String getSignature(final Class<?> ... signature) {
+    final StringBuilder key = new StringBuilder();
+    for (int i = 0; i < signature.length; i++) {
+      key.append('_');
+      key.append(constId(signature[i]));
+    }
+    return key.toString();
+  }
+
   private static Annotation[] annoArray() {return new Annotation[0];}
 
   private static Class<?>[] classArray() {return new Class<?>[0];}
-
   @SuppressWarnings("unchecked")
   private static <T> Constructor<T>[] constructorArray() {return new Constructor[0];}
-
   private static Field[] fieldArray() {return new Field[0];}
 
   @SuppressWarnings("rawtypes")
@@ -64,84 +113,45 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
   /*-{
     return pool.f.hasOwnProperty(id) && pool.f[id];
   }-*/;
+  private static native <T> JsMemberPool<T> findMembers(int constId)
+  /*-{
+    return $wnd.GwtReflect.$$[constId];
+  }-*/;
+
   private static native Method findMethod(JsMemberPool<?> pool, String id)
   /*-{
     return pool.m.hasOwnProperty(id) && pool.m[id];
   }-*/;
+
   private static native boolean isUnique(JavaScriptObject set, String key)
   /*-{
     return set[key] ? false : (set[key] = true);
   }-*/;
-  
-  private static native int constId(Class<?> cls)
-  /*-{
-     return cls.@java.lang.Class::constId;
-   }-*/;
 
-  public static <T> JsMemberPool<T> getMembers(Class<T> cls) {
-    int constId = constId(cls);
-    JsMemberPool<T> members = findMembers(constId);
-    if (members == null) {
-      members = createMemberPool(cls);
-      setMembers(constId, members);
-    }
-    return members;
-  }
-
-  private static native <T> JsMemberPool<T> findMembers(int constId)
-  /*-{
-    return $wnd.Reflect.$$[constId];
-  }-*/;
+  private static Method[] methodArray() {return new Method[0];}
 
   private static native <T> void setMembers(int constId, JsMemberPool<T> members)
   /*-{
-    $wnd.Reflect.$$[constId]=members;
+    $wnd.GwtReflect.$$[constId]=members;
   }-*/;
-  
-  private static Method[] methodArray() {return new Method[0];}
-  @SuppressWarnings("rawtypes")
-  static void addConstructor(Class<?> cls, Constructor c) {
-    JsMemberPool<?> pool = getMembers(cls);
-    pool.addConstructor(c);
-  }
-  
-  static void addField(Class<?> cls, Field f) {
-    JsMemberPool<?> pool = getMembers(cls);
-    pool.addField(f);
-  }
-
-  static void addMethod(Class<?> cls, Method m) {
-    JsMemberPool<?> pool = getMembers(cls);
-    pool.addMethod(m);
-  }
-
-  static native int getSeedId(Class<?> cls)
-  /*-{
-    return cls.@java.lang.Class::typeId;
-  }-*/;
-
-  static String getSignature(Class<?> ... signature) {
-    StringBuilder key = new StringBuilder();
-    for (int i = 0; i < signature.length; i++) {
-      key.append('_');
-      key.append(constId(signature[i]));
-    }
-    return key.toString();
-  }
 
   protected JsMemberPool() {}
 
+  public final void addAnnotation(final Annotation a, final boolean declared) {
+    addAnnotation(a.annotationType().getName(), a, declared);
+  }
+
   @SuppressWarnings("rawtypes")
-  public final void addConstructor(Constructor c) {
+  public final void addConstructor(final Constructor c) {
     addConstructor(getSignature(c.getParameterTypes()), c);
   }
 
-  public final void addField(Field f) {
+  public final void addField(final Field f) {
     addField(f.getName(), f);
   }
 
-  public final void addMethod(Method m) {
-    String name = m.getName()+getSignature(m.getParameterTypes());
+  public final void addMethod(final Method m) {
+    final String name = m.getName()+getSignature(m.getParameterTypes());
     addMethod(name, m);
   }
 
@@ -157,7 +167,7 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
     var array = @com.google.gwt.reflect.shared.JsMemberPool::annoArray()();
     for (var i in this.a) {
       if (this.a.hasOwnProperty(i))
-        array.push(this.a[i]());
+        array.push(this.a[i]);
     }
     return array;
   }-*/;
@@ -169,115 +179,131 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
 
   @Override
   @SuppressWarnings({"rawtypes", "unchecked"})
-  public final Constructor <T> getConstructor(Class<?> ... params) throws NoSuchMethodException {
-    String id = getSignature(params);
+  public final Constructor <T> getConstructor(final Class<?> ... params) throws NoSuchMethodException {
+    final String id = getSignature(params);
     JsMemberPool<? super T> pool = this;
-      Constructor method = findConstructor(pool, id);
-    if (method == null)
+    final Constructor method = findConstructor(pool, id);
+    if (method == null) {
       pool = pool.getSuperclass();
-    else if (Modifier.isPublic(method.getModifiers())){
+    } else if (Modifier.isPublic(method.getModifiers())){
       return method;
     }
     throw new NoSuchMethodException("Could not find public constructor "+getType().getSimpleName()+
-        "("+ReflectUtil.joinClasses(",",  params)+")");
+      "("+ReflectUtil.joinClasses(",",  params)+")");
   }
 
   @Override
   @SuppressWarnings({"rawtypes", "unchecked"})
   public final Constructor<T>[] getConstructors() {
-    Constructor<T>[] ctors = constructorArray();
-    JsMemberPool<? super T> pool = this;
-    JavaScriptObject set = JavaScriptObject.createObject();
-    for (Constructor declared : pool.getDeclaredConstructors()) {
+    final Constructor<T>[] ctors = constructorArray();
+    final JsMemberPool<? super T> pool = this;
+    final JavaScriptObject set = JavaScriptObject.createObject();
+    for (final Constructor declared : pool.getDeclaredConstructors()) {
       if (Modifier.isPublic(declared.getModifiers()) &&
-          isUnique(set, getSignature(declared.getParameterTypes()))) {
+        isUnique(set, getSignature(declared.getParameterTypes()))) {
         // javascript actually likes this; preallocating arrays doesn't save time
         ctors[ctors.length] = declared;// gwt-dev must never call this.
       }
     }
     return ctors;
   }
-  
-  @Override
-  public final Annotation[] getDeclaredAnnotations() {
-    // we currently don't differentiate between declared and public annotations
-    return getAnnotations();
-  }
 
   @Override
-  public final Constructor<T> getDeclaredConstructor(Class<?> ... params) throws NoSuchMethodException {
-    String id = getSignature(params);
-    Constructor<T> ctor = findConstructor(this, id);
-    if (ctor != null)
+  public final native <A extends Annotation> A getDeclaredAnnotation(Class<A> annoCls)
+  /*-{
+    var anno = this.a[annoCls.@java.lang.Class::getName()()];
+    return anno && anno.declared && anno || null;
+  }-*/;
+
+  @Override
+  public final native Annotation[] getDeclaredAnnotations()
+  /*-{
+    var array = @com.google.gwt.reflect.shared.JsMemberPool::annoArray()();
+    for (var i in this.a) {
+      if (this.a.hasOwnProperty(i) && this.a[i].declared)
+        array.push(this.a[i]);
+    }
+    return array;
+  }-*/;
+
+  @Override
+  public final Constructor<T> getDeclaredConstructor(final Class<?> ... params) throws NoSuchMethodException {
+    final String id = getSignature(params);
+    final Constructor<T> ctor = findConstructor(this, id);
+    if (ctor != null) {
       return ctor;
+    }
     throw new NoSuchMethodException("Could not find declared constructor "+getType().getSimpleName()+
-        "("+ReflectUtil.joinClasses(",",  params)+") in "+getType());
+      "("+ReflectUtil.joinClasses(",",  params)+") in "+getType());
   }
 
   @Override
   public final Constructor<T>[] getDeclaredConstructors() {
-    Constructor<T>[] ctors = constructorArray();
+    final Constructor<T>[] ctors = constructorArray();
     fillConstructors(this, ctors);
     return ctors;
   }
 
   @Override
-  public final Field getDeclaredField(String name) throws NoSuchFieldException {
-    Field field = findField(this, name);
-    if (field != null)
+  public final Field getDeclaredField(final String name) throws NoSuchFieldException {
+    final Field field = findField(this, name);
+    if (field != null) {
       return field;
+    }
     throw new NoSuchFieldException("Could not find declared field "+name+" in "+getTypeName());
   }
 
   @Override
   public final Field[] getDeclaredFields() {
-    Field[] fields = fieldArray();
+    final Field[] fields = fieldArray();
     fillFields(this, fields);
     return fields;
   }
 
   @Override
-  public final Method getDeclaredMethod(String name, Class<?> ... params) throws NoSuchMethodException {
-    String id = name + getSignature(params);
-    Method method = findMethod(this, id);
-    if (method != null)
+  public final Method getDeclaredMethod(final String name, final Class<?> ... params) throws NoSuchMethodException {
+    final String id = name + getSignature(params);
+    final Method method = findMethod(this, id);
+    if (method != null) {
       return method;
+    }
     throw new NoSuchMethodException("Could not find declared method "+name+
-        "("+ReflectUtil.joinClasses(",",  params)+") in "+getType());
+      "("+ReflectUtil.joinClasses(",",  params)+") in "+getType());
   }
 
   @Override
   public final Method[] getDeclaredMethods() {
-    Method[] methods = methodArray();
+    final Method[] methods = methodArray();
     fillMethods(this, methods);
     return methods;
   }
-  
+
   @Override
-  public final Field getField(String name) throws NoSuchFieldException {
+  public final Field getField(final String name) throws NoSuchFieldException {
     JsMemberPool<? super T> pool = this;
     while (pool != null) {
-      Field field = findField(pool, name);
-      if (field == null)
+      final Field field = findField(pool, name);
+      if (field == null) {
         pool = pool.getSuperclass();
-      else if (Modifier.isPublic(field.getModifiers())){
+      } else if (Modifier.isPublic(field.getModifiers())){
         return field;
       }
-      else 
+      else {
         break; // super classes can't match if the subclass has a lower privacy method
+      }
     }
     throw new NoSuchFieldException("Could not find public field "+name+ " in "+getTypeName());
   }
 
   @Override
   public final Field[] getFields() {
-    Field[] fields = fieldArray();
+    final Field[] fields = fieldArray();
     JsMemberPool<? super T> pool = this;
-    JavaScriptObject set = JavaScriptObject.createObject();
+    final JavaScriptObject set = JavaScriptObject.createObject();
     while (pool != null) {
-      for (Field declared : pool.getDeclaredFields()) {
+      for (final Field declared : pool.getDeclaredFields()) {
         if (Modifier.isPublic(declared.getModifiers()) &&
-            isUnique(set, declared.getName())) {
+          isUnique(set, declared.getName())) {
           fields[fields.length] = declared;
         }
       }
@@ -285,40 +311,41 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
     }
     return fields;
   }
-  
+
   @Override
   public final Class<?>[] getInterfaces() {
     return getType().getInterfaces();
   }
-  
+
   @Override
-  public final Method getMethod(String name, Class<?> ... params) throws NoSuchMethodException {
-    String id = name + getSignature(params);
+  public final Method getMethod(final String name, final Class<?> ... params) throws NoSuchMethodException {
+    final String id = name + getSignature(params);
     JsMemberPool<? super T> pool = this;
     while (pool != null) {
-      Method method = findMethod(pool, id);
-      if (method == null)
+      final Method method = findMethod(pool, id);
+      if (method == null) {
         pool = pool.getSuperclass();
-      else if (Modifier.isPublic(method.getModifiers())){
+      } else if (Modifier.isPublic(method.getModifiers())){
         return method;
       }
-      else 
+      else {
         break; // super classes can't match if the subclass has a lower privacy method
+      }
     }
     throw new NoSuchMethodException("Could not find public method "+name+
-        "("+ReflectUtil.joinClasses(",",  params)+") in "+getType());
+      "("+ReflectUtil.joinClasses(",",  params)+") in "+getType());
   }
-  
+
   @Override
   @SuppressWarnings("rawtypes")
   public final Method[] getMethods() {
-    Method[] methods = methodArray();
+    final Method[] methods = methodArray();
     JsMemberPool<? super T> pool = this;
-    JavaScriptObject set = JavaScriptObject.createObject();
-    JsMemberPool[] all = new JsMemberPool[]{};
+    final JavaScriptObject set = JavaScriptObject.createObject();
+    final JsMemberPool[] all = new JsMemberPool[]{};
     if (pool.getType().isInterface()) {
       all[all.length] = this;
-      for (Class<?> iface : pool.getInterfaces()) {
+      for (final Class<?> iface : pool.getInterfaces()) {
         all[all.length] = getMembers(iface);
       }
     } else {
@@ -327,10 +354,10 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
         pool = pool.getSuperclass();
       }
     }
-    for(JsMemberPool cls : all) {
-      for (Method declared : cls.getDeclaredMethods()) {
+    for(final JsMemberPool cls : all) {
+      for (final Method declared : cls.getDeclaredMethods()) {
         if (Modifier.isPublic(declared.getModifiers()) &&
-            isUnique(set, declared.getName()+getSignature(declared.getParameterTypes()))) {
+          isUnique(set, declared.getName()+getSignature(declared.getParameterTypes()))) {
           // javascript actually likes this; preallocating arrays doesn't save time
           methods[methods.length] = declared;
         }
@@ -338,10 +365,10 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
     }
     return methods;
   }
-  
+
   @Override
   public final JsMemberPool<? super T> getSuperclass() {
-    Class<? super T> superClass = getType().getSuperclass();
+    final Class<? super T> superClass = getType().getSuperclass();
     assert superClass != getType();
     return superClass == null ? null : getMembers(superClass);
   }
@@ -351,7 +378,7 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
   /*-{
     return this.$;
   }-*/;
-  
+
   public final native String getTypeName()
   /*-{
     try {
@@ -360,18 +387,26 @@ public class JsMemberPool <T> extends JavaScriptObject implements MemberPool <T>
       return "<unknown type>";
     }
   }-*/;
-  
+
+  private final native void addAnnotation(String key, Annotation a, boolean declared)
+  /*-{
+    this.a[key] = a;
+    if (declared) {
+      a.declared = true;
+    }
+  }-*/;
+
   @SuppressWarnings("rawtypes")
   private final native void addConstructor(String key, Constructor c)
   /*-{
     this.c[key] = c;
   }-*/;
-  
+
   private final native void addField(String key, Field f)
   /*-{
     this.f[key] = f;
   }-*/;
-  
+
   private final native void addMethod(String key, Method m)
   /*-{
     this.m[key] = m;

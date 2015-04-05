@@ -1,37 +1,53 @@
 package com.google.gwt.reflect.shared;
 
+import com.google.gwt.core.client.SingleJsoImplName;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import com.google.gwt.core.client.SingleJsoImplName;
-
 @SingleJsoImplName("com.google.gwt.reflect.shared.JsMemberPool")
-public interface MemberPool <T> {
+public interface MemberPool<T> {
 
   <A extends Annotation> A getAnnotation(Class<A> annoCls);
+
   Annotation[] getAnnotations();
+
+  Class<?>[] getClasses();
+
+  Constructor<T> getConstructor(Class<?>... params) throws NoSuchMethodException;
+
+  Constructor<T>[] getConstructors();
+
+  <A extends Annotation> A getDeclaredAnnotation(Class<A> annoCls);
+
   Annotation[] getDeclaredAnnotations();
 
-  Constructor<T> getConstructor(Class<?> ... params) throws NoSuchMethodException;
-  Constructor<T> getDeclaredConstructor(Class<?> ... params) throws NoSuchMethodException;
-  Constructor<T>[] getConstructors();
+  Constructor<T> getDeclaredConstructor(Class<?>... params) throws NoSuchMethodException;
+
   Constructor<T>[] getDeclaredConstructors();
 
-  Field getField(String name) throws NoSuchFieldException;
   Field getDeclaredField(String name) throws NoSuchFieldException;
-  Field[] getFields();
+
   Field[] getDeclaredFields();
 
-  Method getMethod(String name, Class<?> ... params) throws NoSuchMethodException;
-  Method getDeclaredMethod(String name, Class<?> ... params) throws NoSuchMethodException;
-  Method[] getMethods();
+  Method getDeclaredMethod(String name, Class<?>... params) throws NoSuchMethodException;
+
   Method[] getDeclaredMethods();
 
-  MemberPool<? super T> getSuperclass();
+  Field getField(String name) throws NoSuchFieldException;
+
+  Field[] getFields();
+
   Class<?>[] getInterfaces();
-  Class<?>[] getClasses();
+
+  Method getMethod(String name, Class<?>... params) throws NoSuchMethodException;
+
+  Method[] getMethods();
+
+  MemberPool<? super T> getSuperclass();
+
   Class<T> getType();
 
 }

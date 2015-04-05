@@ -317,7 +317,9 @@ public class Package implements java.lang.reflect.AnnotatedElement {
   }
 
   // store a proxy for the package info that has no annotations
+  // We will implicitly generate support for this class to be enhanced with an empty annotation map.
   public static final class PackageInfoProxy {}
+
   private Class<?> getPackageInfo() {
     if (packageInfo == null) {
       try {

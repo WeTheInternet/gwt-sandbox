@@ -51,6 +51,8 @@ public final class Array {
     }
   }
 
+import xapi.log.X_Log;
+
 public final class Array {
 
   public static byte getByte(Object array, int index) {
@@ -353,14 +355,27 @@ public final class Array {
   private static JavaScriptObject classes = JavaScriptObject.createArray();
 
   public static <T> T[] register(T[] array, Class componentType) {
-    while (componentType.isArray()) {
+    if (array == null) {
+      return null;
+    }
+    if (componentType.isArray()) {
+      componentType.getName();// init the constId...
       int seedId = constId(componentType);
       initFactory(seedId, array);
       saveType(constId(componentType.getComponentType()), componentType);
-      componentType = componentType.getComponentType();
+      if (array.length > 0 && componentType.getComponentType().isArray()) {
+        // avoid casting issues with primitive arrays by using jsni
+        // This will skip the cast checking and just do what we want.
+        nativeRegister(array[0], componentType.getComponentType());
+      }
     }
     return array;
   }
+
+  private static native void nativeRegister(Object o, Class c)
+  /*-{
+     @java.lang.reflect.Array::register([Ljava/lang/Object;Ljava/lang/Class;)(o, c);
+   }-*/;
 
   private static native int constId(Class<?> cls)
   /*-{
@@ -368,10 +383,10 @@ public final class Array {
   }-*/;
   private static native <T> boolean initFactory(int id, T[] seed)
   /*-{
-    if (!@java.lang.reflect.Array::factories[id]) {
-      factories[id] = @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(seed, 0);
-    }
-  }-*/;
+     if (!@java.lang.reflect.Array::factories[id]) {
+       @java.lang.reflect.Array::factories[id] = @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(seed, 0);
+     }
+   }-*/;n
 
   private static native void saveType(int id, Class<?> arrayClass)
   /*-{
