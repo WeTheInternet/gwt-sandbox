@@ -17,6 +17,10 @@ package com.google.gwt.dev.cfg;
 
 import com.google.gwt.core.ext.BadPropertyValueException;
 import com.google.gwt.core.ext.DefaultConfigurationProperty;
+import com.google.gwt.core.ext.PropertyOracle;
+import com.google.gwt.core.ext.SelectionProperty;
+import com.google.gwt.core.ext.TreeLogger;
+import com.google.gwt.core.ext.TreeLogger.Type;
 import com.google.gwt.thirdparty.guava.common.base.Splitter;
 import com.google.gwt.thirdparty.guava.common.collect.ImmutableMap;
 import com.google.gwt.thirdparty.guava.common.collect.ImmutableMap.Builder;
@@ -37,6 +41,27 @@ public class ConfigurationProperties implements Serializable {
 
   public static final ConfigurationProperties EMPTY =
       new ConfigurationProperties(Collections.<ConfigurationProperty>emptyList());
+
+  /**
+   * @author James X. Nelson (james@wetheinter.net, @james)
+   *
+   */
+  public class ConfigOnlyPropertyOracle implements PropertyOracle {
+
+    @Override
+    public com.google.gwt.core.ext.ConfigurationProperty getConfigurationProperty(
+        final String propertyName) throws BadPropertyValueException {
+      return ConfigurationProperties.this.getConfigurationProperty(propertyName);
+    }
+
+    @Override
+    public SelectionProperty getSelectionProperty(final TreeLogger logger,
+        final String propertyName) throws BadPropertyValueException {
+      logger.log(Type.ERROR, "This property oracle does not support retrieval of SelectionProperties");
+      throw new UnsupportedOperationException("This property oracle does not support retrieval of SelectionProperties");
+    }
+
+  }
 
   private static final Splitter SPLIT_ON_COMMAS =
       Splitter.on(',').omitEmptyStrings().trimResults();
@@ -91,8 +116,8 @@ public class ConfigurationProperties implements Serializable {
    * Returns a single-valued property as a boolean if possible.
    * If not set or not single-valued, returns the default value.
    */
-  public boolean getBoolean(String key, boolean defaultValue) {
-    List<String> values = getStrings(key);
+  public boolean getBoolean(final String key, final boolean defaultValue) {
+    final List<String> values = getStrings(key);
     if (values.size() != 1 || values.get(0) == null) {
       return defaultValue;
     }
@@ -103,14 +128,14 @@ public class ConfigurationProperties implements Serializable {
    * Returns a single-valued configuration property as an integer if possible.
    * If not set, not single-valued, or not an integer, returns the default value.
    */
-  public int getInteger(String key, int defaultValue) {
-    List<String> values = getStrings(key);
+  public int getInteger(final String key, final int defaultValue) {
+    final List<String> values = getStrings(key);
     if (values.size() != 1 || values.get(0) == null) {
       return defaultValue;
     }
     try {
       return Integer.parseInt(values.get(0));
-    } catch (NumberFormatException e) {
+    } catch (final NumberFormatException e) {
       return defaultValue;
     }
   }
@@ -134,8 +159,8 @@ public class ConfigurationProperties implements Serializable {
    * <p>A single-valued and unset configuration property will be returned as a list
    * containing one null.
    */
-  public List<String> getStrings(String key) {
-    if (!properties.containsKey(key)) {
+  public List<String> getStrings(final String key) {
+    if (!props.containsKey(key)) {
       return Collections.emptyList();
     }
     return properties.get(key);
@@ -151,9 +176,9 @@ public class ConfigurationProperties implements Serializable {
    *
    * <p>Returns an empty list if the property doesn't exist.
    */
-  public List<String> getCommaSeparatedStrings(String key) {
-    List<String> result = Lists.newArrayList();
-    for (String value : getStrings(key)) {
+  public List<String> getCommaSeparatedStrings(final String key) {
+    final List<String> result = Lists.newArrayList();
+    for (final String value : getStrings(key)) {
       if (value != null) {
         result.addAll(SPLIT_ON_COMMAS.splitToList(value));
       }
@@ -173,7 +198,7 @@ public class ConfigurationProperties implements Serializable {
    * Returns the ConfigurationProperty with the given key.
    * (API-compatible with {@link com.google.gwt.core.ext.PropertyOracle}.)
    */
-  com.google.gwt.core.ext.ConfigurationProperty getConfigurationProperty(String key)
+  com.google.gwt.core.ext.ConfigurationProperty getConfigurationProperty(final String key)
       throws BadPropertyValueException {
     if (!properties.containsKey(key)) {
       throw new BadPropertyValueException(key);
@@ -184,7 +209,15 @@ public class ConfigurationProperties implements Serializable {
   /**
    * Returns an unmodifiable copy of a list that may contain nulls.
    */
-  private static List<String> copyOf(List<String> values) {
+  private static List<String> copyOf(final List<String> values) {
     return Collections.unmodifiableList(Lists.newArrayList(values));
+  }
+
+  /**
+   * Returns a property oracle that can only access configuration properties.
+   */
+  public PropertyOracle toConfigurationOnlyPropertyOracle() {
+    return new ConfigOnlyPropertyOracle();
+
   }
 }
