@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="**/super/**" kind="src" path="core/src"/>
-	<classpathentry kind="src" path="core/test_i18n_dollar"/>
-	<classpathentry kind="src" path="core/test_i18n_bar"/>
-	<classpathentry kind="src" path="core/javadoc"/>
-	<classpathentry excluding="**/super/**" kind="src" path="core/test"/>
+	<classpathentry excluding="**/super/**" kind="src" path="src"/>
+	<classpathentry excluding="**/emul/**|**/super/**|**/translatable/**" kind="src" path="super"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="var" path="GWT_TOOLS/lib/apache/tapestry-util-text-4.0.2.jar" sourcepath="/GWT_TOOLS/lib/apache/tapestry-util-text-4.0.2-src.zip"/>
 	<classpathentry exported="true" kind="var" path="GWT_TOOLS/lib/junit/junit-4.8.2.jar" sourcepath="/GWT_TOOLS/lib/junit/junit-4.8.2-src.jar"/>
@@ -67,4 +64,3 @@
 	<classpathentry kind="var" path="GWT_TOOLS/lib/eclipse/jdtCompilerAdapter_3.11.0.v20150126-2015.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
-
