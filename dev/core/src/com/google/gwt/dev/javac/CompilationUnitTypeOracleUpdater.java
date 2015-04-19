@@ -526,7 +526,7 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
     // Make a copy before we mutate the collection.
     Map<String, Object> values = Maps.newHashMap(annotationData.getValues());
     logger =
-        logger.branch(TreeLogger.TRACE, "Resolving annotation for " + annotationClass.getName());
+        logger.branch(TreeLogger.SPAM, "Resolving annotation for " + annotationClass.getName());
     for (Map.Entry<String, Object> entry : values.entrySet()) {
       Method method = null;
       Throwable caught = null;
