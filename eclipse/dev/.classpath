@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="core/src"/>
-	<classpathentry excluding="**/public/**|com/google/gwt/dev/javac/typemodel/test/package-info.java" kind="src" path="core/test"/>
-	<classpathentry excluding="com/google/gwt/dev/jjs/intrinsic/" kind="src" path="core/super"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="**/intrinsic/**" kind="src" path="super"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="var" path="GWT_TOOLS/lib/apache/ant-1.6.5.jar" sourcepath="/GWT_TOOLS/lib/apache/ant-1.6.5-src.zip"/>
 	<classpathentry kind="var" path="GWT_TOOLS/lib/apache/tapestry-util-text-4.0.2.jar" sourcepath="/GWT_TOOLS/lib/apache/tapestry-util-text-4.0.2-src.zip"/>
