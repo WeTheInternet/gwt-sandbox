@@ -660,7 +660,10 @@ public class UnifyAst implements UnifyAstView {
           if (magicMethodMap.containsKey(methodSignature)) {
             MagicMethodGenerator method = magicMethodMap.get(methodSignature);
             try {
+              PropertyOracle oldOracle = getGeneratorContext().getPropertyOracle();
+              getGeneratorContext().setPropertyOracle(getRebindPermutationOracle().getConfigurationPropertyOracle());
               JExpression expr = method.injectMagic(logger, x, currentMethod, ctx, UnifyAst.this);
+              getGeneratorContext().setPropertyOracle(oldOracle);
               if (logger.isLoggable(Type.DEBUG)) {
                 logger.log(Type.DEBUG, "Magic method " + method
                     + " converted:\n" + x + "\ninto: " + expr);
@@ -770,6 +773,7 @@ public class UnifyAst implements UnifyAstView {
   private final CompilerContext compilerContext;
   private final Map<String, JMember> resolvedMembersByQualifiedName = Maps.newHashMap();
   private final Map<String, MagicMethodGenerator> magicMethodMap = Maps.newHashMap();
+  private final Set<String> MAGIC_METHOD_CALLS = Sets.newHashSet();
   private final JProgram program;
   private final RebindPermutationOracle rebindPermutationOracle;
   private final Set<String> reboundTypeNames = Sets.newHashSet();
