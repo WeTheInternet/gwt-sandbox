@@ -23,6 +23,7 @@ import com.google.gwt.dev.javac.JSORestrictionsChecker;
 import com.google.gwt.dev.javac.JdtUtil;
 import com.google.gwt.dev.javac.JsInteropUtil;
 import com.google.gwt.dev.javac.JsniMethod;
+import com.google.gwt.dev.javac.MagicMethodUtil;
 import com.google.gwt.dev.jdt.SafeASTVisitor;
 import com.google.gwt.dev.jjs.InternalCompilerException;
 import com.google.gwt.dev.jjs.SourceInfo;
@@ -122,7 +123,6 @@ import com.google.gwt.thirdparty.guava.common.collect.Sets;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -3349,17 +3349,10 @@ public class GwtAstBuilder {
         LocalVariableBinding b = (LocalVariableBinding) binding;
         MethodScope nearestMethodScope =
             scope instanceof MethodScope ? (MethodScope) scope : scope.enclosingMethodScope();
-        if ((x.bits & ASTNode.DepthMASK) != 0 || nearestMethodScope.isLambdaScope()) {
-          VariableBinding[] path = scope.getEmulationPath(b);
-          if (path == null) {
-            /*
-             * Don't like this, but in rare cases (e.g. the variable is only
-             * ever used as an unnecessary qualifier) JDT provides no emulation
-             * to the desired variable.
-             */
-            // throw new InternalCompilerException("No emulation path.");
-            return null;
-          }
+        VariableBinding[] path = nearestMethodScope.getEmulationPath(b);
+        if (path == null) {
+          result = makeLocalRef(info, b);
+        } else {
           assert path.length == 1;
           if (curMethod.scope.isInsideInitializer() && path[0] instanceof SyntheticArgumentBinding) {
             SyntheticArgumentBinding sb = (SyntheticArgumentBinding) path[0];

@@ -48,7 +48,6 @@ public class AstConstructor {
    */
   public static JProgram construct(TreeLogger logger, final CompilationState state,
       final PrecompileTaskOptions options, final ConfigurationProperties config) throws UnableToCompleteException {
->>>>>>> Add support for global retrieval of configuration properties
 
     InternalCompilerException.preload();
 
@@ -87,7 +86,7 @@ public class AstConstructor {
 
     final JProgram jprogram = new JProgram(compilerContext.getMinimalRebuildCache());
     final JsProgram jsProgram = new JsProgram();
-    final UnifyAst unifyAst = new UnifyAst(logger, compilerContext, jprogram, jsProgram, rpo);
+    final UnifyAst unifyAst = new UnifyAst(logger, compilerContext, jprogram, jsProgram, precompilationContext);
     unifyAst.buildEverything();
 
     // Compute all super type/sub type info

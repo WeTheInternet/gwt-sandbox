@@ -15,6 +15,7 @@
  */
 package com.google.gwt.dev;
 
+import com.google.gwt.core.ext.PropertyOracle;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.core.ext.linker.ArtifactSet;
@@ -56,7 +57,7 @@ class PrecompilationContextCreator {
     final StandardGeneratorContext generatorContext =
         new StandardGeneratorContext(compilerContext, compilationState, generatorArtifacts, true);
     BindingProperty[] orderedProperties = propertyCombinations.getOrderedProperties();
-    ConfigurationProperties configurationProperties = new ConfigurationProperties(module);
+    final ConfigurationProperties configurationProperties = new ConfigurationProperties(module);
     Deque<Rule> rules = module.getRules();
     for (int i = 0; i < propertyCombinations.size(); ++i) {
       BindingProperties bindingProperties = new BindingProperties(orderedProperties,
@@ -101,6 +102,11 @@ class PrecompilationContextCreator {
           @Override
           public StandardGeneratorContext getGeneratorContext() {
             return generatorContext;
+          }
+
+          @Override
+          public PropertyOracle getConfigurationPropertyOracle() {
+            return configurationProperties.toConfigurationOnlyPropertyOracle();
           }
         };
 

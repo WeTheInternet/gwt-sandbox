@@ -160,7 +160,7 @@ public class ConfigurationProperties implements Serializable {
    * containing one null.
    */
   public List<String> getStrings(final String key) {
-    if (!props.containsKey(key)) {
+    if (!properties.containsKey(key)) {
       return Collections.emptyList();
     }
     return properties.get(key);

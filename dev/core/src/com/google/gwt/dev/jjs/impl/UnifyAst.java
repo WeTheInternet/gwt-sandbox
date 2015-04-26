@@ -15,20 +15,6 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-
 import com.google.gwt.core.ext.PropertyOracle;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.TreeLogger.Type;
@@ -42,12 +28,11 @@ import com.google.gwt.dev.javac.CompilationProblemReporter;
 import com.google.gwt.dev.javac.CompilationState;
 import com.google.gwt.dev.javac.CompilationUnit;
 import com.google.gwt.dev.javac.CompiledClass;
-import com.google.gwt.dev.jjs.PrecompilationContext;
-import com.google.gwt.dev.javac.Shared;
 import com.google.gwt.dev.javac.StandardGeneratorContext;
 import com.google.gwt.dev.jdt.RebindPermutationOracle;
 import com.google.gwt.dev.jjs.InternalCompilerException;
 import com.google.gwt.dev.jjs.MagicMethodGenerator;
+import com.google.gwt.dev.jjs.PrecompilationContext;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
 import com.google.gwt.dev.jjs.UnifyAstListener;
@@ -112,14 +97,16 @@ import com.google.gwt.thirdparty.guava.common.collect.Iterables;
 import com.google.gwt.thirdparty.guava.common.collect.LinkedListMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.Lists;
 import com.google.gwt.thirdparty.guava.common.collect.Maps;
-import com.google.gwt.thirdparty.guava.common.base.Predicate;
-import com.google.gwt.thirdparty.guava.common.collect.LinkedHashMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.Multimap;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
 import com.google.gwt.thirdparty.guava.common.collect.Sets.SetView;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -628,7 +615,10 @@ public class UnifyAst implements UnifyAstView {
           if (magicMethodMap.containsKey(methodSignature)) {
             MagicMethodGenerator method = magicMethodMap.get(methodSignature);
             try {
+              PropertyOracle oldOracle = getGeneratorContext().getPropertyOracle();
+              getGeneratorContext().setPropertyOracle(getRebindPermutationOracle().getConfigurationPropertyOracle());
               JExpression expr = method.injectMagic(logger, x, currentMethod, ctx, UnifyAst.this);
+              getGeneratorContext().setPropertyOracle(oldOracle);
               if (logger.isLoggable(Type.DEBUG)) {
                 logger.log(Type.DEBUG, "Magic method " + method
                   + " converted:\n" + x + "\ninto: " + expr);
@@ -644,6 +634,7 @@ public class UnifyAst implements UnifyAstView {
           }
           throw new InternalCompilerException("Unknown magic method error");
       }
+    }
   }
 
   private boolean isMultivaluedProperty(String propertyName) {
@@ -1871,5 +1862,4 @@ public class UnifyAst implements UnifyAstView {
     }
     return translate((JReferenceType) type);
   }
-
 }
