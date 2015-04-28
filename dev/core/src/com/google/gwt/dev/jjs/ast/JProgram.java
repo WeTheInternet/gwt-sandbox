@@ -16,11 +16,14 @@
 package com.google.gwt.dev.jjs.ast;
 
 import com.google.gwt.dev.MinimalRebuildCache;
+import com.google.gwt.dev.TypeNameCallback;
 import com.google.gwt.dev.jjs.Correlation.Literal;
 import com.google.gwt.dev.jjs.InternalCompilerException;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
 import com.google.gwt.dev.jjs.impl.GwtAstBuilder;
+import com.google.gwt.dev.jjs.impl.ImplementClassLiteralsAsFields;
+import com.google.gwt.dev.jjs.impl.MakeCallsStatic;
 import com.google.gwt.dev.jjs.impl.codesplitter.FragmentPartitioningResult;
 import com.google.gwt.dev.util.StringInterner;
 import com.google.gwt.dev.util.log.speedtracer.CompilerEventType;
@@ -1208,5 +1211,15 @@ public class JProgram extends JNode implements ArrayTypeCreator {
   private void writeObject(ObjectOutputStream stream) throws IOException {
     serializeTypes(allTypes, stream);
     stream.defaultWriteObject();
+  }
+
+  public TypeNameCallback getReferenceTypeOnlyRemover() {
+    return new TypeNameCallback() {
+
+      @Override
+      public void receiveTypeName(String binaryName) {
+        referenceOnlyTypeNames.remove(binaryName);
+      }
+    };
   }
 }

@@ -1,11 +1,11 @@
 /*
  * Copyright 2014 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,7 +13,10 @@
  */
 package com.google.gwt.dev;
 
+import cern.colt.list.IntArrayList;
+
 import com.google.gwt.core.ext.TreeLogger;
+import com.google.gwt.core.ext.TreeLogger.Type;
 import com.google.gwt.core.ext.linker.ArtifactSet;
 import com.google.gwt.core.ext.linker.StatementRanges;
 import com.google.gwt.dev.cfg.ModuleDef;
@@ -32,16 +35,16 @@ import com.google.gwt.dev.resource.Resource;
 import com.google.gwt.dev.util.Name.InternalName;
 import com.google.gwt.thirdparty.guava.common.annotations.VisibleForTesting;
 import com.google.gwt.thirdparty.guava.common.base.Objects;
+import com.google.gwt.thirdparty.guava.common.base.Predicate;
 import com.google.gwt.thirdparty.guava.common.base.Predicates;
 import com.google.gwt.thirdparty.guava.common.collect.HashMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.ImmutableList;
 import com.google.gwt.thirdparty.guava.common.collect.ImmutableSet;
+import com.google.gwt.thirdparty.guava.common.collect.Lists;
 import com.google.gwt.thirdparty.guava.common.collect.Maps;
 import com.google.gwt.thirdparty.guava.common.collect.Multimap;
 import com.google.gwt.thirdparty.guava.common.collect.Multimaps;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
-
-import cern.colt.list.IntArrayList;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -168,6 +171,7 @@ public class MinimalRebuildCache implements Serializable {
   private final Multimap<String, String> generatedCompilationUnitNamesByReboundTypeNames =
       HashMultimap.create();
   private final IntTypeMapper intTypeMapper = new IntTypeMapper();
+  private final Multimap<String, GeneratedUnit> injectedUnits = HashMultimap.create();
   private final Map<String, String> jsByTypeName = Maps.newHashMap();
   private final JsIncrementalNamerState jsIncrementalNamerState = new JsIncrementalNamerState();
   private final Set<String> jsoStatusChangedTypeNames = Sets.newHashSet();
@@ -196,6 +200,8 @@ public class MinimalRebuildCache implements Serializable {
   private StringAnalyzableTypeEnvironment typeEnvironment =
       new StringAnalyzableTypeEnvironment(this);
   private final Multimap<String, String> typeNamesByReferencingTypeName = HashMultimap.create();
+  private boolean injectionMode;
+  private List<TypeNameCallback> injectedUnitCallbacks = Lists.newArrayList();
 
   public boolean addExportedGlobalName(String exportedGlobalName, String inTypeName) {
     exportedGlobalNamesByTypeName.put(inTypeName, exportedGlobalName);
@@ -208,6 +214,11 @@ public class MinimalRebuildCache implements Serializable {
    */
   public void addGeneratedArtifacts(ArtifactSet generatedArtifacts) {
     this.generatedArtifacts.addAll(generatedArtifacts);
+  }
+
+  public void addInjectedUnitCallback(TypeNameCallback callback) {
+    assert callback != null;
+    injectedUnitCallbacks.add(callback);
   }
 
   public void addModifiedCompilationUnitNames(TreeLogger logger,
@@ -337,10 +348,11 @@ public class MinimalRebuildCache implements Serializable {
     copyCollection(filterUnreachableTypeNames(staleTypeNames), staleTypeNames);
 
     // These log lines can be expensive.
-    if (logger.isLoggable(TreeLogger.DEBUG)) {
-      logger.log(TreeLogger.DEBUG, "known modified types = " + modifiedTypeNames);
-      logger.log(TreeLogger.DEBUG, "known modified resources = " + modifiedResourcePaths);
-      logger.log(TreeLogger.DEBUG,
+    Type logLevel = TreeLogger.DEBUG;
+    if (logger.isLoggable(logLevel)) {
+      logger.log(logLevel, "known modified types = " + modifiedTypeNames);
+      logger.log(logLevel, "known modified resources = " + modifiedResourcePaths);
+      logger.log(logLevel,
           "clearing cached output for resulting stale types = " + staleTypeNames);
     }
 
@@ -476,6 +488,7 @@ public class MinimalRebuildCache implements Serializable {
     copyMultimap(that.exportedGlobalNamesByTypeName, this.exportedGlobalNamesByTypeName);
     copyMultimap(that.generatedCompilationUnitNamesByReboundTypeNames,
         this.generatedCompilationUnitNamesByReboundTypeNames);
+    copyMultimap(that.injectedUnits, this.injectedUnits);
     copyMultimap(that.nestedTypeNamesByUnitTypeName, this.nestedTypeNamesByUnitTypeName);
     copyMultimap(that.rebinderTypeNamesByReboundTypeName, this.rebinderTypeNamesByReboundTypeName);
     copyMultimap(that.reboundTypeNamesByGeneratedCompilationUnitNames,
@@ -648,6 +661,13 @@ public class MinimalRebuildCache implements Serializable {
 
     for (GeneratedUnit generatedUnit : generatedUnits) {
       String currentStrongHash = generatedUnit.getStrongHash();
+      if (injectionMode) {
+        injectedUnits.put(generatedUnit.getTypeName(), generatedUnit);
+        clearCachedTypeOutput(generatedUnit.getTypeName());
+        for (TypeNameCallback callback : injectedUnitCallbacks) {
+          callback.receiveTypeName(generatedUnit.getTypeName());
+        }
+      }
       String lastKnownStrongHash =
           contentHashByGeneratedTypeName.put(generatedUnit.getTypeName(), currentStrongHash);
       if (!Objects.equal(lastKnownStrongHash, currentStrongHash)) {
@@ -780,6 +800,7 @@ public class MinimalRebuildCache implements Serializable {
         && Objects.equal(this.jsoTypeNames, that.jsoTypeNames)
         && Objects.equal(this.lastLinkedJsBytes, that.lastLinkedJsBytes)
         && Objects.equal(this.lastModifiedByDiskSourcePath, that.lastModifiedByDiskSourcePath)
+        && Objects.equal(this.injectedUnits, that.injectedUnits)
         && Objects.equal(this.lastModifiedByResourcePath, that.lastModifiedByResourcePath)
         && Objects.equal(this.lastReachableTypeNames, that.lastReachableTypeNames)
         && Objects.equal(this.modifiedCompilationUnitNames, that.modifiedCompilationUnitNames)
@@ -826,8 +847,10 @@ public class MinimalRebuildCache implements Serializable {
     // Filter the current stale types list for any compilation units that are known to be generated.
     Set<String> staleGeneratedCompilationUnitNames = Sets.intersection(
         computeCompilationUnitNames(staleTypeNames), generatedCompilationUnitNames);
+
+    Set<String> staleInjectedCompilationUnitNames = Sets.intersection(staleTypeNames, injectedUnits.keySet());
     boolean discoveredMoreStaleTypes;
-    do {
+    for (;;){
       // Accumulate staleGeneratedCompilationUnits -> generators ->
       // generatorTriggeringCompilationUnits.
       Set<String> reboundTypesThatGenerateTheStaleCompilationUnits =
@@ -838,11 +861,30 @@ public class MinimalRebuildCache implements Serializable {
       // previously known to be stale.
       discoveredMoreStaleTypes = staleTypeNames.addAll(generatorTriggeringTypes);
 
+      Set<String> typesThatReferenceStaleInjectedTypes =
+          computeTypesThatReferenceTypes(staleInjectedCompilationUnitNames);
+      Set<String> newlyStaleTypes = Sets.union(generatorTriggeringTypes, typesThatReferenceStaleInjectedTypes);
+
+      discoveredMoreStaleTypes |= staleTypeNames.addAll(typesThatReferenceStaleInjectedTypes);
+
+      if (!discoveredMoreStaleTypes) {
+        return;
+      }
       // It's possible that a generator triggering type was itself also created by a Generator.
       // Repeat the backwards trace process till none of the newly stale types are generated types.
       staleGeneratedCompilationUnitNames = Sets.intersection(
           computeCompilationUnitNames(generatorTriggeringTypes), generatedCompilationUnitNames);
-    } while (discoveredMoreStaleTypes);
+
+      staleInjectedCompilationUnitNames = Sets.intersection(newlyStaleTypes, injectedUnits.keySet());
+    }
+  }
+
+  private Set<String> computeTypesThatReferenceTypes(Set<String> units) {
+    Set<String> compilationUnitNames = Sets.newHashSet();
+    for (String unit : units) {
+      compilationUnitNames.addAll(typeNamesByReferencingTypeName.get(unit));
+    }
+    return compilationUnitNames;
   }
 
   private void clearCachedTypeOutput(String staleTypeName) {
@@ -907,4 +949,64 @@ public class MinimalRebuildCache implements Serializable {
     }
     return typesThatRebindTypes;
   }
+
+  /**
+   * @return -> injectionMode
+   */
+  public boolean isInjectionMode() {
+    return injectionMode;
+  }
+
+  /**
+   * @param injectionMode -> set injectionMode
+   */
+  public void setInjectionMode(boolean injectionMode) {
+    this.injectionMode = injectionMode;
+  }
+
+  public void refreshInjectedUnits() {
+    Map<String, GeneratedUnit> generatedUnits = Maps.newHashMap();
+    for (GeneratedUnit unit : injectedUnits.values()) {
+      generatedUnits.put(unit.getTypeName(), unit);
+    }
+    Map<String, Collection<String>> generatedTypeReferences = Maps.filterEntries(referencedTypeNamesByTypeName.asMap(),
+        new Predicate<Entry<String, Collection<String>>>() {
+      @Override
+      public boolean apply(Entry<String, Collection<String>> entry) {
+        return injectedUnits.containsKey(entry.getKey());
+      }
+    });
+    for (Entry<String, Collection<String>> typeToReferenceType : generatedTypeReferences.entrySet()) {
+      for (String referenced : typeToReferenceType.getValue()) {
+        GeneratedUnit unit = generatedUnits.get(referenced);
+        if (unit != null) {
+          injectedUnits.put(typeToReferenceType.getKey(), unit);
+        }
+      }
+    }
+  }
+
+  public boolean isInjectedUnit(String typeName) {
+    return injectedUnits.containsKey(typeName);
+  }
+
+  public Collection<GeneratedUnit> getInjectedUnitDependencies(String typeName) {
+    Set<GeneratedUnit> units = Sets.newHashSet();
+    collectGeneratedUnits(typeName, units);
+    return units;
+  }
+
+  private void collectGeneratedUnits(String typeName, Set<GeneratedUnit> units) {
+    for (GeneratedUnit newUnit : injectedUnits.get(typeName)) {
+      if (units.add(newUnit)) {
+        collectGeneratedUnits(newUnit.getTypeName(), units);
+      }
+      for (String nestedType : nestedTypeNamesByUnitTypeName.get(newUnit.getTypeName())) {
+        if (!nestedType.endsWith(newUnit.getTypeName())) {
+          collectGeneratedUnits(nestedType, units);
+        }
+      }
+    }
+  }
+
 }

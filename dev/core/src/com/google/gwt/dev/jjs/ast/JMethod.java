@@ -20,6 +20,8 @@ import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
 import com.google.gwt.dev.jjs.ast.js.JsniMethodBody;
 import com.google.gwt.dev.jjs.impl.JjsUtils;
+import com.google.gwt.dev.jjs.impl.JsInteropRestrictionChecker;
+import com.google.gwt.dev.jjs.impl.UnifyAst;
 import com.google.gwt.dev.util.StringInterner;
 import com.google.gwt.dev.util.collect.Lists;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
@@ -476,6 +478,7 @@ public class JMethod extends JNode implements JMember, CanBeAbstract, CanBeNativ
     return name;
   }
 
+  @Override
   public String getQualifiedName() {
     return enclosingType.getName() + "." + getSignature();
   }
@@ -526,6 +529,7 @@ public class JMethod extends JNode implements JMember, CanBeAbstract, CanBeNativ
     }
     sb.append(name);
     sb.append('(');
+    assert originalParamTypes != null : "Unresolved JMethod found in result: "+sb;
     for (JType type : getOriginalParamTypes()) {
       sb.append(type.getJsniSignatureName());
     }

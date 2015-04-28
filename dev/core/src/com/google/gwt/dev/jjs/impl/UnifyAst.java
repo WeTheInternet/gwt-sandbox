@@ -28,6 +28,7 @@ import com.google.gwt.dev.javac.CompilationProblemReporter;
 import com.google.gwt.dev.javac.CompilationState;
 import com.google.gwt.dev.javac.CompilationUnit;
 import com.google.gwt.dev.javac.CompiledClass;
+import com.google.gwt.dev.javac.GeneratedUnit;
 import com.google.gwt.dev.javac.StandardGeneratorContext;
 import com.google.gwt.dev.jdt.RebindPermutationOracle;
 import com.google.gwt.dev.jjs.InternalCompilerException;
@@ -617,14 +618,16 @@ public class UnifyAst implements UnifyAstView {
             try {
               PropertyOracle oldOracle = getGeneratorContext().getPropertyOracle();
               getGeneratorContext().setPropertyOracle(getRebindPermutationOracle().getConfigurationPropertyOracle());
+              boolean oldMode = minimalRebuildCache.isInjectionMode();
+              minimalRebuildCache.setInjectionMode(true);
+
+              rpo.getGeneratorContext().setCurrentRebindBinaryTypeName(null);
               JExpression expr = method.injectMagic(logger, x, currentMethod, ctx, UnifyAst.this);
+              minimalRebuildCache.setInjectionMode(oldMode);
               getGeneratorContext().setPropertyOracle(oldOracle);
               if (logger.isLoggable(Type.DEBUG)) {
                 logger.log(Type.DEBUG, "Magic method " + method
                   + " converted:\n" + x + "\ninto: " + expr);
-              }
-              if (expr instanceof JMethodCall) {
-                flowInto(((JMethodCall) expr).getTarget());
               }
               return expr;
             } catch (Exception e) {
@@ -796,6 +799,8 @@ public class UnifyAst implements UnifyAstView {
     initializeNameBasedLocators();
     this.minimalRebuildCache = compilerContext.getMinimalRebuildCache();
     if (incrementalCompile) {
+      minimalRebuildCache.addInjectedUnitCallback(program.getReferenceTypeOnlyRemover());
+      minimalRebuildCache.refreshInjectedUnits();
       this.staleTypeNames =
           minimalRebuildCache.computeAndClearStaleTypesCache(logger, program.typeOracle);
       checkPreambleTypesStillFresh(logger);
@@ -1550,7 +1555,21 @@ public class UnifyAst implements UnifyAstView {
       return nameBasedTypeLocator.getResolvedType(typeName);
     }
 
-    if (nameBasedTypeLocator.sourceCompilationUnitIsAvailable(typeName)) {
+    boolean isAvailable = nameBasedTypeLocator.sourceCompilationUnitIsAvailable(typeName);
+    if (!isAvailable && incrementalCompile && minimalRebuildCache.isInjectedUnit(typeName)) {
+      Collection<GeneratedUnit> generated = minimalRebuildCache.getInjectedUnitDependencies(typeName);
+      try {
+        compilationState.addGeneratedCompilationUnits(logger, generated);
+        isAvailable = nameBasedTypeLocator.sourceCompilationUnitIsAvailable(typeName);
+      } catch (UnableToCompleteException e) {
+        if (reportErrors) {
+          errorsFound = true;
+          logger.log(Type.ERROR, "Unabled to assimilate generated unit "+typeName, e);
+        }
+        return null;
+      }
+    }
+    if (isAvailable) {
       // Resolve from source.
       assimilateSourceUnit(nameBasedTypeLocator.getCompilationUnitFromSource(typeName),
           reportErrors);
