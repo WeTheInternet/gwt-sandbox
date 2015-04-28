@@ -16,6 +16,7 @@
 package com.google.gwt.dev.jjs.ast;
 
 import com.google.gwt.dev.MinimalRebuildCache;
+import com.google.gwt.dev.TypeNameCallback;
 import com.google.gwt.dev.common.InliningMode;
 import com.google.gwt.dev.jjs.Correlation.Literal;
 import com.google.gwt.dev.jjs.InternalCompilerException;
@@ -33,30 +34,12 @@ import com.google.gwt.dev.util.log.speedtracer.SpeedTracerLogger.Event;
 import com.google.gwt.thirdparty.guava.common.base.CaseFormat;
 import com.google.gwt.thirdparty.guava.common.base.Function;
 import com.google.gwt.thirdparty.guava.common.base.Predicate;
-import com.google.gwt.thirdparty.guava.common.collect.BiMap;
-import com.google.gwt.thirdparty.guava.common.collect.Collections2;
-import com.google.gwt.thirdparty.guava.common.collect.HashBiMap;
-import com.google.gwt.thirdparty.guava.common.collect.ImmutableList;
-import com.google.gwt.thirdparty.guava.common.collect.ImmutableMap;
-import com.google.gwt.thirdparty.guava.common.collect.ImmutableSet;
-import com.google.gwt.thirdparty.guava.common.collect.Iterables;
-import com.google.gwt.thirdparty.guava.common.collect.Lists;
-import com.google.gwt.thirdparty.guava.common.collect.Maps;
-import com.google.gwt.thirdparty.guava.common.collect.Sets;
+import com.google.gwt.thirdparty.guava.common.collect.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Root for the AST representing an entire Java program.
@@ -1327,5 +1310,15 @@ public class JProgram extends JNode implements ArrayTypeCreator {
   private void writeObject(ObjectOutputStream stream) throws IOException {
     serializeTypes(allTypes, stream);
     stream.defaultWriteObject();
+  }
+
+  public TypeNameCallback getReferenceTypeOnlyRemover() {
+    return new TypeNameCallback() {
+
+      @Override
+      public void receiveTypeName(String binaryName) {
+        referenceOnlyTypeNames.remove(binaryName);
+      }
+    };
   }
 }
