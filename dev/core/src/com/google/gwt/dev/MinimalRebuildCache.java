@@ -663,10 +663,10 @@ public class MinimalRebuildCache implements Serializable {
       String currentStrongHash = generatedUnit.getStrongHash();
       if (injectionMode) {
         injectedUnits.put(generatedUnit.getTypeName(), generatedUnit);
-        clearCachedTypeOutput(generatedUnit.getTypeName());
-        for (TypeNameCallback callback : injectedUnitCallbacks) {
-          callback.receiveTypeName(generatedUnit.getTypeName());
-        }
+      }
+      clearCachedTypeOutput(generatedUnit.getTypeName());
+      for (TypeNameCallback callback : injectedUnitCallbacks) {
+        callback.receiveTypeName(generatedUnit.getTypeName());
       }
       String lastKnownStrongHash =
           contentHashByGeneratedTypeName.put(generatedUnit.getTypeName(), currentStrongHash);
