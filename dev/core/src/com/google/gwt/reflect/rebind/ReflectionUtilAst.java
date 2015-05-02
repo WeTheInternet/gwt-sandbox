@@ -20,7 +20,6 @@ import com.google.gwt.dev.jjs.ast.JStatement;
 import com.google.gwt.dev.jjs.ast.JType;
 import com.google.gwt.dev.jjs.ast.js.JsniClassLiteral;
 import com.google.gwt.dev.jjs.ast.js.JsniMethodBody;
-import com.google.gwt.reflect.shared.GwtReflect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +27,7 @@ import java.util.List;
 public final class ReflectionUtilAst {
 
   private static final Type logLevel = Type.DEBUG;
+  public static final String MAGIC_CLASS_SUFFIX = "_MC";
 
   private ReflectionUtilAst() {}
 
@@ -179,10 +179,10 @@ public final class ReflectionUtilAst {
   private static boolean isGetMagicClass(final JMethod target) {
     return
         (target.getName().equals("magicClass") &&
-        target.getEnclosingType().getName().equals(GwtReflect.class.getName()))
+        target.getEnclosingType().getName().equals("com.google.gwt.reflect.shared.GwtReflect"))
         ||
         (target.getName().equals("enhanceClass") &&
-            target.getEnclosingType().getName().endsWith(ReflectionUtilJava.MAGIC_CLASS_SUFFIX))
+            target.getEnclosingType().getName().endsWith(MAGIC_CLASS_SUFFIX))
         ;
   }
 

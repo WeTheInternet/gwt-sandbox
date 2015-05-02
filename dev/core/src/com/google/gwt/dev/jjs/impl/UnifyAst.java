@@ -95,6 +95,7 @@ import com.google.gwt.dev.util.log.MetricName;
 import com.google.gwt.dev.util.log.speedtracer.CompilerEventType;
 import com.google.gwt.dev.util.log.speedtracer.SpeedTracerLogger;
 import com.google.gwt.dev.util.log.speedtracer.SpeedTracerLogger.Event;
+import com.google.gwt.reflect.rebind.ReflectionUtilAst;
 import com.google.gwt.thirdparty.guava.common.base.Predicates;
 import com.google.gwt.thirdparty.guava.common.collect.ImmutableMap;
 import com.google.gwt.thirdparty.guava.common.collect.Iterables;
@@ -466,19 +467,20 @@ public class UnifyAst implements UnifyAstView {
 
     private JExpression handleSystemGetProperty(JMethodCall gwtGetPropertyCall) {
       assert (gwtGetPropertyCall.getArgs().size() == 1 || gwtGetPropertyCall.getArgs().size() == 2);
-      JExpression propertyNameExpression = gwtGetPropertyCall.getArgs().get(0);
       boolean defaultVersionCalled = gwtGetPropertyCall.getArgs().size() == 2;
-      JExpression defaultValueExpression = defaultVersionCalled ?
-          gwtGetPropertyCall.getArgs().get(1) : null;
-
-      if (!(propertyNameExpression instanceof JStringLiteral)) {
-        error(
-            gwtGetPropertyCall,
-            "Only string constants may be used as property name in System.getProperty()"
-        );
+      JStringLiteral propertyNameExpression;
+      JExpression defaultValueExpression;
+      try {
+        propertyNameExpression = getStringLiteral(gwtGetPropertyCall.getArgs().get(0));
+        defaultValueExpression = defaultVersionCalled ?
+            getStringLiteral(gwtGetPropertyCall.getArgs().get(1)) : null;
+      } catch (UnableToCompleteException e) {
+        error(gwtGetPropertyCall,
+            "Only string constants may be used as arguments to System.getProperty()");
         return null;
       }
-      String propertyName = ((JStringLiteral) propertyNameExpression).getValue();
+
+      String propertyName = propertyNameExpression.getValue();
 
       if (!defaultVersionCalled && !isPropertyDefined(propertyName)) {
         error(gwtGetPropertyCall, "Property '" + propertyName + "' is not defined.");
@@ -491,6 +493,10 @@ public class UnifyAst implements UnifyAstView {
 
       return JPermutationDependentValue.createRuntimeProperty(
           program, gwtGetPropertyCall.getSourceInfo(), propertyName, defaultValueExpression);
+    }
+
+    private JStringLiteral getStringLiteral(JExpression inst) throws UnableToCompleteException {
+      return ReflectionUtilAst.extractImmutableNode(logger, JStringLiteral.class, inst, UnifyAst.this, true);
     }
 
     private JExpression createRebindExpression(JMethodCall gwtCreateCall) {
