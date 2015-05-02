@@ -3,6 +3,7 @@ package com.google.gwt.reflect.rebind;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.dev.jjs.ast.JClassLiteral;
 import com.google.gwt.dev.jjs.ast.JType;
+import com.google.gwt.reflect.rebind.ReflectionUtilAst;
 import com.google.gwt.reflect.shared.GwtReflect;
 import com.google.gwt.thirdparty.xapi.dev.source.MemberBuffer;
 import com.google.gwt.thirdparty.xapi.source.read.JavaModel.IsQualified;
@@ -16,15 +17,11 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 public class ReflectionUtilJava  {
 
-  public static final String MAGIC_CLASS_SUFFIX = "_MC";
-  private static final Pattern DOUBLE_EXTENDS = Pattern.compile("extends [a-zA-Z0-9\\$_]+ extends");
-
   public static String generatedMagicClassName(final String simpleName) {
-    return simpleName+MAGIC_CLASS_SUFFIX;
+    return simpleName+ReflectionUtilAst.MAGIC_CLASS_SUFFIX;
   }
 
   public static Method[] getMethods(final Annotation anno) {
