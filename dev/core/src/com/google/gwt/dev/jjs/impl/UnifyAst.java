@@ -1071,6 +1071,7 @@ public class UnifyAst implements UnifyAstView {
         // Such a type won't have any cached JS and will need a full traversal to ensure it is
         // output (the full type with all fields and methods) as new JS.
         if (needsNewJs(type)) {
+          program.removeReferenceOnlyType(type);
           fullFlowIntoType(type);
         }
       }
@@ -1566,6 +1567,10 @@ public class UnifyAst implements UnifyAstView {
     if (!isAvailable && incrementalCompile && minimalRebuildCache.isInjectedUnit(typeName)) {
       Collection<GeneratedUnit> generated = minimalRebuildCache.getInjectedUnitDependencies(typeName);
       try {
+        if (logger.isLoggable(Type.TRACE)) {
+          logger.log(Type.TRACE,
+              "Re-assimilating generated unit for "+typeName+" (with "+(generated.size()-1)+" dependencies)");
+        }
         compilationState.addGeneratedCompilationUnits(logger, generated);
         isAvailable = nameBasedTypeLocator.sourceCompilationUnitIsAvailable(typeName);
       } catch (UnableToCompleteException e) {
