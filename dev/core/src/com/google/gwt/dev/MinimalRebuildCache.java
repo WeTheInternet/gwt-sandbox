@@ -354,6 +354,9 @@ public class MinimalRebuildCache implements Serializable {
 
     for (String staleTypeName : staleTypeNames) {
       clearCachedTypeOutput(staleTypeName);
+      for (TypeNameCallback callback : injectedUnitCallbacks) {
+        callback.receiveTypeName(staleTypeName);
+      }
     }
 
     return Sets.newHashSet(staleTypeNames);
@@ -845,7 +848,6 @@ public class MinimalRebuildCache implements Serializable {
     Set<String> staleGeneratedCompilationUnitNames = Sets.intersection(
         computeCompilationUnitNames(staleTypeNames), generatedCompilationUnitNames);
 
-    Set<String> staleInjectedCompilationUnitNames = Sets.intersection(staleTypeNames, injectedUnits.keySet());
     boolean discoveredMoreStaleTypes;
     for (;;){
       // Accumulate staleGeneratedCompilationUnits -> generators ->
@@ -858,12 +860,6 @@ public class MinimalRebuildCache implements Serializable {
       // previously known to be stale.
       discoveredMoreStaleTypes = staleTypeNames.addAll(generatorTriggeringTypes);
 
-      Set<String> typesThatReferenceStaleInjectedTypes =
-          computeTypesThatReferenceTypes(staleInjectedCompilationUnitNames);
-      Set<String> newlyStaleTypes = Sets.union(generatorTriggeringTypes, typesThatReferenceStaleInjectedTypes);
-
-      discoveredMoreStaleTypes |= staleTypeNames.addAll(typesThatReferenceStaleInjectedTypes);
-
       if (!discoveredMoreStaleTypes) {
         return;
       }
@@ -872,16 +868,7 @@ public class MinimalRebuildCache implements Serializable {
       staleGeneratedCompilationUnitNames = Sets.intersection(
           computeCompilationUnitNames(generatorTriggeringTypes), generatedCompilationUnitNames);
 
-      staleInjectedCompilationUnitNames = Sets.intersection(newlyStaleTypes, injectedUnits.keySet());
     }
-  }
-
-  private Set<String> computeTypesThatReferenceTypes(Set<String> units) {
-    Set<String> compilationUnitNames = Sets.newHashSet();
-    for (String unit : units) {
-      compilationUnitNames.addAll(typeNamesByReferencingTypeName.get(unit));
-    }
-    return compilationUnitNames;
   }
 
   private void clearCachedTypeOutput(String staleTypeName) {
