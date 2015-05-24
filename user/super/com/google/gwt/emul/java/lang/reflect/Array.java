@@ -25,10 +25,10 @@ public final class Array {
       return null;
     }
     if (componentType.isArray()) {
-      componentType.getName();// init the constId...
-      int seedId = constId(componentType);
+      componentType.getComponentType().getName();// init the constId...
+      int seedId = constId(componentType.getComponentType());
       initFactory(seedId, array);
-      saveType(constId(componentType.getComponentType()), componentType);
+      saveType(seedId, componentType);
       if (array.length > 0 && componentType.getComponentType().isArray()) {
         // avoid casting issues with primitive arrays by using jsni
         // This will skip the cast checking and just do what we want.
