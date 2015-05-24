@@ -618,6 +618,10 @@ public class UnifyAst implements UnifyAstView {
           return handleImplNameOf(x);
         case SYSTEM_GET_PROPERTY:
         case SYSTEM_GET_PROPERTY_WITH_DEFAULT:
+        case X_PROPERTIES_GET_PROPERTY:
+        case X_PROPERTIES_GET_PROPERTY_WITH_DEFAULT:
+        case PROPERTY_SERVICE_GET_PROPERTY:
+        case PROPERTY_SERVICE_GET_PROPERTY_WITH_DEFAULT:
           return handleSystemGetProperty(x);
         default:
           if (magicMethodMap.containsKey(methodSignature)) {
@@ -669,6 +673,20 @@ public class UnifyAst implements UnifyAstView {
       "java.lang.System.getProperty(Ljava/lang/String;Ljava/lang/String;)" +
           "Ljava/lang/String;";
 
+  public static final String X_PROPERTIES_GET_PROPERTY =
+      "xapi.util.X_Properties.getProperty(Ljava/lang/String;)Ljava/lang/String;";
+
+  public static final String X_PROPERTIES_GET_PROPERTY_WITH_DEFAULT =
+      "xapi.util.X_Properties.getProperty(Ljava/lang/String;Ljava/lang/String;)" +
+          "Ljava/lang/String;";
+
+  public static final String PROPERTY_SERVICE_GET_PROPERTY =
+      "xapi.util.impl.PropertyServiceDefault.getProperty(Ljava/lang/String;)Ljava/lang/String;";
+
+  public static final String PROPERTY_SERVICE_GET_PROPERTY_WITH_DEFAULT =
+      "xapi.util.impl.PropertyServiceDefault.getProperty(Ljava/lang/String;Ljava/lang/String;)" +
+          "Ljava/lang/String;";
+
   private static final String GWT_DEBUGGER_SHARED = "com.google.gwt.core.shared.GWT.debugger()V";
 
   private static final String GWT_DEBUGGER_CLIENT = "com.google.gwt.core.client.GWT.debugger()V";
@@ -702,7 +720,8 @@ public class UnifyAst implements UnifyAstView {
    */
   private static final Set<String> MAGIC_METHOD_CALLS = Sets.newLinkedHashSet(Arrays.asList(
       GWT_CREATE, GWT_DEBUGGER_SHARED, GWT_DEBUGGER_CLIENT, SYSTEM_GET_PROPERTY,
-      SYSTEM_GET_PROPERTY_WITH_DEFAULT,
+      SYSTEM_GET_PROPERTY_WITH_DEFAULT, X_PROPERTIES_GET_PROPERTY, X_PROPERTIES_GET_PROPERTY_WITH_DEFAULT,
+      PROPERTY_SERVICE_GET_PROPERTY, PROPERTY_SERVICE_GET_PROPERTY_WITH_DEFAULT,
       OLD_GWT_CREATE, IMPL_GET_NAME_OF));
 
   /**
