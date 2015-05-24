@@ -1,4 +1,3 @@
-<<<<<<< 7708fac86d957b37aae702fdc955232b4c4733dc
 // CHECKSTYLE_OFF: Copyrighted to the Android Open Source Project.
 /*
  *  Licensed to the Apache Software Foundation (ASF) under one or more

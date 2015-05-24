@@ -25,5 +25,6 @@ public interface AutoCloseable {
   /**
    * Closes this resource.
    */
-  void close() throws Exception;
+  default void close() throws Exception {
+  }
 }

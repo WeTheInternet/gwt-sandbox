@@ -1,6 +1,8 @@
 package java.net;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 
 /**
  * A stripped-down URL suitable for use in GWT client-side.
@@ -935,6 +937,11 @@ public final class URL implements java.io.Serializable {
   // return new URI (toString());
   // }
 
+  public URLConnection openConnection() throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  
   class Parts {
     String path, query, ref;
 

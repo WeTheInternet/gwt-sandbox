@@ -2959,6 +2959,48 @@ public class GenerateJavaScriptAST {
     this.closureCompilerFormatEnabled = options.isClosureCompilerFormatEnabled();
     this.objectConstructorFunction =
         new JsFunction(SourceOrigin.UNKNOWN, topScope, topScope.findExistingName("Object"));
+//
+//    /*
+//     * Because we modify the JavaScript String prototype, all fields and
+//     * polymorphic methods on String and super types need special handling.
+//     */
+//
+//    // Object polymorphic
+//    Map<String, String> namesToIdents = Maps.newHashMap();
+//    namesToIdents.put("getClass", "gC");
+//    namesToIdents.put("hashCode", "hC");
+//    namesToIdents.put("equals", "eQ");
+//    namesToIdents.put("toString", "tS");
+//    namesToIdents.put("finalize", "fZ");
+//    namesToIdents.put("wait", "wA");
+//    namesToIdents.put("notify", "nF");
+//    namesToIdents.put("notifyAll", "nA");
+//
+//    List<JMethod> methods = Lists.newArrayList(program.getTypeJavaLangObject().getMethods());
+//    for (JMethod method : methods) {
+//      if (method.canBePolymorphic()) {
+//        String ident = namesToIdents.get(method.getName());
+//        assert ident != null : method.getEnclosingType().getName() + "::" + method.getName() +
+//            " is not in the list of known methods.";
+//        specialObfuscatedMethodSigs.put(method.getSignature(), ident);
+//      }
+//    }
+//
+//    namesToIdents.clear();
+//    // Object fields
+//    namesToIdents.put("expando", "eX");
+//    namesToIdents.put("typeMarker", "tM");
+//    namesToIdents.put("castableTypeMap", "cM");
+//    namesToIdents.put("___clazz", "cZ");
+//
+//    for (JField field : program.getTypeJavaLangObject().getFields()) {
+//      if (!field.isStatic()) {
+//        String ident = namesToIdents.get(field.getName());
+//        assert ident != null : field.getEnclosingType().getName() + "::" + field.getName() +
+//            " is not in the list of known fields.";
+//        specialObfuscatedFields.put(field, ident);
+//      }
+//    }
   }
 
   /**
