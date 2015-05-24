@@ -17,13 +17,17 @@ import cern.colt.list.IntArrayList;
 
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.TreeLogger.Type;
+import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.core.ext.linker.ArtifactSet;
+import com.google.gwt.core.ext.linker.GeneratedSource;
 import com.google.gwt.core.ext.linker.StatementRanges;
+import com.google.gwt.core.ext.linker.impl.GeneratedSourceLinker;
 import com.google.gwt.dev.cfg.ModuleDef;
 import com.google.gwt.dev.javac.CompilationUnit;
 import com.google.gwt.dev.javac.CompiledClass;
 import com.google.gwt.dev.javac.GeneratedUnit;
 import com.google.gwt.dev.javac.Shared;
+import com.google.gwt.dev.javac.StandardGeneratorContext;
 import com.google.gwt.dev.jjs.JsSourceMap;
 import com.google.gwt.dev.jjs.ast.JProgram;
 import com.google.gwt.dev.jjs.ast.JTypeOracle;
@@ -949,6 +953,15 @@ public class MinimalRebuildCache implements Serializable {
    */
   public void setInjectionMode(boolean injectionMode) {
     this.injectionMode = injectionMode;
+  }
+
+  public void saveAllInjectedUnits(TreeLogger logger, StandardGeneratorContext ctx) throws UnableToCompleteException {
+    for (GeneratedUnit unit : injectedUnits.values()) {
+      GeneratedSource source = new GeneratedSource(GeneratedSourceLinker.class,
+          unit.getTypeName(), unit.optionalFileLocation());
+      ctx.commitArtifact(logger, source);
+    }
+    ctx.finish(logger);
   }
 
   public void refreshInjectedUnits() {

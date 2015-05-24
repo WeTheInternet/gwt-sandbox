@@ -32,6 +32,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -51,6 +52,7 @@ class Outbox {
 
   private final AtomicReference<Result> published = new AtomicReference<Result>();
   private Job publishedJob; // may be null if the Result wasn't created by a Job.
+  private Properties generatedSources;
 
   Outbox(String id, Recompiler recompiler, Options options, TreeLogger logger)
       throws UnableToCompleteException {
@@ -144,6 +146,7 @@ class Outbox {
     }
     publishedJob = job;
     published.set(result);
+    generatedSources = null;
   }
 
   private CompileDir getOutputDir() {
@@ -238,7 +241,12 @@ class Outbox {
       String rest = path.substring("gen/".length());
       File fileInGenDir = new File(getGenDir(), rest);
       if (!fileInGenDir.isFile()) {
-        return null;
+        // The file may have been from a stale compile.  Look for the generated.properties
+        // manifest file recorded from the GeneratedSourceLinker (added via MagicMethods.gwt.xml)
+        fileInGenDir = searchForGeneratedLocation(rest);
+        if (fileInGenDir == null) {
+          return null;
+        }
       }
       return new BufferedInputStream(new FileInputStream(fileInGenDir));
     } else {
@@ -252,6 +260,38 @@ class Outbox {
   }
 
   /**
+   * @param rest
+   * @return
+   */
+  private File searchForGeneratedLocation(String rest) {
+    if (generatedSources == null) {
+      generatedSources = new Properties();
+      Result result = published.get();
+      if (result == null) {
+        return null;
+      }
+
+      File properties = new File(result.outputDir.getDeployDir(), result.outputModuleName);
+      properties = new File(properties, "GeneratedSources");
+      properties = new File(properties, "generated.properties");
+      if (properties.isFile()) {
+        try (
+            FileInputStream in = new FileInputStream(properties)
+        ) {
+          generatedSources.load(in);
+        } catch (Exception ignored) {
+          // TODO some decent logging here...
+        }
+      }
+    }
+    Object location = generatedSources.get(rest);
+    if (location != null) {
+      return new File(location.toString());
+    }
+    return null;
+  }
+
+  /**
    * Returns the location of a file in the compiler's output directory from the
    * last time this module was recompiled. The location will change after a successful
    * recompile.
@@ -261,6 +301,18 @@ class Outbox {
    */
   File getOutputFile(String urlPath) {
     return new File(getOutputDir().getWarDir(), urlPath);
+  }
+
+  /**
+   * Returns the location of a file in the compiler's deploy directory from the
+   * last time this module was recompiled. The location will change after a successful
+   * recompile.
+   * @param urlPath The path to the file. This should be a relative path beginning
+   * with the module name (after renaming).
+   * @return The location of the file, which might not actually exist.
+   */
+  File getDeployFile(String urlPath) {
+    return new File(getOutputDir().getDeployDir(), urlPath);
   }
 
   /**

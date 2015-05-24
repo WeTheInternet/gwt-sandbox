@@ -962,7 +962,9 @@ public class UnifyAst implements UnifyAstView {
       }
     }
 
-    if (!incrementalCompile) {
+    if (incrementalCompile) {
+      minimalRebuildCache.saveAllInjectedUnits(logger, getGeneratorContext());
+    } else {
       // Post-stitching clean-ups.
       pruneDeadFieldsAndMethods();
     }

@@ -95,4 +95,19 @@ class OutboxTable {
     // not found
     return null;
   }
+
+  /**
+   * Given the name of a deploy resource, searches all the boxes for a file with that name.
+   * Returns null if not found.
+   */
+  File findDeployFile(String filename) {
+    for (Outbox box : outboxes.values()) {
+      File candidate = box.getDeployFile(box.getOutputModuleName() + "/" + filename);
+      if (candidate.isFile()) {
+        return candidate;
+      }
+    }
+    // not found
+    return null;
+  }
 }
