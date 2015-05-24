@@ -52,6 +52,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.server.AbstractHttpConnection;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.GzipFilter;
+
 /**
  * The web server for Super Dev Mode, also known as the code server. The URLs handled include:
  * <ul>
@@ -318,6 +328,9 @@ public class WebServer {
       if (target.startsWith("/policies/")) {
         return makePolicyFilePage(target);
       }
+      if (target.startsWith("/deploy/")) {
+        return makeDeployFilePage(target);
+      }
       return makeCompilerOutputPage(target);
     }
 
@@ -472,6 +485,27 @@ public class WebServer {
     File fileToSend = outboxTable.findPolicyFile(rest);
     if (fileToSend == null) {
       return new ErrorPage("Policy file not found: " + rest);
+    }
+
+    return Responses.newFileResponse("text/plain", fileToSend);
+  }
+
+  private Response makeDeployFilePage(String target) {
+
+    int secondSlash = target.indexOf('/', 1);
+    if (secondSlash < 1) {
+      return new ErrorPage("invalid URL for deploy file: " + target);
+    }
+
+    String rest = target.substring(secondSlash + 1);
+    String allow = System.getProperty("allowed.policies");
+    if (allow == null || !rest.matches(allow)) {
+      return new ErrorPage("invalid name for deploy file: " + rest);
+    }
+
+    File fileToSend = outboxes.findDeployFile(rest);
+    if (fileToSend == null) {
+      return new ErrorPage("Deploy file not found: " + rest);
     }
 
     return Responses.newFileResponse("text/plain", fileToSend);

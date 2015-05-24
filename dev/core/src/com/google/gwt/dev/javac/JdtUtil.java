@@ -27,22 +27,11 @@ import com.google.gwt.thirdparty.guava.common.collect.Iterables;
 import com.google.gwt.thirdparty.guava.common.collect.Lists;
 
 import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
 import org.eclipse.jdt.internal.compiler.impl.BooleanConstant;
 import org.eclipse.jdt.internal.compiler.impl.StringConstant;
-import org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
-import org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
-import org.eclipse.jdt.internal.compiler.lookup.ElementValuePair;
-import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
-import org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.NestedTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SyntheticArgumentBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
+import org.eclipse.jdt.internal.compiler.lookup.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -240,7 +229,7 @@ public final class JdtUtil {
     }
     return null;
   }
-  
+
   static AnnotationBinding getAnnotationBySimpleName(AnnotationBinding[] annotations, String nameToFind) {
     if (annotations != null) {
       for (AnnotationBinding a : annotations) {
@@ -266,7 +255,7 @@ public final class JdtUtil {
     }
     return null;
   }
-  
+
   static AnnotationBinding getAnnotationBySimpleName(Annotation[] annotations, String nameToFind) {
     if (annotations != null) {
       for (Annotation a : annotations) {
@@ -288,7 +277,7 @@ public final class JdtUtil {
     }
     return name.equals(CharOperation.toString(annotationBinding.getAnnotationType().compoundName));
   }
-  
+
   public static AnnotationBinding getAnnotationBySimpleName(Binding binding, String nameToFind) {
     if (binding instanceof SourceTypeBinding) {
       ClassScope scope = ((SourceTypeBinding) binding).scope;
@@ -303,6 +292,17 @@ public final class JdtUtil {
     } else if (binding instanceof FieldBinding) {
       return getAnnotationBySimpleName(((FieldBinding) binding).sourceField().annotations, nameToFind);
     } else {
+      return null;
+    }
+  }
+
+  /**
+   * Work around JDT bug.
+   */
+  public static AbstractMethodDeclaration safeSourceMethod(MethodBinding mb) {
+    try {
+      return mb.sourceMethod();
+    } catch (Exception e) {
       return null;
     }
   }

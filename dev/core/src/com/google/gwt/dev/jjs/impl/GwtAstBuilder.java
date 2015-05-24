@@ -1214,12 +1214,12 @@ public class GwtAstBuilder {
       // And its JInterface container we must implement
       // There may be more than more JInterface containers to be implemented
       // if the lambda expression is cast to a IntersectionCastType.
-      JDeclaredType[] funcType;
+      JInterfaceType[] funcType;
       if (binding instanceof IntersectionTypeBinding18) {
         funcType = processIntersectionTypeForLambda((IntersectionTypeBinding18) binding, blockScope,
             JdtUtil.signature(samBinding));
       } else {
-        funcType = new JDeclaredType[] {(JDeclaredType) typeMap.get(binding)};
+        funcType = new JInterfaceType[] {(JInterfaceType) typeMap.get(binding)};
       }
       SourceInfo info = makeSourceInfo(x);
 
@@ -3070,26 +3070,26 @@ public class GwtAstBuilder {
       return new JFieldRef(info, makeThisRef(info), field, curClass.classType);
     }
 
-    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b, MethodInfo method) {
-      return method.locals.get(b).makeRef(info);
+//    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b, MethodInfo method) {
+//      return method.locals.get(b).makeRef(info);
+//    }
+
+    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b, MethodInfo cur) {
+      JVariable variable = cur.locals.get(b);
+      assert variable != null : "Null variable ref found in "+cur.method+" in "+cur.body
+          + "\n body: "+cur.scope
+          + " @"+info+";\nlocals: "+cur.locals
+          + "\nBinding: "+b;
+      if (variable instanceof JLocal) {
+        return new JLocalRef(info, (JLocal) variable);
+      } else {
+        return new JParameterRef(info, (JParameter) variable);
+      }
     }
-//
-//    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b, MethodInfo cur) {
-//      JVariable variable = cur.locals.get(b);
-//      assert variable != null : "Null variable ref found in "+cur.method+" in "+cur.body
-//          + "\n body: "+cur.scope
-//          + " @"+info+";\nlocals: "+cur.locals
-//          + "\nBinding: "+b;
-//      if (variable instanceof JLocal) {
-//        return new JLocalRef(info, (JLocal) variable);
-//      } else {
-//        return new JParameterRef(info, (JParameter) variable);
-//      }
-//    }
-//
-//    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b) {
-//      return makeLocalRef(info, b, curMethod);
-//    }
+
+    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b) {
+      return makeLocalRef(info, b, curMethod);
+    }
 
     private JThisRef makeThisRef(SourceInfo info) {
       return new JThisRef(info, curClass.getClassOrInterface());
@@ -3535,8 +3535,6 @@ public class GwtAstBuilder {
           } else {
             throw new InternalCompilerException("Unknown emulation path.");
           }
-        } else {
-          result = makeLocalRef(info, b, curMethod);
         }
       } else if (binding instanceof FieldBinding) {
         FieldBinding b = ((FieldBinding) x.binding).original();
@@ -3661,17 +3659,17 @@ public class GwtAstBuilder {
       }
     }
 
-    private JDeclaredType[] processIntersectionTypeForLambda(IntersectionTypeBinding18 type,
+    private JInterfaceType[] processIntersectionTypeForLambda(IntersectionTypeBinding18 type,
         BlockScope scope, String samSignature) {
-      List<JDeclaredType> interfaces = Lists.newArrayList();
+      List<JInterfaceType> interfaces = Lists.newArrayList();
       for (ReferenceBinding intersectingTypeBinding : type.intersectingTypes) {
         if (shouldImplements(intersectingTypeBinding, scope, samSignature)) {
           JType intersectingType = typeMap.get(intersectingTypeBinding);
           assert (intersectingType instanceof JInterfaceType);
-          interfaces.add(((JDeclaredType) intersectingType));
+          interfaces.add(((JInterfaceType) intersectingType));
         }
       }
-      return Iterables.toArray(interfaces, JDeclaredType.class);
+      return Iterables.toArray(interfaces, JInterfaceType.class);
     }
 
     private boolean isFunctionalInterfaceWithMethod(ReferenceBinding referenceBinding, Scope scope,

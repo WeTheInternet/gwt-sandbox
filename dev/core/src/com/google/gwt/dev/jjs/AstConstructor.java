@@ -55,7 +55,7 @@ public class AstConstructor {
    * {@link JavaToJavaScriptCompiler}.
    */
   public static JProgram construct(TreeLogger logger, final CompilationState state,
-      CompilerContext compilerContext, ConfigurationProperties config)
+      CompilerContext compilerContext, final ConfigurationProperties config)
       throws UnableToCompleteException {
 
     InternalCompilerException.preload();

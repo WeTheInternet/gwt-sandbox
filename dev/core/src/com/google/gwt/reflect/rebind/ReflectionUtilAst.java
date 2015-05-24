@@ -123,7 +123,7 @@ public final class ReflectionUtilAst {
       }
       final JAbstractMethodBody method = target.getBody();
       // TODO: maybe enforce final / static on method calls
-      if (method.isNative()) {
+      if (method.isJsniMethodBody()) {
         final JsniMethodBody jsni = (JsniMethodBody)method;
         if (JClassLiteral.class.isAssignableFrom(type)) {
           final List<JsniClassLiteral> literals = jsni.getClassRefs();

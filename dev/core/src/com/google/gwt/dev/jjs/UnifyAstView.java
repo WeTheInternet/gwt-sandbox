@@ -134,6 +134,8 @@ public interface UnifyAstView {
 
   JMethod translate(JMethod method);
 
+  JField translate(JField field);
+
   JType translate(JType type);
 
 }

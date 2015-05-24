@@ -15,4 +15,6 @@
   -->
   <define-configuration-property name="gwt.magic.methods" is-multi-valued="true"/>
   
+  <define-linker name="GeneratedSources" class="com.google.gwt.core.ext.linker.impl.GeneratedSourceLinker"/>
+  <add-linker name="GeneratedSources"/>
 </module>
