@@ -99,7 +99,6 @@ public class ConstPoolGenerator {
     private int iteration;
     @Override
     protected ConstPoolGenerator initialValue() {
-//      return new ConstPoolGenerator(iteration);
       return new ConstPoolGenerator(iteration++);
     };
 
