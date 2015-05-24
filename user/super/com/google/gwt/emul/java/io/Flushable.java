@@ -19,5 +19,6 @@ import java.io.IOException;
  * Allows code that tests for Flushable to compile without noise in GWT mode.
  */
 public interface Flushable {
-  void flush() throws IOException;
+  default void flush() throws IOException {
+  }
 }

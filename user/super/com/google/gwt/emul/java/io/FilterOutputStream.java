@@ -23,4 +23,7 @@ public class FilterOutputStream extends OutputStream {
   public FilterOutputStream(OutputStream out) {
   }
 
+  public void write(int b) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 }

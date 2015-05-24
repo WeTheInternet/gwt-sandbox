@@ -90,4 +90,44 @@ public class Object {
    */
   protected void finalize() throws Throwable {
   }
+  
+  /**
+   * Never called; here for JRE compatibility.
+   * 
+   * @skip
+   */
+  public void wait(long milli, int nano) throws InterruptedException {
+  }
+  
+  /**
+   * Never called; here for JRE compatibility.
+   * 
+   * @skip
+   */
+  public void wait(long milli) throws InterruptedException {
+  }
+  
+  /**
+   * Never called; here for JRE compatibility.
+   * 
+   * @skip
+   */
+  public void wait() throws InterruptedException {
+  }
+  
+  /**
+   * Never called; here for JRE compatibility.
+   * 
+   * @skip
+   */
+  public void notify() {
+  }
+  
+  /**
+   * Never called; here for JRE compatibility.
+   * 
+   * @skip
+   */
+  public void notifyAll() {
+  }
 }

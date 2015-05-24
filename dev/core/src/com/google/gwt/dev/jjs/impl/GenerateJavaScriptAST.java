@@ -3451,6 +3451,9 @@ public class GenerateJavaScriptAST {
     namesToIdents.put("equals", "eQ");
     namesToIdents.put("toString", "tS");
     namesToIdents.put("finalize", "fZ");
+    namesToIdents.put("wait", "wA");
+    namesToIdents.put("notify", "nF");
+    namesToIdents.put("notifyAll", "nA");
 
     List<JMethod> methods = Lists.newArrayList(program.getTypeJavaLangObject().getMethods());
     for (JMethod method : methods) {
