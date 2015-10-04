@@ -1896,7 +1896,7 @@ public class UnifyAst implements UnifyAstView {
       // TODO: error logging
       throw new NoSuchMethodError(sig);
     }
-    assert !method.isExternal();
+    assert !method.isExternal() : "Method "+method+" must not be external!";
     return method;
   }
 
@@ -1946,7 +1946,7 @@ public class UnifyAst implements UnifyAstView {
       assert type instanceof JDeclaredType : "Unknown external type " + type.getName();
       result = translate(type);
     }
-    assert !result.isExternal();
+    assert !result.isExternal() : "Result "+result+" of "+type+" must not be external!";
 
     if (!type.canBeNull()) {
       result = result.strengthenToNonNull();
