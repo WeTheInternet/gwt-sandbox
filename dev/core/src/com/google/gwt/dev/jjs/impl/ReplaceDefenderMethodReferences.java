@@ -117,20 +117,29 @@ public class ReplaceDefenderMethodReferences extends JModVisitor {
     @Override
     public boolean visit(JMethodCall x, Context ctx) {
       JMethod targetMethod = x.getTarget();
+      JThisRef thisRef = new JThisRef(x.getSourceInfo(), targetMethod.getEnclosingType());
 
+      if (lambdaClass.getFields().isEmpty()) {
+        // Will be no fields if the lambda is scoped to the current (missing) this reference
+//        JMethodCall replacement = new JMethodCall(x.getSourceInfo(), thisRef, targetMethod);
+//        replacement.addArgs(x.getArgs());
+//        ctx.replaceMe(replacement);
+        return false;
+      }
       JMethod staticMethod = program.getStaticImpl(targetMethod);
       if (staticMethod == null) {
+        // Not sure if lambda rewrite visitor should be doing this...
         maybeRewriteLambdas(targetMethod, ctx);
         staticImplCreator.accept(targetMethod);
         staticMethod = program.getStaticImpl(targetMethod);
       }
       // Cannot use setStaticDispatchOnly() here because interfaces don't have prototypes
       JMethodCall callStaticMethod = new JMethodCall(x.getSourceInfo(), null, staticMethod);
-      // add 'this' as first parameter
 
+      // add 'this' as first parameter
       for (JField field : lambdaClass.getFields()) {
         if (field.getName().equals(GwtAstBuilder.OUTER_LAMBDA_PARAM_NAME)) {
-          JFieldRef fieldRef = new JFieldRef(x.getSourceInfo(), new JThisRef(x.getSourceInfo(), targetMethod.getEnclosingType()), field, lambdaClass);
+          JFieldRef fieldRef = new JFieldRef(x.getSourceInfo(), thisRef, field, lambdaClass);
           callStaticMethod.addArg(fieldRef);
           callStaticMethod.addArgs(x.getArgs());
           ctx.replaceMe(callStaticMethod);
