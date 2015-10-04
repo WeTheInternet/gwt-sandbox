@@ -15,7 +15,9 @@
  */
 package java.lang;
 
+import java.util.function.Consumer;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Allows an instance of a class implementing this interface to be used in the
@@ -27,4 +29,12 @@ import java.util.Iterator;
  */
 public interface Iterable<T> {
   Iterator<T> iterator();
+
+  default void forEach(Consumer<T> callback) {
+    Objects.requireNonNull(callback);
+    for (Iterator<T> itr=iterator(); itr.hasNext(); ) {
+      T next = itr.next();
+      callback.accept(next);
+    }
+  }
 }
