@@ -19,6 +19,7 @@ import static javaemul.internal.InternalPreconditions.checkArrayType;
 import static javaemul.internal.InternalPreconditions.checkNotNull;
 import static javaemul.internal.InternalPreconditions.isTypeChecked;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
@@ -48,6 +49,8 @@ public final class System {
    * {@link PrintStream} and call {@link #setOut(PrintStream)}.
    */
   public static PrintStream out = new PrintStream((OutputStream)null);
+
+  public final static InputStream in = null;
 
   public static void arraycopy(Object src, int srcOfs, Object dest, int destOfs, int len) {
     checkNotNull(src, "src");
