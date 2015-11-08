@@ -22,6 +22,7 @@ import static com.google.gwt.core.shared.impl.InternalPreconditions.checkState;
 import com.google.gwt.core.client.impl.StackTraceCreator;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 
 /**
@@ -164,6 +165,18 @@ public class Throwable implements Serializable {
   }
 
   public void printStackTrace(PrintStream out) {
+    for (Throwable t = this; t != null; t = t.getCause()) {
+      if (t != this) {
+        out.print("Caused by: ");
+      }
+      out.println(t);
+      for (StackTraceElement element : t.getStackTrace()) {
+        out.println("\tat " + element);
+      }
+    }
+  }
+
+  public void printStackTrace(PrintWriter out) {
     for (Throwable t = this; t != null; t = t.getCause()) {
       if (t != this) {
         out.print("Caused by: ");

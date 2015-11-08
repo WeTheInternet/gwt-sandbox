@@ -84,4 +84,7 @@ public class PrintStream extends FilterOutputStream {
   public void flush() {
   }
 
+  public boolean checkError() {
+    return false;
+  }
 }

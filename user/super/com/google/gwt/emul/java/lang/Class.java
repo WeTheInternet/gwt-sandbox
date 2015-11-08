@@ -520,7 +520,17 @@ java.lang.reflect.AnnotatedElement
   throws IllegalAccessException, InstantiationException {
     return classData.newInstance();
   }
-  
+
+  public int getModifiers() {
+    return this.modifiers;
+  }
+
+  public boolean isMemberClass() {
+    // Should also check that we aren't local or anonymous, but we don't current support this correctly.
+    // If we want this to be 100% correct, we will need to generate this information at compile time.
+    return getEnclosingClass() != null && getEnclosingMethod() == null;
+  }
+
   /**
    * Used by Enum to allow getSuperclass() to be pruned.
    */
