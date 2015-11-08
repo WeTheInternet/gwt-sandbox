@@ -362,7 +362,7 @@ public final class String implements Comparable<String>, CharSequence,
     checkStringElementIndex(index, length());
     return asNativeString().charCodeAt(index);
   }
-
+  
   public int codePointAt(int index) {
     return Character.codePointAt(this, index, length());
   }
@@ -391,6 +391,13 @@ public final class String implements Comparable<String>, CharSequence,
   public String concat(String str) {
     return checkNotNull(this) + checkNotNull(str);
   }
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+
+  private static native String concat(String s, String str) /*-{
+    return s + str;
+  }-*/;
+>>>>>>> Add String.format support, using Sprintf js library
 
   public boolean contains(CharSequence s) {
     return indexOf(s.toString()) != -1;
@@ -420,7 +427,14 @@ public final class String implements Comparable<String>, CharSequence,
   }
 
   public boolean equalsIgnoreCase(String other) {
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
     checkNotNull(this);
+=======
+    return equalsIgnoreCase(this, other);
+  }
+
+  private static native boolean equalsIgnoreCase(String s, String other) /*-{
+>>>>>>> Add String.format support, using Sprintf js library
     if (other == null) {
       return false;
     }
@@ -472,9 +486,23 @@ public final class String implements Comparable<String>, CharSequence,
     return asNativeString().indexOf(str);
   }
 
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+  private static native int indexOf(String s, String str) /*-{
+    return s.indexOf(str);
+  }-*/;
+
+>>>>>>> Add String.format support, using Sprintf js library
   public int indexOf(String str, int startIndex) {
     return asNativeString().indexOf(str, startIndex);
   }
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+
+  private static native int indexOf(String s, String str, int startIndex) /*-{
+    return s.indexOf(str, startIndex);
+  }-*/;
+>>>>>>> Add String.format support, using Sprintf js library
 
   public String intern() {
     return checkNotNull(this);
@@ -495,10 +523,24 @@ public final class String implements Comparable<String>, CharSequence,
   public int lastIndexOf(String str) {
     return asNativeString().lastIndexOf(str);
   }
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+
+  private static native int lastIndexOf(String s, String str) /*-{
+    return s.lastIndexOf(str);
+  }-*/;
+>>>>>>> Add String.format support, using Sprintf js library
 
   public int lastIndexOf(String str, int start) {
     return asNativeString().lastIndexOf(str, start);
   }
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+
+  private static native int lastIndexOf(String s, String str, int start) /*-{
+    return s.lastIndexOf(str, start);
+  }-*/;
+>>>>>>> Add String.format support, using Sprintf js library
 
   @Override
   public int length() {
@@ -517,6 +559,15 @@ public final class String implements Comparable<String>, CharSequence,
     // We surround the regex with '^' and '$' because it must match the entire string.
     return new NativeRegExp("^(" + regex + ")$").test(this);
   }
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+
+  private static native boolean matches(String s, String regex) /*-{
+    // We surround the regex with '^' and '$' because it must match
+    // the entire string.
+    return new RegExp('^(' + regex + ')$').test(s);
+  }-*/;
+>>>>>>> Add String.format support, using Sprintf js library
 
   public int offsetByCodePoints(int index, int codePointOffset) {
     return Character.offsetByCodePoints(this, index, codePointOffset);
@@ -706,6 +757,20 @@ public final class String implements Comparable<String>, CharSequence,
   public String toLowerCase() {
     return asNativeString().toLowerCase();
   }
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+
+  private static native String toLowerCase(String s) /*-{
+    return s.toLowerCase();
+  }-*/;
+
+  /**
+   * Transforms the String to lower-case based on the native locale of the browser.
+   */
+  private native String toLocaleLowerCase(String s) /*-{
+    return s.toLocaleLowerCase();
+  }-*/;
+>>>>>>> Add String.format support, using Sprintf js library
 
   /**
    * If provided {@code locale} is {@link Locale#getDefault()}, uses javascript's
@@ -722,6 +787,18 @@ public final class String implements Comparable<String>, CharSequence,
   public String toUpperCase() {
     return asNativeString().toUpperCase();
   }
+<<<<<<< 44ac53a05c273188dce879904001788fa4665656
+=======
+
+  private static native String toUpperCase(String s) /*-{
+    return s.toUpperCase();
+  }-*/;
+
+  // See the notes in lowerCase pair.
+  private static native String toLocaleUpperCase(String s) /*-{
+    return s.toLocaleUpperCase();
+  }-*/;
+>>>>>>> Add String.format support, using Sprintf js library
 
   // See the notes in lowerCase pair.
   public String toUpperCase(Locale locale) {
@@ -835,4 +912,10 @@ public final class String implements Comparable<String>, CharSequence,
     return "string".equals(JsUtils.typeOf(instance));
   }
   // CHECKSTYLE_ON: end utility methods
+
+  public static String format(String format, Object... args) {
+    // TODO: route through a magic method to see if the format string is a compile time literal,
+    // and if it is, generate a more efficient implementation, to avoid carrying Sprintf into runtume.
+    return com.google.gwt.thirdparty.sprintf.Sprintf.format(format, args);
+  }
 }
