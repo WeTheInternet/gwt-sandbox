@@ -1014,4 +1014,10 @@ public final class String implements Comparable<String>, CharSequence,
     }
     return start > 0 || end < length ? substring(start, end) : this;
   }
+
+  public static String format(String format, Object... args) {
+    // TODO: route through a magic method to see if the format string is a compile time literal,
+    // and if it is, generate a more efficient implementation, to avoid carrying Sprintf into runtume.
+    return com.google.gwt.thirdparty.sprintf.Sprintf.format(format, args);
+  }
 }
