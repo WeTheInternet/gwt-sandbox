@@ -90,7 +90,7 @@ public class GwtAnnotationGenerator {
   private static final Type logLevel = Type.TRACE;
 
   /**
-   * Called when the {@link UnifyAstListener#destroy()} methods are called.
+   * Called when the {@link UnifyAstListener#destroy(TreeLogger)} methods are called.
    */
   public static void cleanup() {
     finished.clear();
@@ -125,7 +125,7 @@ public class GwtAnnotationGenerator {
    * @param logger -> A {@link TreeLogger}, for logging. :-)
    * @param out -> A {@link SourceBuilder} where we should put the annotation's factory method
    * @param anno -> The {@link Annotation} to generate a proxy and provider for.
-   * @param ast
+   * @param ctx
    * @return
    * @throws UnableToCompleteException
    */
@@ -439,7 +439,8 @@ public class GwtAnnotationGenerator {
       final Method method = methods[i];
       final String simpleName = method.getName();
       // We simplify the returnType so we have more readable code.
-      final String returnType = cw.addImport(ReflectionUtilJava.toSourceName(method.getGenericReturnType(), cw));
+      java.lang.reflect.Type generic = method.getGenericReturnType();
+      final String returnType = cw.addImport(ReflectionUtilJava.toRawSourceName(generic));
       final String paramName = returnType + " " + simpleName;
 
       // Add a private final field, without adding any get/set prefixes
@@ -462,7 +463,7 @@ public class GwtAnnotationGenerator {
       // Add the field to the constructor as well
       ctor.addParameters(paramName);
       // And print the assignment
-      ctor.println("this."+simpleName+" = "+simpleName+";");
+      ctor.println("this." + simpleName + " = " + simpleName + ";");
 
     }// end for loop
 
