@@ -41,6 +41,12 @@ public @interface ReflectionStrategy {
    */
   boolean magicSupertypes() default false;
 
+  /**
+   * Experimental and dangerous: keep all subtypes of this type; can lead to EXTREME code bloat, and compile errors.
+   * Use at your own risk, and do not use on interfaces which are implemented by anything else that you don't want compiled in Gwt.
+   */
+  boolean magicSubtypes() default false;
+
   // not yet implemented
   //  boolean magicSubtypes() default false;
 
