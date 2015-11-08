@@ -105,6 +105,9 @@ public class ReflectionManifest {
         if (retention == null) {
           retention = strategy.fieldRetention();
         }
+        if (retention.privacy() == 0) {
+          continue;
+        }
         declaredFields.put(field.getName(), new ReflectionUnit<JField>(field, retention));
       }
     }
@@ -113,6 +116,9 @@ public class ReflectionManifest {
         GwtRetention retention = ctor.getAnnotation(GwtRetention.class);
         if (retention == null) {
           retention = strategy.fieldRetention();
+        }
+        if (retention.privacy() == 0) {
+          continue;
         }
         declaredConstructors.put(ctor.getJsniSignature(), new ReflectionUnit<JConstructor>(ctor, retention));
       }
@@ -123,6 +129,14 @@ public class ReflectionManifest {
         GwtRetention retention = method.getAnnotation(GwtRetention.class);
         if (retention == null) {
           retention = strategy.methodRetention();
+        }
+        if (retention.privacy() == 0) {
+          continue; // explicit ignore
+        }
+        for (Annotation annotation : method.getAnnotations()) {
+          if (annotation.annotationType().getSimpleName().equals("MagicMethod")) {
+            continue; // Never include any method annotated with any annotation named @MagicMethod
+          }
         }
         declaredMethods.put(method.getJsniSignature(), new ReflectionUnit<JMethod>(method, retention));
         if (!uniqueNames.add(method.getName())) {
