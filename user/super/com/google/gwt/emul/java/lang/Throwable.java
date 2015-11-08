@@ -20,6 +20,7 @@ import static javaemul.internal.InternalPreconditions.checkNotNull;
 import static javaemul.internal.InternalPreconditions.checkState;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 
 import javaemul.internal.JsUtils;
@@ -262,6 +263,18 @@ public class Throwable implements Serializable {
   private void printStackTraceItems(PrintStream out, String ident) {
     for (StackTraceElement element : getStackTrace()) {
       out.println(ident + "\tat " + element);
+    }
+  }
+
+  public void printStackTrace(PrintWriter out) {
+    for (Throwable t = this; t != null; t = t.getCause()) {
+      if (t != this) {
+        out.print("Caused by: ");
+      }
+      out.println(t);
+      for (StackTraceElement element : t.getStackTrace()) {
+        out.println("\tat " + element);
+      }
     }
   }
 
