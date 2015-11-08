@@ -3,7 +3,6 @@ package com.google.gwt.reflect.rebind;
 import com.google.gwt.core.shared.GWT;
 import com.google.gwt.dev.jjs.ast.JClassLiteral;
 import com.google.gwt.dev.jjs.ast.JType;
-import com.google.gwt.reflect.rebind.ReflectionUtilAst;
 import com.google.gwt.reflect.shared.GwtReflect;
 import com.google.gwt.thirdparty.xapi.dev.source.MemberBuffer;
 import com.google.gwt.thirdparty.xapi.source.read.JavaModel.IsQualified;
@@ -95,6 +94,22 @@ public class ReflectionUtilJava  {
       System.err.println("Unknown type "+type+"; "+type.getClass().getName());
       throw new RuntimeException();
     }
+  }
+
+  public static String toRawSourceName(Type type) {
+    if (type instanceof ParameterizedType) {
+      type = ((ParameterizedType)type).getRawType();
+    } else if (type instanceof GenericArrayType) {
+      type = ((GenericArrayType)type).getGenericComponentType();
+      return toRawSourceName(type)+"[]";
+    }
+    if (type instanceof Class) {
+      return ((Class)type).getCanonicalName();
+    } else {
+      System.err.println("Can't get raw type from "+type.getClass().getName()+" : "+type);
+      throw new RuntimeException();
+    }
+
   }
 
   private static String toSourceName(final Type type, final boolean keepGenericNames) {
