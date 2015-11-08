@@ -125,7 +125,7 @@ public class MagicClassGenerator {
       throws UnableToCompleteException {
     return GENERATOR.get().execImpl(logger, reflectionCtx, type);
   }
-  public String execImpl(final TreeLogger logger, final ReflectionGeneratorContext reflectionCtx, final JClassType type)
+  public String execImpl(TreeLogger logger, final ReflectionGeneratorContext reflectionCtx, final JClassType type)
     throws UnableToCompleteException {
     final StandardGeneratorContext context = reflectionCtx.getGeneratorContext();
     final String simpleName = SourceUtil.toSourceName(type.getSimpleSourceName());
@@ -159,6 +159,7 @@ public class MagicClassGenerator {
 
     final ReflectionStrategy strategy = manifest.getStrategy();
     final boolean keepHierarchy = strategy.magicSupertypes();
+    final boolean keepSubtypes = strategy.magicSubtypes();
     final boolean keepCodesource = strategy.keepCodeSource();
     final boolean keepPackageName = strategy.keepPackage();
     final boolean keepAnnos = strategy.annotationRetention() > 0 ||
@@ -322,6 +323,14 @@ public class MagicClassGenerator {
       while (superType != null) {
         execImpl(logger, reflectionCtx, superType);
         superType = injectionType.getSuperclass();
+      }
+    }
+    if (keepSubtypes) {
+      if (logger.isLoggable(Type.TRACE)) {
+        logger = logger.branch(Type.TRACE, "Keeping subtypes of "+injectionType.getQualifiedSourceName());
+      }
+      for (JClassType subtype : injectionType.getSubtypes()) {
+        execImpl(logger, reflectionCtx, subtype);
       }
     }
 
@@ -516,9 +525,6 @@ public class MagicClassGenerator {
       if (logOnce) {
         logOnce  = false;
         logger.log(Type.ERROR, "Unable to call "+injectionType.getClass().getName()+".getLocation on "+injectionType.getJNISignature());
-        logger.log(Type.ERROR, "Ensure that you have the jar/artifact net.wetheinter:gwt-reflect before gwt-dev on your classpath.");
-        logger.log(Type.TRACE, "The artifact net.wetheinter:com.google.gwt.thirdparty.xapi-gwt-api contains a class, ClasspathFixer, which can help you.");
-        logger.log(Type.TRACE, "For unit tests, com.google.gwt.thirdparty.xapi-gwt-test overrides JUnitShell to fix the classpath for you.", e);
       }
       return;
     }
