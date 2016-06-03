@@ -8,18 +8,7 @@ import com.google.gwt.dev.jjs.MagicMethodGenerator;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.UnifyAstListener;
 import com.google.gwt.dev.jjs.UnifyAstView;
-import com.google.gwt.dev.jjs.ast.Context;
-import com.google.gwt.dev.jjs.ast.JAbsentArrayDimension;
-import com.google.gwt.dev.jjs.ast.JArrayType;
-import com.google.gwt.dev.jjs.ast.JClassLiteral;
-import com.google.gwt.dev.jjs.ast.JDeclaredType;
-import com.google.gwt.dev.jjs.ast.JExpression;
-import com.google.gwt.dev.jjs.ast.JIntLiteral;
-import com.google.gwt.dev.jjs.ast.JMethod;
-import com.google.gwt.dev.jjs.ast.JMethodCall;
-import com.google.gwt.dev.jjs.ast.JNewArray;
-import com.google.gwt.dev.jjs.ast.JProgram;
-import com.google.gwt.dev.jjs.ast.JType;
+import com.google.gwt.dev.jjs.ast.*;
 import com.google.gwt.dev.jjs.impl.UnifyAst.UnifyVisitor;
 import com.google.gwt.dev.util.collect.Lists;
 import com.google.gwt.reflect.rebind.ReflectionUtilAst;
@@ -63,7 +52,7 @@ public class MultiDimArrayInjector implements MagicMethodGenerator, UnifyAstList
     JType cur = type;
     while (cur instanceof JArrayType) {
       cur = ((JArrayType)cur).getElementType();
-      emptyDims = Lists.add(emptyDims, JAbsentArrayDimension.INSTANCE);
+      emptyDims = Lists.add(emptyDims, null);
     }
 
     if (args.size() == 3) {
@@ -79,7 +68,7 @@ public class MultiDimArrayInjector implements MagicMethodGenerator, UnifyAstList
       // we have an untyped call to Array.newInstance
       // TODO: have a runtime fallback so we can perform non-strict int
       final JNewArray newArr = extractImmutableNode(logger, JNewArray.class, args.get(1), ast, true);
-      sizedDims = newArr.initializers;
+      sizedDims = newArr.getInitializers();
     }
     int dimensions = sizedDims.size();
     while (dimensions --> 0) {

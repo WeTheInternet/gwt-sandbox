@@ -15,6 +15,8 @@
  */
 package com.google.gwt.resources.rg;
 
+import org.apache.commons.io.IOUtils;
+
 import com.google.gwt.core.ext.BadPropertyValueException;
 import com.google.gwt.core.ext.ConfigurationProperty;
 import com.google.gwt.core.ext.Generator;
@@ -123,8 +125,6 @@ import com.google.gwt.thirdparty.guava.common.io.ByteSource;
 import com.google.gwt.thirdparty.guava.common.io.Resources;
 import com.google.gwt.user.rebind.SourceWriter;
 import com.google.gwt.user.rebind.StringSourceWriter;
-
-import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1265,6 +1265,9 @@ public class GssResourceGenerator extends AbstractCssResourceGenerator implement
     JClassType classReturnType = userMethod.getReturnType().isClass();
     List<CssValueNode> params = definitionNode.getParameters();
 
+     logger.log(TreeLogger.ERROR, "def "+name + " : "
+        +params);
+
     if (params.size() != 1 && !isReturnTypeString(classReturnType)) {
       logger.log(TreeLogger.ERROR, "@def rule " + name
           + " must define exactly one value or return type must be String");
@@ -1275,6 +1278,8 @@ public class GssResourceGenerator extends AbstractCssResourceGenerator implement
     if (isReturnTypeString(classReturnType)) {
       List<String> returnValues = new ArrayList<String>();
       for (CssValueNode valueNode : params) {
+        logger.log(TreeLogger.ERROR, "Value "+valueNode.getClass() + " : "
+        +valueNode.toString());
         returnValues.add(Generator.escape(valueNode.toString()));
       }
       returnExpr = "\"" + Joiner.on(" ").join(returnValues) + "\"";
@@ -1291,6 +1296,8 @@ public class GssResourceGenerator extends AbstractCssResourceGenerator implement
       // a CssCompositeValueNode. Unwrap it.
       if (valueNode instanceof CssCompositeValueNode) {
         CssCompositeValueNode toUnwrap = (CssCompositeValueNode) valueNode;
+        logger.log(TreeLogger.ERROR, "Composite Value "+valueNode.getClass() + " : "
+            +valueNode.toString()+ "  " + toUnwrap.getValues().size());
         if (toUnwrap.getValues().size() == 1) {
           valueNode = toUnwrap.getValues().get(0);
         }

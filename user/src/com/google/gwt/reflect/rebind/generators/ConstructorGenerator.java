@@ -91,11 +91,11 @@ public abstract class ConstructorGenerator extends MemberGenerator implements Ma
       return checkConstPool(ast, callSite, inst, arg0);
     }
     if (isDebug) {
-      logger.log(logLevel(), "Found parameter arguments: "+newArray.initializers);
+      logger.log(logLevel(), "Found parameter arguments: "+newArray.getInitializers());
     }
 
     final ArrayList<JType> params = new ArrayList<JType>();
-    for (final JExpression expr : newArray.initializers) {
+    for (final JExpression expr : newArray.getInitializers()) {
       if (isDebug) {
         logger.log(logLevel(), "Resolving parameter argument: "+expr.getClass().getName()+": "+expr);
       }

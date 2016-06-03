@@ -100,21 +100,21 @@ public abstract class MethodGenerator extends MemberGenerator implements MagicMe
       return checkConstPool(ast, callSite, inst, arg0, arg1);
     }
     if (isDebug) {
-      logger.log(logLevel(), "Found parameter arguments: "+newArray.initializers);
+      logger.log(logLevel(), "Found parameter arguments: "+newArray.getInitializers());
     }
 
     final ArrayList<JType> params = new ArrayList<JType>();
-    if (newArray.initializers == null) {
-      assert newArray.dims.size() == 1;
+    if (newArray.getInitializers() == null) {
+      assert newArray.getDimensionExpressions().size() == 1;
       final JIntLiteral size = ReflectionUtilAst.extractImmutableNode(logger, JIntLiteral.class,
-          newArray.dims.get(0), ast, true);
+          newArray.getDimensionExpressions().get(0), ast, true);
       if (size.getValue() != 0) {
         logger.log(Type.ERROR, "Cannot provide empty arrays to method injectors"
             + " unless they are of size [0].");
         return checkConstPool(ast, callSite, inst, arg0, arg1);
       }
     } else {
-      for (final JExpression expr : newArray.initializers) {
+      for (final JExpression expr : newArray.getInitializers()) {
         if (isDebug) {
           logger.log(logLevel(), "Resolving parameter argument: "+expr.getClass().getName()+": "+expr);
         }
