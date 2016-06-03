@@ -15,6 +15,8 @@
  */
 package com.google.gwt.resources.rg;
 
+import org.apache.commons.io.IOUtils;
+
 import com.google.gwt.core.ext.BadPropertyValueException;
 import com.google.gwt.core.ext.ConfigurationProperty;
 import com.google.gwt.core.ext.Generator;
@@ -63,6 +65,7 @@ import com.google.gwt.thirdparty.common.css.PrefixingSubstitutionMap;
 import com.google.gwt.thirdparty.common.css.SourceCode;
 import com.google.gwt.thirdparty.common.css.SourceCodeLocation;
 import com.google.gwt.thirdparty.common.css.SubstitutionMap;
+import com.google.gwt.thirdparty.common.css.compiler.ast.CssCompositeValueNode;
 import com.google.gwt.thirdparty.common.css.compiler.ast.CssDefinitionNode;
 import com.google.gwt.thirdparty.common.css.compiler.ast.CssNumericNode;
 import com.google.gwt.thirdparty.common.css.compiler.ast.CssTree;
@@ -72,35 +75,7 @@ import com.google.gwt.thirdparty.common.css.compiler.ast.GssError;
 import com.google.gwt.thirdparty.common.css.compiler.ast.GssFunction;
 import com.google.gwt.thirdparty.common.css.compiler.ast.GssParser;
 import com.google.gwt.thirdparty.common.css.compiler.ast.GssParserException;
-import com.google.gwt.thirdparty.common.css.compiler.passes.AbbreviatePositionalValues;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CheckDependencyNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CollectConstantDefinitions;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CollectMixinDefinitions;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ColorValueOptimizer;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ConstantDefinitions;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CreateComponentNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CreateConditionalNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CreateConstantReferences;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CreateDefinitionNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CreateMixins;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CreateStandardAtRuleNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.CssClassRenaming;
-import com.google.gwt.thirdparty.common.css.compiler.passes.DisallowDuplicateDeclarations;
-import com.google.gwt.thirdparty.common.css.compiler.passes.EliminateEmptyRulesetNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.EliminateUnitsFromZeroNumericValues;
-import com.google.gwt.thirdparty.common.css.compiler.passes.EliminateUselessRulesetNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.HandleUnknownAtRuleNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.MarkNonFlippableNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.MarkRemovableRulesetNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.MergeAdjacentRulesetNodesWithSameDeclarations;
-import com.google.gwt.thirdparty.common.css.compiler.passes.MergeAdjacentRulesetNodesWithSameSelector;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ProcessComponents;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ProcessKeyframes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ProcessRefiners;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ReplaceConstantReferences;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ReplaceMixins;
-import com.google.gwt.thirdparty.common.css.compiler.passes.ResolveCustomFunctionNodes;
-import com.google.gwt.thirdparty.common.css.compiler.passes.SplitRulesetNodes;
+import com.google.gwt.thirdparty.common.css.compiler.passes.*;
 import com.google.gwt.thirdparty.guava.common.base.CaseFormat;
 import com.google.gwt.thirdparty.guava.common.base.Charsets;
 import com.google.gwt.thirdparty.guava.common.base.Joiner;
@@ -117,8 +92,6 @@ import com.google.gwt.thirdparty.guava.common.io.ByteSource;
 import com.google.gwt.thirdparty.guava.common.io.Resources;
 import com.google.gwt.user.rebind.SourceWriter;
 import com.google.gwt.user.rebind.StringSourceWriter;
-
-import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1108,6 +1081,9 @@ public class GssResourceGenerator extends AbstractCssResourceGenerator implement
     JClassType classReturnType = userMethod.getReturnType().isClass();
     List<CssValueNode> params = definitionNode.getParameters();
 
+     logger.log(TreeLogger.ERROR, "def "+name + " : "
+        +params);
+
     if (params.size() != 1 && !isReturnTypeString(classReturnType)) {
       logger.log(TreeLogger.ERROR, "@def rule " + name
           + " must define exactly one value or return type must be String");
@@ -1118,6 +1094,8 @@ public class GssResourceGenerator extends AbstractCssResourceGenerator implement
     if (isReturnTypeString(classReturnType)) {
       List<String> returnValues = new ArrayList<String>();
       for (CssValueNode valueNode : params) {
+        logger.log(TreeLogger.ERROR, "Value "+valueNode.getClass() + " : "
+        +valueNode.toString());
         returnValues.add(Generator.escape(valueNode.toString()));
       }
       returnExpr = "\"" + Joiner.on(" ").join(returnValues) + "\"";
@@ -1129,6 +1107,18 @@ public class GssResourceGenerator extends AbstractCssResourceGenerator implement
         return false;
       }
       CssValueNode valueNode = params.get(0);
+
+      // when a constant refers to another constant, closure-stylesheet wrap the CssNumericNode in
+      // a CssCompositeValueNode. Unwrap it.
+      if (valueNode instanceof CssCompositeValueNode) {
+        CssCompositeValueNode toUnwrap = (CssCompositeValueNode) valueNode;
+        logger.log(TreeLogger.ERROR, "Composite Value "+valueNode.getClass() + " : "
+            +valueNode.toString()+ "  " + toUnwrap.getValues().size());
+        if (toUnwrap.getValues().size() == 1) {
+          valueNode = toUnwrap.getValues().get(0);
+        }
+      }
+
       if (!(valueNode instanceof CssNumericNode)) {
         logger.log(TreeLogger.ERROR, "The value of the constant defined by @" + name + " is not a" +
             " numeric");
