@@ -383,7 +383,7 @@ public final class Array {
   private static native <T> boolean initFactory(int id, T[] seed)
   /*-{
      if (!@java.lang.reflect.Array::factories[id]) {
-       @java.lang.reflect.Array::factories[id] = @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(seed, 0);
+       @java.lang.reflect.Array::factories[id] = @javaemul.internal.ArrayHelper::createFrom([Ljava/lang/Object;I)(seed, 0);
      }
    }-*/;n
 
@@ -425,31 +425,22 @@ public final class Array {
    * a real method body here.
    */
   public static Object newInstance(Class<?> componentType, int length)
-  throws NegativeArraySizeException {
+  throws NegativeArraySizeException{
     // We defer to a different method so if the magic-method injector does not
     // receive a class literal, it can just rewrite the call to #newArray()
-    return newSingleDimArray(componentType, length);
+    return newSingleDimArray(componentType,length);
+  }
+
 
   public static Object newSingleDimArray(Class<?> componentType, int length)
-  throws NegativeArraySizeException {
+        throws NegativeArraySizeException {
     int seedId = constId(componentType);
     Object result = newArray(seedId, length);
     if (result == null) {
       throw new UnsupportedOperationException("Array for type "+componentType+" not initialized. "
           +"Call Array.newInstance("+componentType.getName()+".class, 0) to register this type");
-
-    }
     return result;
   }
-
-  private static native <T> T[] newArray(int id, int length)
-    /*-{
-      if (@java.lang.reflect.Array::factories[id]) {
-        var from = @java.lang.reflect.Array::factories[id];
-        return @com.google.gwt.lang.Array::createFrom([Ljava/lang/Object;I)(from, length);
-      }
-      return null;
-    }-*/;
 
   /**
    * Creates a new multi-dimensional array.
@@ -491,59 +482,58 @@ public final class Array {
     }
   }
 
-  private static native void setUnsafe(Object array, int index, Object value)
-      throws IllegalArgumentException, ArrayIndexOutOfBoundsException
-      /*-{
-        array[index] = value;
-      }-*/
-  ;
-
-    private Array() {
-  }
+  private static native <T> T[] newArray(int id, int length)
+  /*-{
+     if (@java.lang.reflect.Array::factories[id]) {
+       var from = @java.lang.reflect.Array::factories[id];
+       return @javaemul.internal.ArrayHelper::createFrom([Ljava/lang/Object;I)(from, length);
+     }
+     return null;
+   }-*/;
 
   public static <T> T[] clone(T[] array) {
-    return com.google.gwt.lang.Array.clone(array);
+    return javaemul.internal.ArrayHelper.clone(array, 0, array.length);
   }
 
   public static native boolean[] clone(boolean[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
   public static native byte[] clone(byte[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
   public static native short[] clone(short[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
   public static native char[] clone(char[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
   public static native int[] clone(int[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
   @UnsafeNativeLong
   public static native long[] clone(long[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
   public static native float[] clone(float[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
   public static native double[] clone(double[] array)
   /*-{
-    return @com.google.gwt.lang.Array::clone([Ljava/lang/Object;)(array);
+    return @javaemul.internal.ArrayHelper::clone([Ljava/lang/Object;II)(array, 0, array.length);
   }-*/;
 
 

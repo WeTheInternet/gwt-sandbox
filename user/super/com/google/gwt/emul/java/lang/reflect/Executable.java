@@ -5,8 +5,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.function.Supplier;
 
-import com.google.gwt.lang.Array;
-
 public abstract class Executable <E extends Executable> extends AccessibleObject
     implements Member, GenericDeclaration {
 
@@ -35,7 +33,7 @@ public abstract class Executable <E extends Executable> extends AccessibleObject
    * Returns a clone of this constructor's exception types Class[]
    */
   public Class<?>[] getExceptionTypes() {
-    return Array.clone((Class<?>[]) exceptionTypes);
+    return javaemul.internal.ArrayHelper.clone((Class<?>[]) exceptionTypes, 0, exceptionTypes.length);
   }
 
   /**
@@ -60,7 +58,7 @@ public abstract class Executable <E extends Executable> extends AccessibleObject
    * Returns a clone of the array parameter types
    */
   public Class<?>[] getParameterTypes() {
-    return Array.clone((Class<?>[]) parameterTypes);
+    return javaemul.internal.ArrayHelper.clone((Class<?>[]) parameterTypes, 0, parameterTypes.length);
   }
 
   public Parameter[] getParameters() {
@@ -101,7 +99,7 @@ public abstract class Executable <E extends Executable> extends AccessibleObject
   public String toGenericString() {
     return toString();
   }
-  
+
   /**
    * Returns true if our modifiers contains the {@link Modifier#VARARGS} bit
    */

@@ -473,7 +473,7 @@ public class UnifyAst implements UnifyAstView {
       try {
         propertyNameExpression = getStringLiteral(gwtGetPropertyCall.getArgs().get(0));
         defaultValueExpression = defaultVersionCalled ?
-            getStringLiteral(gwtGetPropertyCall.getArgs().get(1)) : null;
+            getExpression(gwtGetPropertyCall.getArgs().get(1)) : null;
       } catch (UnableToCompleteException e) {
         error(gwtGetPropertyCall,
             "Only string constants may be used as arguments to System.getProperty()");
@@ -497,6 +497,10 @@ public class UnifyAst implements UnifyAstView {
 
     private JStringLiteral getStringLiteral(JExpression inst) throws UnableToCompleteException {
       return ReflectionUtilAst.extractImmutableNode(logger, JStringLiteral.class, inst, UnifyAst.this, true);
+    }
+
+    private JExpression getExpression(JExpression inst) throws UnableToCompleteException {
+      return ReflectionUtilAst.extractImmutableNode(logger, JExpression.class, inst, UnifyAst.this, true);
     }
 
     private JExpression createRebindExpression(JMethodCall gwtCreateCall) {

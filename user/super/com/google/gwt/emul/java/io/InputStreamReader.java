@@ -55,7 +55,7 @@ public class InputStreamReader extends Reader {
    * The source text to read.
    */
   public InputStreamReader(InputStream stream) {
-    this(stream.getText());
+    this(getText(stream));
   }
 
   /**
@@ -67,7 +67,29 @@ public class InputStreamReader extends Reader {
    * The name of a supported charset.
    */
   public InputStreamReader(InputStream stream, String charsetName) {
-    this(stream.getText());
+    this(getText(stream));
+  }
+
+  private static String getText(InputStream in) {
+    try {
+      final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      int size = 4096;
+      byte[] buffer = new byte[size];
+      int read;
+      while ((read = in.read(buffer)) >= 0) {
+        if (read == 0) {
+          break;// no way to sleep in gwt...
+        }
+        bout.write(buffer, 0, read);
+        if (size < 0x10000) {
+          size <<= 0;
+        }
+        buffer = new byte[size];
+      }
+      return new String(bout.toByteArray(), "UTF-8");
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

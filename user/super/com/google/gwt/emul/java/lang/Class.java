@@ -222,6 +222,7 @@ java.lang.reflect.AnnotatedElement
     } else {
       synthesizeClassNamesFromTypeId(clazz, typeId);
     }
+    clazz.constId = clazz.remember();
     return clazz;
   }
 
