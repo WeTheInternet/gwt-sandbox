@@ -101,7 +101,7 @@ public class IdentityHashMap<K, V> extends AbstractHashMap<K, V> implements
   }
 
   @Override
-  int getHashCode(Object key) {
+  protected int getHashCode(Object key) {
     return HashCodes.getObjectIdentityHashCode(key);
   }
 }

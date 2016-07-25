@@ -50,7 +50,7 @@ public final class System {
    */
   public static PrintStream out = new PrintStream((OutputStream)null);
 
-  public final static InputStream in = null;
+  public static InputStream in = null;
 
   public static void arraycopy(Object src, int srcOfs, Object dest, int destOfs, int len) {
     checkNotNull(src, "src");

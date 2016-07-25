@@ -156,12 +156,6 @@ public interface Map<K, V> {
     return (currentValue == null && !containsKey(key)) ? defaultValue : currentValue;
   }
 
-  @Override
-  default V getOrDefault(Object key, V defaultValue) {
-    V v = get(key);
-    return v != null || containsKey(key) ? v : defaultValue;
-  }
-
   int hashCode();
 
   boolean isEmpty();
