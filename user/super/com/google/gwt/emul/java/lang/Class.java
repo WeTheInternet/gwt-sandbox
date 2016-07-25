@@ -21,6 +21,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.security.ProtectionDomain;
 
@@ -43,10 +44,10 @@ import com.google.gwt.reflect.shared.ReflectUtil;
  */
 @SuppressWarnings("serial")
 public final class Class<T>
-implements java.io.Serializable, 
-java.lang.reflect.GenericDeclaration, 
+implements java.io.Serializable,
+java.lang.reflect.GenericDeclaration,
 java.lang.reflect.Type,
-java.lang.reflect.AnnotatedElement 
+java.lang.reflect.AnnotatedElement
 {
   private static final int PRIMITIVE = 0x00000001;
   private static final int INTERFACE = 0x00000002;
@@ -57,7 +58,7 @@ java.lang.reflect.AnnotatedElement
   private static final String NOT_FOUND = "Did you forget to annotate with @ReflectionStrategy methods, " +
   		"or to call GwtReflect.magicClass on your class literal?.";
   private static int index;
-  
+
   private static final JavaScriptObject CONSTS;
   static {
     if (GWT.isClient()) {
@@ -337,14 +338,14 @@ java.lang.reflect.AnnotatedElement
     clazz.@Class::canonicalName = clazz.@Class::typeName;
     clazz.@Class::simpleName = clazz.@Class::typeName;
   }-*/;
-  
+
   /**
-   * This is a magic-method hook used by Package.java; it is wired up the same as 
+   * This is a magic-method hook used by Package.java; it is wired up the same as
    * GwtReflect.magicClass, except it does not require a dependency on com.google.gwt.reflect.shared
    */
   static Class<?> magicClass(Class<?> c) {return c;}
-  
-  
+
+
   @SuppressWarnings("rawtypes")
   public static Class forName(String name)
     throws ClassNotFoundException{
@@ -354,14 +355,14 @@ java.lang.reflect.AnnotatedElement
     }
     return c;
   }
-  
+
   private static native Class findClass(String name)
   /*-{
     return @java.lang.Class::CONSTS.n[className];
    }-*/;
-  
+
   @SuppressWarnings("rawtypes")
-  public static Class forName(String name, boolean initialize, ClassLoader loader) 
+  public static Class forName(String name, boolean initialize, ClassLoader loader)
     throws ClassNotFoundException{
     return forName(name);
   }
@@ -410,7 +411,7 @@ java.lang.reflect.AnnotatedElement
     // TODO replace System.getProperty calls such that they become JStringLiterals
     return "true".equals(System.getProperty("gwt.reflect.remember.names", "true"));
   }
-  
+
   /**
    * Not publicly instantiable.
    *
@@ -426,7 +427,7 @@ java.lang.reflect.AnnotatedElement
     typeId = null;
     arrayLiterals = null;
   }
-  
+
   private native int remember()
   /*-{
     var pos = @java.lang.Class::CONSTS.c.length;
@@ -437,7 +438,7 @@ java.lang.reflect.AnnotatedElement
     }
     return pos;
   }-*/;
-  
+
   public boolean desiredAssertionStatus() {
     // This body is ignored by the JJS compiler and a new one is
     // synthesized at compile-time based on the actual compilation arguments.
@@ -482,7 +483,7 @@ java.lang.reflect.AnnotatedElement
       return null;
     }
   }
-  
+
   public Package getPackage(){
     // We don't trust our package field, because it may be elided in production compiles.
     // Using the reflection subsystem allows most types to be elided,
@@ -497,11 +498,11 @@ java.lang.reflect.AnnotatedElement
   public boolean isEnum() {
     return (modifiers & ENUM) != 0;
   }
-  
+
   public boolean isAnonymousClass() {
     return "".equals(getSimpleName());
   }
-  
+
 
   public boolean isInterface() {
     return (modifiers & INTERFACE) != 0;
@@ -541,7 +542,7 @@ java.lang.reflect.AnnotatedElement
   public ClassLoader getClassLoader() {
     return ClassLoader.getCallerClassLoader();
   }
-  
+
   @SuppressWarnings("unchecked")
   public T cast(Object obj) {
     return (T) obj;
@@ -570,13 +571,13 @@ java.lang.reflect.AnnotatedElement
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
     return members.getDeclaredAnnotations();
   }
-  
+
   public ProtectionDomain getProtectionDomain() {
     if (classData == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
     return classData.getProtectionDomain();
   }
-  
+
   public Method getDeclaredMethod(String name, Class<?> ... parameterTypes)
     throws NoSuchMethodException{
     if (members == null)
@@ -590,8 +591,8 @@ java.lang.reflect.AnnotatedElement
     // but the method is legitimately missing
     return members.getDeclaredMethod(name, parameterTypes);
   }
-  
-  public Method getMethod(String name, Class<?> ... parameterTypes) 
+
+  public Method getMethod(String name, Class<?> ... parameterTypes)
     throws NoSuchMethodException{
     if (members == null)
       // Throw a helpful error message suggesting the client forgot to initialize this class
@@ -611,14 +612,14 @@ java.lang.reflect.AnnotatedElement
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
     return members.getDeclaredMethods();
   }
-  
+
   public Method[] getMethods() {
     if (members == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
     return members.getMethods();
   }
-  
-  public Field getDeclaredField(String name) 
+
+  public Field getDeclaredField(String name)
   throws NoSuchFieldException
   {
     if (members == null)
@@ -632,8 +633,8 @@ java.lang.reflect.AnnotatedElement
     // but the field is legitimately missing
     return members.getDeclaredField(name);
   }
-  
-  public Field getField(String name) 
+
+  public Field getField(String name)
   throws NoSuchFieldException {
     if (members == null)
       // Throw a helpful error message suggesting the client forgot to initialize this class
@@ -646,21 +647,21 @@ java.lang.reflect.AnnotatedElement
     // but the field is legitimately missing
     return members.getField(name);
   }
-  
+
   public Field[] getDeclaredFields()
   {
     if (members == null)
       throw new NoSuchFieldError(NOT_IMPLEMENTED_CORRECTLY);
     return members.getDeclaredFields();
   }
-  
+
   public Field[] getFields() {
     if (members == null)
       throw new NoSuchFieldError(NOT_IMPLEMENTED_CORRECTLY);
     return members.getFields();
   }
-  
-  public Constructor<T> getConstructor(Class<?> ... parameterTypes) 
+
+  public Constructor<T> getConstructor(Class<?> ... parameterTypes)
   throws NoSuchMethodException {
     if (members == null)
       // Throw a helpful error message suggesting the client forgot to initialize this class
@@ -673,14 +674,14 @@ java.lang.reflect.AnnotatedElement
     // but the method is legitimately missing
     return members.getConstructor(parameterTypes);
   }
-  
+
   public Constructor<T>[] getConstructors() {
     if (members == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
     return members.getConstructors();
   }
-  
-  public Constructor<T> getDeclaredConstructor(Class<?> ... parameterTypes) 
+
+  public Constructor<T> getDeclaredConstructor(Class<?> ... parameterTypes)
       throws NoSuchMethodException {
     if (members == null)
       // Throw a helpful error message suggesting the client forgot to initialize this class
@@ -693,13 +694,13 @@ java.lang.reflect.AnnotatedElement
     // but the method is legitimately missing
     return members.getDeclaredConstructor(parameterTypes);
   }
-  
+
   public Constructor<T>[] getDeclaredConstructors() {
     if (members == null)
       throw new NoSuchMethodError(NOT_IMPLEMENTED_CORRECTLY);
     return members.getDeclaredConstructors();
   }
-  
+
   public Class<?>[] getClasses() {
     Class<?>[] list = new Class<?>[0];
     Class<?> cls = this;
@@ -716,20 +717,24 @@ java.lang.reflect.AnnotatedElement
     if (classData == null) return new Class<?>[0];
     return classData.getDeclaredClasses();
   }
-  
+
   public Class<?>[] getInterfaces() {
     if (classData == null) return new Class<?>[0];
     return classData.getInterfaces();
   }
-  
+
   @SuppressWarnings("unchecked")
   public TypeVariable<Class<T>>[] getTypeParameters() {
-//    if (getGenericSignature() != null) 
+//    if (getGenericSignature() != null)
 //      return (TypeVariable<Class<T>>[])getGenericInfo().getTypeParameters();
 //    else
       return (TypeVariable<Class<T>>[])new TypeVariable[0];
   }
-  
+
+  public Type[] getGenericInterfaces() {
+    return getInterfaces();
+  }
+
   @SuppressWarnings("unchecked")
   public <U> Class<? extends U> asSubclass(Class<U> clazz) {
     if (clazz.isAssignableFrom(this))
@@ -737,14 +742,14 @@ java.lang.reflect.AnnotatedElement
     else
         throw new ClassCastException(this.toString());
   }
-  
+
   public boolean isInstance(Object cls) {
     if (cls == null) {
       return false;
     }
     return isAssignableFrom(cls.getClass());
   }
-  
+
   public boolean isAssignableFrom(Class<?> cls) {
     if (cls == this)return true;
     if (isInterface()) {
@@ -762,15 +767,15 @@ java.lang.reflect.AnnotatedElement
     }
     return false;
   }
-  
+
   public Method getEnclosingMethod() {
     return classData.getEnclosingMethod();
   }
-  
+
   public Class<?> getEnclosingClass() {
     return classData.getEnclosingClass();
   }
-  
+
   protected static native int isNumber(Class<?> cls)
   /*-{
     // yup, switch case on classes works in jsni ;)
@@ -795,7 +800,7 @@ java.lang.reflect.AnnotatedElement
   protected static Long boxLong(long o) {
     return new Long(o);
   }
-  
+
   @UnsafeNativeLong
   protected static long unboxLong(Long o) {
     return o.longValue();

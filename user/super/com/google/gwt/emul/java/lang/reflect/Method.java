@@ -32,7 +32,7 @@ public class Method extends Executable implements GenericDeclaration, Member {
   private transient String signature;
 
   private JavaScriptObject method;
-  
+
   // Modifiers that can be applied to a method in source code
   private static final int LANGUAGE_MODIFIERS = Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE |
     Modifier.ABSTRACT | Modifier.STATIC | Modifier.FINAL | Modifier.SYNCHRONIZED | Modifier.NATIVE;
@@ -43,7 +43,7 @@ public class Method extends Executable implements GenericDeclaration, Member {
     return signature;
   }
 
-  public Method(Class<?> declaringClass, Class<?> returnType, String name, int modifiers, JavaScriptObject method, 
+  public Method(Class<?> declaringClass, Class<?> returnType, String name, int modifiers, JavaScriptObject method,
       final Supplier<Annotation[]> annos,
       Class<?>[] params, Class<?>[] exceptions) {
     super(declaringClass, name, modifiers, params, exceptions, annos);
@@ -52,7 +52,7 @@ public class Method extends Executable implements GenericDeclaration, Member {
     // TODO implement this
     this.signature = "";
   }
-  
+
   /**
    * Returns a <code>Class</code> object that represents the formal return type of the method represented by
    * this <code>Method</code> object.
@@ -166,6 +166,11 @@ public class Method extends Executable implements GenericDeclaration, Member {
    */
   public boolean isBridge() {
     return (getModifiers() & Modifier.BRIDGE) != 0;
+  }
+  public boolean isDefault() {
+    return getDeclaringClass().isInterface()
+        && !Modifier.isStatic(getModifiers())
+        && !Modifier.isAbstract(getModifiers());
   }
 
   /**

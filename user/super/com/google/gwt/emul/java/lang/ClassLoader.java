@@ -1,18 +1,20 @@
 package java.lang;
 
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 
 import com.google.gwt.core.client.JavaScriptObject;
 
 /**
  * This stripped down ClassLoader class is simply here to give us cross-platform
  * support for code that might need a valid classloader.
- * 
+ *
  * xapi-gwt-reflect does call into the one and only system classloader,
  * to define mappings of java-names to runtime classes,
  * in order to enable Class.forName() and ClassLoader.loadClass();
- * 
+ *
  * @author "James X. Nelson (james@wetheinter.net)"
  *
  */
@@ -24,7 +26,7 @@ public class ClassLoader {
     // A JSO with all known classes;
     // We access this value via reflection in ConstPool#extractClasses
     private JavaScriptObject classes = JavaScriptObject.createObject();
-    
+
     /**
      * Creates a new class loader using the specified parent class loader for
      * delegation.
@@ -213,6 +215,16 @@ public class ClassLoader {
       return null;
     }
 
+    public Enumeration<URL> getResources(String name) throws IOException {
+      return new Enumeration<URL>() {
+        public boolean hasMoreElements() {
+          return false;
+        }
+        public URL nextElement() {
+          return null;
+        }
+      };
+    }
 
     /**
      * Unsupported
@@ -252,7 +264,7 @@ public class ClassLoader {
     }
 
     private static ClassLoader cl;
-    
+
     /**
      * A
      * @return
