@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.security.ProtectionDomain;
 
@@ -752,6 +753,10 @@ java.lang.reflect.AnnotatedElement
 //      return (TypeVariable<Class<T>>[])getGenericInfo().getTypeParameters();
 //    else
       return (TypeVariable<Class<T>>[])new TypeVariable[0];
+  }
+
+  public Type[] getGenericInterfaces() {
+    return getInterfaces();
   }
 
   @SuppressWarnings("unchecked")
