@@ -15,6 +15,12 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
+import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ast.*;
+import org.eclipse.jdt.internal.compiler.impl.Constant;
+import org.eclipse.jdt.internal.compiler.lookup.*;
+import org.eclipse.jdt.internal.compiler.util.Util;
+
 import com.google.gwt.core.client.impl.DoNotInline;
 import com.google.gwt.core.client.impl.HasNoSideEffects;
 import com.google.gwt.core.client.impl.SpecializeMethod;
@@ -28,87 +34,15 @@ import com.google.gwt.dev.jdt.SafeASTVisitor;
 import com.google.gwt.dev.jjs.InternalCompilerException;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
-import com.google.gwt.dev.jjs.ast.AccessModifier;
-import com.google.gwt.dev.jjs.ast.JAbsentArrayDimension;
-import com.google.gwt.dev.jjs.ast.JArrayLength;
-import com.google.gwt.dev.jjs.ast.JArrayRef;
-import com.google.gwt.dev.jjs.ast.JArrayType;
-import com.google.gwt.dev.jjs.ast.JAssertStatement;
-import com.google.gwt.dev.jjs.ast.JBinaryOperation;
-import com.google.gwt.dev.jjs.ast.JBinaryOperator;
-import com.google.gwt.dev.jjs.ast.JBlock;
-import com.google.gwt.dev.jjs.ast.JBooleanLiteral;
-import com.google.gwt.dev.jjs.ast.JBreakStatement;
-import com.google.gwt.dev.jjs.ast.JCaseStatement;
-import com.google.gwt.dev.jjs.ast.JCastOperation;
-import com.google.gwt.dev.jjs.ast.JCharLiteral;
-import com.google.gwt.dev.jjs.ast.JClassLiteral;
-import com.google.gwt.dev.jjs.ast.JClassType;
-import com.google.gwt.dev.jjs.ast.JConditional;
-import com.google.gwt.dev.jjs.ast.JConstructor;
-import com.google.gwt.dev.jjs.ast.JContinueStatement;
-import com.google.gwt.dev.jjs.ast.JDeclarationStatement;
-import com.google.gwt.dev.jjs.ast.JDeclaredType;
-import com.google.gwt.dev.jjs.ast.JDoStatement;
-import com.google.gwt.dev.jjs.ast.JDoubleLiteral;
-import com.google.gwt.dev.jjs.ast.JEnumField;
-import com.google.gwt.dev.jjs.ast.JEnumType;
-import com.google.gwt.dev.jjs.ast.JExpression;
-import com.google.gwt.dev.jjs.ast.JExpressionStatement;
-import com.google.gwt.dev.jjs.ast.JField;
+import com.google.gwt.dev.jjs.ast.*;
 import com.google.gwt.dev.jjs.ast.JField.Disposition;
-import com.google.gwt.dev.jjs.ast.JFieldRef;
-import com.google.gwt.dev.jjs.ast.JFloatLiteral;
-import com.google.gwt.dev.jjs.ast.JForStatement;
-import com.google.gwt.dev.jjs.ast.JIfStatement;
-import com.google.gwt.dev.jjs.ast.JInstanceOf;
-import com.google.gwt.dev.jjs.ast.JIntLiteral;
-import com.google.gwt.dev.jjs.ast.JInterfaceType;
-import com.google.gwt.dev.jjs.ast.JLabel;
-import com.google.gwt.dev.jjs.ast.JLabeledStatement;
-import com.google.gwt.dev.jjs.ast.JLiteral;
-import com.google.gwt.dev.jjs.ast.JLocal;
-import com.google.gwt.dev.jjs.ast.JLocalRef;
-import com.google.gwt.dev.jjs.ast.JLongLiteral;
-import com.google.gwt.dev.jjs.ast.JMethod;
-import com.google.gwt.dev.jjs.ast.JMethodBody;
-import com.google.gwt.dev.jjs.ast.JMethodCall;
-import com.google.gwt.dev.jjs.ast.JNewArray;
-import com.google.gwt.dev.jjs.ast.JNewInstance;
-import com.google.gwt.dev.jjs.ast.JNode;
-import com.google.gwt.dev.jjs.ast.JNullLiteral;
-import com.google.gwt.dev.jjs.ast.JParameter;
-import com.google.gwt.dev.jjs.ast.JParameterRef;
-import com.google.gwt.dev.jjs.ast.JPostfixOperation;
-import com.google.gwt.dev.jjs.ast.JPrefixOperation;
-import com.google.gwt.dev.jjs.ast.JPrimitiveType;
-import com.google.gwt.dev.jjs.ast.JProgram;
-import com.google.gwt.dev.jjs.ast.JReferenceType;
-import com.google.gwt.dev.jjs.ast.JReturnStatement;
-import com.google.gwt.dev.jjs.ast.JStatement;
-import com.google.gwt.dev.jjs.ast.JStringLiteral;
-import com.google.gwt.dev.jjs.ast.JSwitchStatement;
-import com.google.gwt.dev.jjs.ast.JThisRef;
-import com.google.gwt.dev.jjs.ast.JThrowStatement;
-import com.google.gwt.dev.jjs.ast.JTryStatement;
-import com.google.gwt.dev.jjs.ast.JType;
-import com.google.gwt.dev.jjs.ast.JUnaryOperator;
-import com.google.gwt.dev.jjs.ast.JVariable;
-import com.google.gwt.dev.jjs.ast.JWhileStatement;
 import com.google.gwt.dev.jjs.ast.js.JMultiExpression;
 import com.google.gwt.dev.jjs.ast.js.JsniClassLiteral;
 import com.google.gwt.dev.jjs.ast.js.JsniFieldRef;
 import com.google.gwt.dev.jjs.ast.js.JsniMethodBody;
 import com.google.gwt.dev.jjs.ast.js.JsniMethodRef;
 import com.google.gwt.dev.js.JsAbstractSymbolResolver;
-import com.google.gwt.dev.js.ast.JsContext;
-import com.google.gwt.dev.js.ast.JsExpression;
-import com.google.gwt.dev.js.ast.JsFunction;
-import com.google.gwt.dev.js.ast.JsModVisitor;
-import com.google.gwt.dev.js.ast.JsName;
-import com.google.gwt.dev.js.ast.JsNameRef;
-import com.google.gwt.dev.js.ast.JsNode;
-import com.google.gwt.dev.js.ast.JsParameter;
+import com.google.gwt.dev.js.ast.*;
 import com.google.gwt.dev.util.StringInterner;
 import com.google.gwt.dev.util.collect.Stack;
 import com.google.gwt.thirdparty.guava.common.base.Function;
@@ -122,120 +56,8 @@ import com.google.gwt.thirdparty.guava.common.collect.Maps;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-
-import org.eclipse.jdt.core.compiler.CharOperation;
-import org.eclipse.jdt.internal.compiler.ast.AND_AND_Expression;
-import org.eclipse.jdt.internal.compiler.ast.ASTNode;
-import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.AllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.AnnotationMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.eclipse.jdt.internal.compiler.ast.ArrayAllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.ArrayInitializer;
-import org.eclipse.jdt.internal.compiler.ast.ArrayReference;
-import org.eclipse.jdt.internal.compiler.ast.AssertStatement;
-import org.eclipse.jdt.internal.compiler.ast.Assignment;
-import org.eclipse.jdt.internal.compiler.ast.BinaryExpression;
-import org.eclipse.jdt.internal.compiler.ast.Block;
-import org.eclipse.jdt.internal.compiler.ast.BreakStatement;
-import org.eclipse.jdt.internal.compiler.ast.CaseStatement;
-import org.eclipse.jdt.internal.compiler.ast.CastExpression;
-import org.eclipse.jdt.internal.compiler.ast.CharLiteral;
-import org.eclipse.jdt.internal.compiler.ast.ClassLiteralAccess;
-import org.eclipse.jdt.internal.compiler.ast.Clinit;
-import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.CompoundAssignment;
-import org.eclipse.jdt.internal.compiler.ast.ConditionalExpression;
-import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.ContinueStatement;
-import org.eclipse.jdt.internal.compiler.ast.DoStatement;
-import org.eclipse.jdt.internal.compiler.ast.DoubleLiteral;
-import org.eclipse.jdt.internal.compiler.ast.EmptyStatement;
-import org.eclipse.jdt.internal.compiler.ast.EqualExpression;
-import org.eclipse.jdt.internal.compiler.ast.ExplicitConstructorCall;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.ExtendedStringLiteral;
-import org.eclipse.jdt.internal.compiler.ast.FalseLiteral;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.FieldReference;
-import org.eclipse.jdt.internal.compiler.ast.FloatLiteral;
-import org.eclipse.jdt.internal.compiler.ast.ForStatement;
-import org.eclipse.jdt.internal.compiler.ast.ForeachStatement;
-import org.eclipse.jdt.internal.compiler.ast.FunctionalExpression;
-import org.eclipse.jdt.internal.compiler.ast.IfStatement;
-import org.eclipse.jdt.internal.compiler.ast.Initializer;
-import org.eclipse.jdt.internal.compiler.ast.InstanceOfExpression;
-import org.eclipse.jdt.internal.compiler.ast.IntLiteral;
-import org.eclipse.jdt.internal.compiler.ast.LabeledStatement;
-import org.eclipse.jdt.internal.compiler.ast.LambdaExpression;
-import org.eclipse.jdt.internal.compiler.ast.LocalDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.LongLiteral;
-import org.eclipse.jdt.internal.compiler.ast.MarkerAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.MessageSend;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.NameReference;
-import org.eclipse.jdt.internal.compiler.ast.NormalAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.NullLiteral;
-import org.eclipse.jdt.internal.compiler.ast.OR_OR_Expression;
-import org.eclipse.jdt.internal.compiler.ast.OperatorIds;
-import org.eclipse.jdt.internal.compiler.ast.PostfixExpression;
-import org.eclipse.jdt.internal.compiler.ast.PrefixExpression;
-import org.eclipse.jdt.internal.compiler.ast.QualifiedAllocationExpression;
-import org.eclipse.jdt.internal.compiler.ast.QualifiedNameReference;
-import org.eclipse.jdt.internal.compiler.ast.QualifiedSuperReference;
-import org.eclipse.jdt.internal.compiler.ast.QualifiedThisReference;
-import org.eclipse.jdt.internal.compiler.ast.ReferenceExpression;
-import org.eclipse.jdt.internal.compiler.ast.ReturnStatement;
-import org.eclipse.jdt.internal.compiler.ast.SingleMemberAnnotation;
-import org.eclipse.jdt.internal.compiler.ast.SingleNameReference;
-import org.eclipse.jdt.internal.compiler.ast.Statement;
-import org.eclipse.jdt.internal.compiler.ast.StringLiteral;
-import org.eclipse.jdt.internal.compiler.ast.StringLiteralConcatenation;
-import org.eclipse.jdt.internal.compiler.ast.SuperReference;
-import org.eclipse.jdt.internal.compiler.ast.SwitchStatement;
-import org.eclipse.jdt.internal.compiler.ast.SynchronizedStatement;
-import org.eclipse.jdt.internal.compiler.ast.ThisReference;
-import org.eclipse.jdt.internal.compiler.ast.ThrowStatement;
-import org.eclipse.jdt.internal.compiler.ast.TrueLiteral;
-import org.eclipse.jdt.internal.compiler.ast.TryStatement;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeReference;
-import org.eclipse.jdt.internal.compiler.ast.UnaryExpression;
-import org.eclipse.jdt.internal.compiler.ast.UnionTypeReference;
-import org.eclipse.jdt.internal.compiler.ast.WhileStatement;
-import org.eclipse.jdt.internal.compiler.impl.Constant;
-import org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding;
-import org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.Binding;
-import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
-import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
-import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
-import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
-import org.eclipse.jdt.internal.compiler.lookup.IntersectionTypeBinding18;
-import org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.LocalVariableBinding;
-import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
-import org.eclipse.jdt.internal.compiler.lookup.MethodVerifier;
-import org.eclipse.jdt.internal.compiler.lookup.NestedTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.Scope;
-import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SyntheticArgumentBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SyntheticMethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
-import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
-import org.eclipse.jdt.internal.compiler.util.Util;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Constructs a GWT Java AST from a single isolated compilation unit. The AST is
@@ -1213,7 +1035,7 @@ public class GwtAstBuilder {
 
       // Lookup the JMethod version
       JMethod interfaceMethod = typeMap.get(samBinding);
-      
+
       // And its JInterface container we must implement
       // There may be more than more JInterface containers to be implemented
       // if the lambda expression is cast to a IntersectionCastType.
@@ -1249,7 +1071,7 @@ public class GwtAstBuilder {
       // that implements the target interface type that delegates to the target lambda method
       JMethod samMethod = new JMethod(info, interfaceMethod.getName(), innerLambdaClass, interfaceMethod.getType(),
             false, false, true, interfaceMethod.getAccess());
-      
+
       // implements the SAM, e.g. Callback.onCallback(), Runnable.run(), etc
       createLambdaSamMethod(x, interfaceMethod, info, innerLambdaClass, locals, outerField,
           lambdaMethod,
@@ -1390,8 +1212,24 @@ public class GwtAstBuilder {
                         ((SyntheticArgumentBinding) enclosingLocal)
                             .actualOuterLocalVariable == sa.actualOuterLocalVariable;
               }
-            }).get();
-        allocLambda.addArg(makeLocalRef(info, argument, method));
+            }).orNull();
+        if (argument != null) {
+          allocLambda.addArg(makeLocalRef(info, argument, method));
+        } else {
+          Entry<SyntheticArgumentBinding, JField> capturedLocalInOuterClass = FluentIterable.from(
+              curClass.syntheticFields.entrySet()).firstMatch(
+              new Predicate<Entry<SyntheticArgumentBinding, JField>>() {
+                @Override
+                public boolean apply(Entry<SyntheticArgumentBinding, JField> entry) {
+                  return entry.getKey().actualOuterLocalVariable == sa.actualOuterLocalVariable;
+                }
+              }).orNull();
+          if (capturedLocalInOuterClass != null) {
+            // local from outer scope has already been captured by enclosing class.
+            allocLambda.addArg(makeInstanceFieldRef(info, capturedLocalInOuterClass
+                .getValue()));
+          }
+        }
       }
       // put the result on the stack, and pop out synthetic method from the scope
       push(allocLambda);
