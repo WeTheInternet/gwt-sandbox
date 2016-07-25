@@ -19,8 +19,8 @@ public class MagicMethodUtil {
     if (x.annotations != null) {
       final AnnotationBinding magicMethod = JdtUtil.getAnnotationBySimpleName(x.binding, MAGIC_METHOD_CLASS);
       if (magicMethod != null) {
-        final boolean value = JdtUtil.getAnnotationParameterBoolean(magicMethod, "doNotVisit");
-        if (value) {
+        final Boolean value = JdtUtil.getAnnotationParameterBoolean(magicMethod, "doNotVisit");
+        if (Boolean.TRUE.equals(value)) {
           method.setDoNotVisit();
         }
       }
