@@ -22,7 +22,6 @@ import org.eclipse.jdt.internal.compiler.ast.*;
 import org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.eclipse.jdt.internal.compiler.lookup.*;
 import org.eclipse.jdt.internal.compiler.util.Util;
-
 import com.google.gwt.dev.CompilerContext;
 import com.google.gwt.dev.common.InliningMode;
 import com.google.gwt.dev.javac.JdtUtil;
