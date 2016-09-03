@@ -877,7 +877,7 @@ public class JTypeOracle implements Serializable {
       String dualIntf = it.next();
       for (String implementorName : classesByImplementingInterface.get(dualIntf)) {
         JClassType implementor = (JClassType) referenceTypesByName.get(implementorName);
-        assert implementor != null;
+        assert implementor != null : "Null single jso implementor for " + implementorName + " (from " + dualIntf + ")";
         if (isInstantiatedType(implementor) && !implementor.isJsoType()) {
           // This dual is still implemented by a Java class.
           continue nextDual;

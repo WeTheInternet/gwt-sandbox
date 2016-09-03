@@ -113,6 +113,9 @@ import com.google.gwt.dev.jjs.ast.js.JsniMethodRef;
 import com.google.gwt.dev.js.JsAbstractSymbolResolver;
 import com.google.gwt.dev.js.ast.*;
 import com.google.gwt.dev.util.StringInterner;
+import com.google.gwt.dev.util.arg.OptionJsInteropMode.Mode;
+import com.google.gwt.dev.util.collect.*;
+import com.google.gwt.dev.util.collect.HashMap;
 import com.google.gwt.dev.util.collect.Stack;
 import com.google.gwt.thirdparty.guava.common.base.Function;
 import com.google.gwt.thirdparty.guava.common.base.Joiner;
@@ -4410,7 +4413,7 @@ public class GwtAstBuilder {
       if (type instanceof JClassType && superClassBinding != null) {
         assert (binding.superclass().isClass() || binding.superclass().isEnum());
         JClassType superClass = (JClassType) typeMap.get(superClassBinding);
-        ((JClassType) type).setSuperClass(superClass);
+        ((JClassType) type).setSuperClass(superClass, true);
       }
 
       ReferenceBinding[] superInterfaces = binding.superInterfaces();
@@ -4425,7 +4428,7 @@ public class GwtAstBuilder {
         type.setEnclosingType((JDeclaredType) typeMap.get(enclosingBinding));
       }
       if (x.memberTypes != null) {
-        for (TypeDeclaration memberType : x.memberTypes) {
+        for (TypeDeclaration memberType : sortMemberTypes(x.memberTypes)) {
           resolveTypeRefs(memberType);
         }
       }
@@ -4441,6 +4444,41 @@ public class GwtAstBuilder {
     x.printHeader(0, sb);
     ice.addNode(x.getClass().getName(), sb.toString(), type.getSourceInfo());
     return ice;
+  }
+
+  private Collection<TypeDeclaration> sortMemberTypes(TypeDeclaration[] memberTypes) {
+    // If there are jso member types who extend other jso member types,
+    // and the super jso type is a subclass of JavaScriptObject,
+    // then we MUST initialize the super types before the subtypes,
+    // or else our check for isJso based on supertype can fail if the order is incorrect.
+    final List<TypeDeclaration> items = new ArrayList<>();
+    final Map<String, TypeDeclaration> types = new HashMap<>();
+    for (TypeDeclaration memberType : memberTypes) {
+      if (memberType.superclass == null) {
+        // anything without a superclass we can safely ignore
+        items.add(memberType);
+      } else {
+        types.put(new String(memberType.name), memberType);
+      }
+    }
+    while (!types.isEmpty()) {
+      final Iterator<Entry<String, TypeDeclaration>> entries = types.entrySet().iterator();
+      while (entries.hasNext()) {
+        final Entry<String, TypeDeclaration> entry = entries.next();
+        final JType refType = typeMap.get(entry.getValue().binding.superclass());
+        if (refType == null) {
+          items.add(entry.getValue());
+          entries.remove();
+        } else {
+          if (!types.containsKey(refType.getName())) {
+            items.add(entry.getValue());
+            entries.remove();
+          }
+        }
+      }
+    }
+
+    return items;
   }
 
   /**

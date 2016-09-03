@@ -205,7 +205,16 @@ public class JavaAstVerifier extends JVisitor {
         "Type " + x.getName() + " is considered a Jso but is not subclass of " +
             JProgram.JAVASCRIPTOBJECT :
         "Type " + x.getName() + " is subclass of " + JProgram.JAVASCRIPTOBJECT + " but is not " +
-            "considered a Jso";
+            "considered a Jso; " + jsoTypeChain(x);
+  }
+
+  private String jsoTypeChain(JClassType x) {
+    StringBuilder b = new StringBuilder();
+    while (x != null) {
+      b.append("\n").append(x.getName()).append(" isJso? ").append(x.isJsoType());
+      x = x.getSuperClass();
+    }
+    return b.toString();
   }
 
   private void assertNotSeenBefore(JDeclaredType type) {

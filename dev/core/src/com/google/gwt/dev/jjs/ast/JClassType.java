@@ -132,12 +132,27 @@ public class JClassType extends JDeclaredType {
    * Sets this type's super class.
    */
   public final void setSuperClass(JClassType superClass) {
+    setSuperClass(superClass, false);
+  }
+  public final void setSuperClass(JClassType superClass, boolean searchForJsoTypes) {
     assert this.superClass == null || this.superClass == superClass || this.superClass.isExternal();
     this.superClass = superClass;
-
     if (!name.equals(JProgram.JAVASCRIPTOBJECT) && superClass != null) {
-      this.isJso = superClass.isJso;
+      this.isJso = checkJso(superClass, searchForJsoTypes);
     }
+  }
+
+  private boolean checkJso(JClassType superClass, boolean searchForJsoTypes) {
+    if (searchForJsoTypes) {
+      while (superClass != null) {
+        if (superClass.isJso) {
+          return true;
+        }
+        superClass = superClass.superClass;
+      }
+      return false;
+    }
+    return superClass.isJso;
   }
 
   @Override
