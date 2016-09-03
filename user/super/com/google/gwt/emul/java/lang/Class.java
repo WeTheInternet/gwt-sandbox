@@ -380,7 +380,7 @@ java.lang.reflect.AnnotatedElement
 
   private static native Class findClass(String name)
   /*-{
-    return @java.lang.Class::CONSTS.n[className];
+    return @java.lang.Class::CONSTS.n[name];
    }-*/;
 
   @SuppressWarnings("rawtypes")
