@@ -1,12 +1,12 @@
 /*
  * Copyright 2006 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -47,13 +47,27 @@ class ClassSourceFileComposer implements SourceWriter {
 
   private final PrintWriter printWriter;
 
+  private final String privacy;
+
   ClassSourceFileComposer(GeneratorContext ctx, PrintWriter printWriter,
-      String targetPackageName, String[] annotationDeclarations,
-      String targetClassShortName, String superClassName,
-      String[] interfaceNames, String[] imports, JavaSourceCategory category,
-      String classJavaDocComment) {
+                          String targetPackageName, String[] annotationDeclarations,
+                          String targetClassShortName, String superClassName,
+                          String[] interfaceNames, String[] imports, JavaSourceCategory category,
+                          String classJavaDocComment) {
+    this(ctx, printWriter,
+        targetPackageName, annotationDeclarations,
+        targetClassShortName, superClassName,
+        interfaceNames, imports, category,
+        classJavaDocComment, "public");
+  }
+  ClassSourceFileComposer(GeneratorContext ctx, PrintWriter printWriter,
+                          String targetPackageName, String[] annotationDeclarations,
+                          String targetClassShortName, String superClassName,
+                          String[] interfaceNames, String[] imports, JavaSourceCategory category,
+                          String classJavaDocComment, String privacy) {
     this.ctx = ctx;
     this.printWriter = printWriter;
+    this.privacy = privacy;
     if (targetPackageName == null) {
       throw new IllegalArgumentException("Cannot supply a null package name to"
           + targetClassShortName);
@@ -135,34 +149,31 @@ class ClassSourceFileComposer implements SourceWriter {
   }
 
   public void print(String s) {
-    int pos = 0;
-    for (;;) {
-      // If we just printed a newline, print an indent.
-      if (atStart) {
-        for (int j = 0; j < indent; ++j) {
-          printWriter.print("  ");
-        }
-        if (inComment) {
-          printWriter.print(commentIndicator);
-        }
-        atStart = false;
+    // If we just printed a newline, print an indent.
+    //
+    if (atStart) {
+      for (int j = 0; j < indent; ++j) {
+        printWriter.print("  ");
       }
-
-      // Now find the next newline.
-      int nl = s.indexOf('\n', pos);
-
-      // If there's no newline or it's at the end of the string, just write
-      // the rest of the string, and we're done.
-      if (nl == -1 || nl == s.length() - 1) {
-        printWriter.write(s, pos, s.length() - pos);
-        return;
+      if (inComment) {
+        printWriter.print(commentIndicator);
       }
-
-      // Otherwise, write up to and including the newline, note that we just
-      // printed a newline, and loop on the rest of the string.
-      printWriter.write(s, pos, nl + 1 - pos);
+      atStart = false;
+    }
+    // Now print up to the end of the string or the next newline.
+    //
+    String rest = null;
+    int i = s.indexOf("\n");
+    if (i > -1 && i < s.length() - 1) {
+      rest = s.substring(i + 1);
+      s = s.substring(0, i + 1);
+    }
+    printWriter.print(s);
+    // If rest is non-null, then s ended with a newline and we recurse.
+    //
+    if (rest != null) {
       atStart = true;
-      pos = nl + 1;
+      print(rest);
     }
   }
 
@@ -185,8 +196,8 @@ class ClassSourceFileComposer implements SourceWriter {
   }
 
   private void emitClassDecl(String targetClassShortName,
-      String superClassName, String[] interfaceNames) {
-    print("public class " + targetClassShortName);
+                             String superClassName, String[] interfaceNames) {
+    print(privacy+" class " + targetClassShortName);
     if (superClassName != null) {
       print(" extends " + superClassName);
     }
@@ -202,7 +213,7 @@ class ClassSourceFileComposer implements SourceWriter {
   }
 
   private void emitInterfaceDecl(String targetClassShortName,
-      String superClassName, String[] interfaceNames) {
+                                 String superClassName, String[] interfaceNames) {
     if (superClassName != null) {
       throw new IllegalArgumentException("Cannot set superclass name "
           + superClassName + " on a interface.");

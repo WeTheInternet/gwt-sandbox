@@ -99,6 +99,10 @@ public class Recompiler {
     compilerContext = compilerContextBuilder.build();
   }
 
+  public Options getOptions() {
+    return options;
+  }
+
   /**
    * Forces the next recompile even if no input files have changed.
    */

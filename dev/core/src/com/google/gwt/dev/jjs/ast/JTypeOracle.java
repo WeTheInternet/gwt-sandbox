@@ -875,9 +875,23 @@ public class JTypeOracle implements Serializable {
     nextDual:
     for (Iterator<String> it = dualImplInterfaces.iterator(); it.hasNext(); ) {
       String dualIntf = it.next();
-      for (String implementorName : classesByImplementingInterface.get(dualIntf)) {
+      for (Iterator<String> implementorNameItr = classesByImplementingInterface.get(dualIntf).iterator();
+          implementorNameItr.hasNext();) {
+        String implementorName = implementorNameItr.next();
         JClassType implementor = (JClassType) referenceTypesByName.get(implementorName);
-        assert implementor != null : "Null single jso implementor for " + implementorName + " (from " + dualIntf + ")";
+        if (implementor == null) {
+          // eeeek; this happens if a type is compiled in one module where the
+          // dual impl classes were removed, then the unit cached was reused in
+          // another compile where they WERE used, but did not make it into
+          // the referenceTypesByName map.
+
+          // So, for now, as an egregious workaround, we will assume all such broken
+          // types are actually dual impl, with java types on the classpath (if we made
+          // it here, it is because the types were seen in classesByImplementingInterface,
+          // so those types ARE actually on the classpath, just erroneously missing from
+          // referenceTypesByName :-(
+          continue nextDual;
+        }
         if (isInstantiatedType(implementor) && !implementor.isJsoType()) {
           // This dual is still implemented by a Java class.
           continue nextDual;
