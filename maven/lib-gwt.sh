@@ -132,6 +132,35 @@ function maven-gwt() {
     if unzip -l $CUR_FILE '*.java' >/dev/null; then
       zip -q $CUR_FILE --copy --out $SOURCES_FILE "*.java"
     fi
+
+    curExpandDir=$jarExpandDir-${i}
+
+    pushd $pomDir
+    gwtPomFile="$PWD/gwt/gwt-${i}/pom.xml"
+    popd
+
+    echo "pom: $gwtPomFile"
+
+    rm -rf $curExpandDir
+    mkdir -p $curExpandDir
+    unzip -q $CUR_FILE -d $curExpandDir
+    chmod -R ugo+rwx $curExpandDir
+
+    pushd $curExpandDir > /dev/null
+
+    rm -rf javafilelist
+
+    gwtPomFolder=META-INF/maven/net.wetheinter/gwt-${i}
+    mkdir -p $gwtPomFolder
+    cp $gwtPomFile $gwtPomFolder
+    zip -g $CUR_FILE $gwtPomFolder/pom.xml
+
+    find . -name "*.java" -o -name "pom.xml" -print  > javafilelist
+    if [ -s javafilelist ]; then
+      jar cf $SOURCES_FILE @javafilelist
+    fi
+
+    popd > /dev/null
   done
 
   # push parent poms
