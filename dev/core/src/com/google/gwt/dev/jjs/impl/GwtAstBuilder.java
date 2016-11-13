@@ -22,6 +22,7 @@ import org.eclipse.jdt.internal.compiler.ast.*;
 import org.eclipse.jdt.internal.compiler.impl.Constant;
 import org.eclipse.jdt.internal.compiler.lookup.*;
 import org.eclipse.jdt.internal.compiler.util.Util;
+
 import com.google.gwt.dev.CompilerContext;
 import com.google.gwt.dev.common.InliningMode;
 import com.google.gwt.dev.javac.JdtUtil;
@@ -114,8 +115,6 @@ import com.google.gwt.dev.js.JsAbstractSymbolResolver;
 import com.google.gwt.dev.js.ast.*;
 import com.google.gwt.dev.util.StringInterner;
 import com.google.gwt.dev.util.arg.OptionJsInteropMode.Mode;
-import com.google.gwt.dev.util.collect.*;
-import com.google.gwt.dev.util.collect.HashMap;
 import com.google.gwt.dev.util.collect.Stack;
 import com.google.gwt.thirdparty.guava.common.base.Function;
 import com.google.gwt.thirdparty.guava.common.base.Joiner;
@@ -4452,28 +4451,24 @@ public class GwtAstBuilder {
     // then we MUST initialize the super types before the subtypes,
     // or else our check for isJso based on supertype can fail if the order is incorrect.
     final List<TypeDeclaration> items = new ArrayList<>();
-    final Map<String, TypeDeclaration> types = new HashMap<>();
+    final Map<String, TypeDeclaration> types = new LinkedHashMap<>();
+
     for (TypeDeclaration memberType : memberTypes) {
       if (memberType.superclass == null) {
         // anything without a superclass we can safely ignore
         items.add(memberType);
       } else {
-        types.put(new String(memberType.name), memberType);
+        types.put(new String(memberType.binding.qualifiedSourceName()), memberType);
       }
     }
+
     while (!types.isEmpty()) {
       final Iterator<Entry<String, TypeDeclaration>> entries = types.entrySet().iterator();
       while (entries.hasNext()) {
         final Entry<String, TypeDeclaration> entry = entries.next();
-        final JType refType = typeMap.get(entry.getValue().binding.superclass());
-        if (refType == null) {
-          items.add(entry.getValue());
-          entries.remove();
-        } else {
-          if (!types.containsKey(refType.getName())) {
+        if (!types.containsKey(new String(entry.getValue().binding.superclass().qualifiedSourceName()))) {
             items.add(entry.getValue());
             entries.remove();
-          }
         }
       }
     }

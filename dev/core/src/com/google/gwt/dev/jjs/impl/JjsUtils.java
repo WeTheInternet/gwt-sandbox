@@ -303,8 +303,8 @@ public class JjsUtils {
    * {@code superTypeMethod}.
    */
   public static JMethod createSyntheticAbstractStub(JDeclaredType type, JMethod superTypeMethod) {
-    assert type.isAbstract();
-    assert superTypeMethod.isAbstract();
+    assert type.isAbstract() : "Type " + type + " was not abstract (found looking up " + superTypeMethod+")";
+    assert superTypeMethod.isAbstract() : "Method " + superTypeMethod + " was not abstract, but we expect it to be";
     return createEmptyMethodFromExample(type, superTypeMethod, true);
   }
 
