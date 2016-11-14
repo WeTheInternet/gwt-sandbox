@@ -13,18 +13,12 @@
  */
 package com.google.gwt.dev.jjs;
 
+import org.xml.sax.SAXException;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
-import com.google.gwt.core.ext.linker.Artifact;
-import com.google.gwt.core.ext.linker.ArtifactSet;
-import com.google.gwt.core.ext.linker.CompilationMetricsArtifact;
-import com.google.gwt.core.ext.linker.EmittedArtifact;
+import com.google.gwt.core.ext.linker.*;
 import com.google.gwt.core.ext.linker.EmittedArtifact.Visibility;
-import com.google.gwt.core.ext.linker.ModuleMetricsArtifact;
-import com.google.gwt.core.ext.linker.PrecompilationMetricsArtifact;
-import com.google.gwt.core.ext.linker.StatementRanges;
-import com.google.gwt.core.ext.linker.SymbolData;
-import com.google.gwt.core.ext.linker.SyntheticArtifact;
 import com.google.gwt.core.ext.linker.impl.StandardSymbolData;
 import com.google.gwt.core.ext.soyc.SourceMapRecorder;
 import com.google.gwt.core.ext.soyc.coderef.DependencyGraphRecorder;
@@ -48,16 +42,7 @@ import com.google.gwt.dev.javac.StandardGeneratorContext;
 import com.google.gwt.dev.javac.typemodel.TypeOracle;
 import com.google.gwt.dev.jdt.RebindPermutationOracle;
 import com.google.gwt.dev.jjs.UnifiedAst.AST;
-import com.google.gwt.dev.jjs.ast.Context;
-import com.google.gwt.dev.jjs.ast.JBlock;
-import com.google.gwt.dev.jjs.ast.JCastOperation;
-import com.google.gwt.dev.jjs.ast.JClassLiteral;
-import com.google.gwt.dev.jjs.ast.JClassType;
-import com.google.gwt.dev.jjs.ast.JDeclaredType;
-import com.google.gwt.dev.jjs.ast.JMethod;
-import com.google.gwt.dev.jjs.ast.JMethodBody;
-import com.google.gwt.dev.jjs.ast.JMethodCall;
-import com.google.gwt.dev.jjs.ast.JProgram;
+import com.google.gwt.dev.jjs.ast.*;
 import com.google.gwt.dev.jjs.ast.JTypeOracle.StandardTypes;
 import com.google.gwt.dev.jjs.ast.JVisitor;
 import com.google.gwt.dev.jjs.impl.ArrayNormalizer;
@@ -110,18 +95,12 @@ import com.google.gwt.dev.jjs.impl.ReplaceCallsToNativeJavaLangObjectOverrides;
 import com.google.gwt.dev.jjs.impl.ReplaceGetClassOverrides;
 import com.google.gwt.dev.jjs.impl.ResolvePermutationDependentValues;
 import com.google.gwt.dev.jjs.impl.ResolveRuntimeTypeReferences;
+import com.google.gwt.dev.jjs.impl.*;
 import com.google.gwt.dev.jjs.impl.ResolveRuntimeTypeReferences.ClosureUniqueIdTypeMapper;
 import com.google.gwt.dev.jjs.impl.ResolveRuntimeTypeReferences.IntTypeMapper;
 import com.google.gwt.dev.jjs.impl.ResolveRuntimeTypeReferences.StringTypeMapper;
 import com.google.gwt.dev.jjs.impl.ResolveRuntimeTypeReferences.TypeMapper;
 import com.google.gwt.dev.jjs.impl.ResolveRuntimeTypeReferences.TypeOrder;
-import com.google.gwt.dev.jjs.impl.RewriteConstructorCallsForUnboxedTypes;
-import com.google.gwt.dev.jjs.impl.SameParameterValueOptimizer;
-import com.google.gwt.dev.jjs.impl.SourceInfoCorrelator;
-import com.google.gwt.dev.jjs.impl.TypeCoercionNormalizer;
-import com.google.gwt.dev.jjs.impl.TypeReferencesRecorder;
-import com.google.gwt.dev.jjs.impl.TypeTightener;
-import com.google.gwt.dev.jjs.impl.UnifyAst;
 import com.google.gwt.dev.jjs.impl.codesplitter.CodeSplitter;
 import com.google.gwt.dev.jjs.impl.codesplitter.CodeSplitters;
 import com.google.gwt.dev.jjs.impl.codesplitter.MultipleDependencyGraphRecorder;
@@ -139,33 +118,9 @@ import com.google.gwt.dev.js.JsForceInliningChecker;
 import com.google.gwt.dev.js.JsIncrementalNamer;
 import com.google.gwt.dev.js.JsInliner;
 import com.google.gwt.dev.js.JsLiteralInterner;
+import com.google.gwt.dev.js.*;
 import com.google.gwt.dev.js.JsNamer.IllegalNameException;
-import com.google.gwt.dev.js.JsNamespaceChooser;
-import com.google.gwt.dev.js.JsNamespaceOption;
-import com.google.gwt.dev.js.JsNormalizer;
-import com.google.gwt.dev.js.JsObfuscateNamer;
-import com.google.gwt.dev.js.JsPrettyNamer;
-import com.google.gwt.dev.js.JsReportGenerationVisitor;
-import com.google.gwt.dev.js.JsStackEmulator;
-import com.google.gwt.dev.js.JsStaticEval;
-import com.google.gwt.dev.js.JsSymbolResolver;
-import com.google.gwt.dev.js.JsUnusedFunctionRemover;
-import com.google.gwt.dev.js.JsVerboseNamer;
-import com.google.gwt.dev.js.SizeBreakdown;
-import com.google.gwt.dev.js.ast.JavaScriptVerifier;
-import com.google.gwt.dev.js.ast.JsContext;
-import com.google.gwt.dev.js.ast.JsForIn;
-import com.google.gwt.dev.js.ast.JsFunction;
-import com.google.gwt.dev.js.ast.JsLabel;
-import com.google.gwt.dev.js.ast.JsLiteral;
-import com.google.gwt.dev.js.ast.JsName;
-import com.google.gwt.dev.js.ast.JsNameOf;
-import com.google.gwt.dev.js.ast.JsNameRef;
-import com.google.gwt.dev.js.ast.JsNode;
-import com.google.gwt.dev.js.ast.JsParameter;
-import com.google.gwt.dev.js.ast.JsProgram;
-import com.google.gwt.dev.js.ast.JsVars;
-import com.google.gwt.dev.js.ast.JsVisitor;
+import com.google.gwt.dev.js.ast.*;
 import com.google.gwt.dev.util.DefaultTextOutput;
 import com.google.gwt.dev.util.Memory;
 import com.google.gwt.dev.util.Name.SourceName;
@@ -183,26 +138,15 @@ import com.google.gwt.thirdparty.guava.common.collect.Lists;
 import com.google.gwt.thirdparty.guava.common.collect.Multimap;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
 
-import org.xml.sax.SAXException;
-
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * A base for classes that compile Java <code>JProgram</code> representations into corresponding Js
@@ -538,7 +482,7 @@ public final class JavaToJavaScriptCompiler {
         RemoveSpecializations.exec(jprogram);
         Pruner.exec(jprogram, false);
         // Last Java optimization step, update type oracle accordingly.
-        jprogram.typeOracle.recomputeAfterOptimizations(jprogram.getDeclaredTypes());
+        jprogram.typeOracle.recomputeAfterOptimizations(logger, jprogram.getDeclaredTypes());
       }
       ReplaceGetClassOverrides.exec(jprogram);
     } finally {
@@ -1491,7 +1435,7 @@ public final class JavaToJavaScriptCompiler {
       OptimizerContext optimizerCtx) {
     Event optimizeEvent = SpeedTracerLogger.start(CompilerEventType.OPTIMIZE, "phase", "loop");
     // Clinits might have become empty become empty.
-    jprogram.typeOracle.recomputeAfterOptimizations(jprogram.getDeclaredTypes());
+    jprogram.typeOracle.recomputeAfterOptimizations(logger, jprogram.getDeclaredTypes());
     OptimizerStats stats = new OptimizerStats(passName);
     JavaAstVerifier.assertProgramIsConsistent(jprogram);
     stats.add(Pruner.exec(jprogram, true, optimizerCtx).recordVisits(numNodes));

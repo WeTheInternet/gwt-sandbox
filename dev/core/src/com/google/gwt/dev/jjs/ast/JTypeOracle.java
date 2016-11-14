@@ -15,6 +15,8 @@
  */
 package com.google.gwt.dev.jjs.ast;
 
+import com.google.gwt.core.ext.TreeLogger;
+import com.google.gwt.core.ext.TreeLogger.Type;
 import com.google.gwt.dev.MinimalRebuildCache;
 import com.google.gwt.dev.jjs.ast.js.JMultiExpression;
 import com.google.gwt.thirdparty.guava.common.annotations.VisibleForTesting;
@@ -862,7 +864,7 @@ public class JTypeOracle implements Serializable {
    * This method should be called after altering the types that are live in the
    * associated JProgram.
    */
-  public void recomputeAfterOptimizations(Collection<JDeclaredType> declaredTypes) {
+  public void recomputeAfterOptimizations(TreeLogger logger, Collection<JDeclaredType> declaredTypes) {
     Set<JDeclaredType> computed = Sets.newIdentityHashSet();
     assert optimize;
 
@@ -890,6 +892,7 @@ public class JTypeOracle implements Serializable {
           // it here, it is because the types were seen in classesByImplementingInterface,
           // so those types ARE actually on the classpath, just erroneously missing from
           // referenceTypesByName :-(
+          logger.log(Type.WARN, "Skipping null implementor for " + implementorName);
           continue nextDual;
         }
         if (isInstantiatedType(implementor) && !implementor.isJsoType()) {
