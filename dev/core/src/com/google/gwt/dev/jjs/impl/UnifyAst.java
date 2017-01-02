@@ -36,45 +36,6 @@ import com.google.gwt.dev.jjs.MagicMethodGenerator;
 import com.google.gwt.dev.jjs.PrecompilationContext;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
-import com.google.gwt.dev.jjs.ast.Context;
-import com.google.gwt.dev.jjs.ast.HasName;
-import com.google.gwt.dev.jjs.ast.JArrayType;
-import com.google.gwt.dev.jjs.ast.JBinaryOperation;
-import com.google.gwt.dev.jjs.ast.JBooleanLiteral;
-import com.google.gwt.dev.jjs.ast.JCastOperation;
-import com.google.gwt.dev.jjs.ast.JClassLiteral;
-import com.google.gwt.dev.jjs.ast.JClassType;
-import com.google.gwt.dev.jjs.ast.JConditional;
-import com.google.gwt.dev.jjs.ast.JConstructor;
-import com.google.gwt.dev.jjs.ast.JDeclaredType;
-import com.google.gwt.dev.jjs.ast.JEnumType;
-import com.google.gwt.dev.jjs.ast.JExpression;
-import com.google.gwt.dev.jjs.ast.JExpressionStatement;
-import com.google.gwt.dev.jjs.ast.JField;
-import com.google.gwt.dev.jjs.ast.JFieldRef;
-import com.google.gwt.dev.jjs.ast.JInstanceOf;
-import com.google.gwt.dev.jjs.ast.JInterfaceType;
-import com.google.gwt.dev.jjs.ast.JMember;
-import com.google.gwt.dev.jjs.ast.JMethod;
-import com.google.gwt.dev.jjs.ast.JMethod.Specialization;
-import com.google.gwt.dev.jjs.ast.JMethodBody;
-import com.google.gwt.dev.jjs.ast.JMethodCall;
-import com.google.gwt.dev.jjs.ast.JModVisitor;
-import com.google.gwt.dev.jjs.ast.JNameOf;
-import com.google.gwt.dev.jjs.ast.JNewArray;
-import com.google.gwt.dev.jjs.ast.JNewInstance;
-import com.google.gwt.dev.jjs.ast.JNode;
-import com.google.gwt.dev.jjs.ast.JNullLiteral;
-import com.google.gwt.dev.jjs.ast.JPermutationDependentValue;
-import com.google.gwt.dev.jjs.ast.JProgram;
-import com.google.gwt.dev.jjs.ast.JReferenceType;
-import com.google.gwt.dev.jjs.ast.JStringLiteral;
-import com.google.gwt.dev.jjs.ast.JThisRef;
-import com.google.gwt.dev.jjs.ast.JTryStatement;
-import com.google.gwt.dev.jjs.ast.JType;
-import com.google.gwt.dev.jjs.ast.JUnsafeTypeCoercion;
-import com.google.gwt.dev.jjs.ast.JVariable;
-import com.google.gwt.dev.jjs.ast.RuntimeConstants;
 import com.google.gwt.dev.jjs.UnifyAstListener;
 import com.google.gwt.dev.jjs.UnifyAstView;
 import com.google.gwt.dev.jjs.ast.*;
@@ -421,7 +382,15 @@ public class UnifyAst implements UnifyAstView {
       // Special handling.
       if (target.isDoNotVisit()) {
         // Replace the body of the method with an empty block
-        ctx.replaceMe(new JMethodBody(x.getSourceInfo()));
+        JMethodBody newBody = new JMethodBody(x.getSourceInfo());
+        logger.log(Type.WARN, "Replacing magic method body with a default return type; " +
+            target.getOriginalReturnType()+" <--> " + target.getType() + " : " + x);
+        if (target.getOriginalReturnType().isPrimitiveType()) {
+          newBody.getBlock().addStmt(new JReturnStatement(x.getSourceInfo(), target.getOriginalReturnType().getDefaultValue()));
+        } else {
+          newBody.getBlock().addStmt(new JReturnStatement(x.getSourceInfo(), JNullLiteral.INSTANCE));
+        }
+        ctx.replaceMe(newBody);
         return false;
       }
       return true;
@@ -452,6 +421,8 @@ public class UnifyAst implements UnifyAstView {
           break;
         case SYSTEM_GET_PROPERTY:
         case SYSTEM_GET_PROPERTY_WITH_DEFAULT:
+        case X_PROPERTIES_GET_PROPERTY:
+        case X_PROPERTIES_GET_PROPERTY_WITH_DEFAULT:
           result =  handleSystemGetProperty(methodCall);
           break;
         default:
@@ -459,6 +430,7 @@ public class UnifyAst implements UnifyAstView {
           return null;
       }
       if (result == null) {
+        logger.log(Type.WARN, "Magic method call returned null result " + methodCall);
         // Handled magic call possibly with an error.
         return JNullLiteral.INSTANCE;
       }
@@ -1152,7 +1124,7 @@ public class UnifyAst implements UnifyAstView {
         // Such a type won't have any cached JS and will need a full traversal to ensure it is
         // output (the full type with all fields and methods) as new JS.
         if (needsNewJs(type)) {
-          program.removeReferenceOnlyType(type);
+//          program.removeReferenceOnlyType(type);
           fullFlowIntoType(type);
         }
       }
@@ -1948,7 +1920,7 @@ public class UnifyAst implements UnifyAstView {
       result = program.getTypeArray(translate(arrayType.getElementType()));
     } else  if (type.isExternal()) {
       assert type instanceof JDeclaredType : "Unknown external type " + type.getName();
-      result = translate(type);
+      result = translate((JDeclaredType)type);
     }
     assert !result.isExternal() : "Result "+result+" of "+type+" must not be external!";
 

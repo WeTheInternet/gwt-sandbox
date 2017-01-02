@@ -42,6 +42,11 @@ import java.io.IOException;
  */
 public abstract class Reader {
 
+  protected Object lock; // always null; only used to synchronize(lock){}, which is stripped from gwt
+  public Reader() {}
+
+  public Reader(Object lock) {}
+
   public abstract void close() throws IOException;
 
   public abstract int read() throws IOException;

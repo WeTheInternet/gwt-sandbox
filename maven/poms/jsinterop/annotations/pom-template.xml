@@ -4,11 +4,11 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.google.jsinterop</groupId>
+        <groupId>net.wetheinter</groupId>
         <artifactId>jsinterop</artifactId>
         <version>${jsinteropVersion}</version>
     </parent>
-    <groupId>com.google.jsinterop</groupId>
+    <groupId>net.wetheinter</groupId>
     <artifactId>jsinterop-annotations</artifactId>
     <packaging>jar</packaging>
     <version>${jsinteropVersion}</version>

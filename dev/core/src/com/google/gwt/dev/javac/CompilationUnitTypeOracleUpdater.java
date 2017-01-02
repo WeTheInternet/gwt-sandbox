@@ -13,33 +13,20 @@
  */
 package com.google.gwt.dev.javac;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.util.TraceClassVisitor;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.typeinfo.JPrimitiveType;
 import com.google.gwt.core.ext.typeinfo.JType;
-import com.google.gwt.dev.javac.asm.CollectAnnotationData;
+import com.google.gwt.dev.javac.asm.*;
 import com.google.gwt.dev.javac.asm.CollectAnnotationData.AnnotationData;
-import com.google.gwt.dev.javac.asm.CollectClassData;
 import com.google.gwt.dev.javac.asm.CollectClassData.AnnotationEnum;
-import com.google.gwt.dev.javac.asm.CollectFieldData;
-import com.google.gwt.dev.javac.asm.CollectMethodData;
-import com.google.gwt.dev.javac.asm.CollectTypeParams;
-import com.google.gwt.dev.javac.asm.ResolveClassSignature;
-import com.google.gwt.dev.javac.asm.ResolveMethodSignature;
-import com.google.gwt.dev.javac.asm.ResolveTypeSignature;
-import com.google.gwt.dev.javac.typemodel.JAbstractMethod;
-import com.google.gwt.dev.javac.typemodel.JArrayType;
-import com.google.gwt.dev.javac.typemodel.JClassType;
-import com.google.gwt.dev.javac.typemodel.JField;
-import com.google.gwt.dev.javac.typemodel.JGenericType;
-import com.google.gwt.dev.javac.typemodel.JMethod;
-import com.google.gwt.dev.javac.typemodel.JPackage;
-import com.google.gwt.dev.javac.typemodel.JParameterizedType;
-import com.google.gwt.dev.javac.typemodel.JRawType;
-import com.google.gwt.dev.javac.typemodel.JRealClassType;
-import com.google.gwt.dev.javac.typemodel.JTypeParameter;
-import com.google.gwt.dev.javac.typemodel.JWildcardType;
-import com.google.gwt.dev.javac.typemodel.TypeOracle;
-import com.google.gwt.dev.javac.typemodel.TypeOracleUpdater;
+import com.google.gwt.dev.javac.typemodel.*;
 import com.google.gwt.dev.util.Name;
 import com.google.gwt.dev.util.log.speedtracer.CompilerEventType;
 import com.google.gwt.dev.util.log.speedtracer.SpeedTracerLogger;
@@ -53,13 +40,6 @@ import com.google.gwt.thirdparty.guava.common.collect.Maps;
 import com.google.gwt.thirdparty.guava.common.collect.Queues;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
 import com.google.gwt.thirdparty.guava.common.util.concurrent.ThreadFactoryBuilder;
-
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.signature.SignatureReader;
-import org.objectweb.asm.util.TraceClassVisitor;
 
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
@@ -484,7 +464,7 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
       for (CompiledClass compiledClass : compilationUnit.getCompiledClasses()) {
         TypeData typeData = new TypeData(compiledClass.getPackageName(),
             compiledClass.getSourceName(), compiledClass.getInternalName(),
-            compilationUnit.getResourceLocation(), compiledClass.getBytes(), 
+            compilationUnit.getResourceLocation(), compiledClass.getBytes(),
             compiledClass.getUnit().getLastModified());
         typeDataList.add(typeData);
       }
@@ -941,10 +921,10 @@ public class CompilationUnitTypeOracleUpdater extends TypeOracleUpdater {
     for (CollectMethodData method : classData.getMethods()) {
       TreeLogger branch = logger.branch(TreeLogger.SPAM, "Resolving method " + method.getName());
       // TODO(rluble): Allow the users to ask for Java 8 features. For now these are filtered out.
-      if (isInterface && isJava8InterfaceMethod(method)) {
-        logger.log(TreeLogger.Type.SPAM, "Ignoring Java 8 interface method " + method.getName());
-        continue;
-      }
+//      if (isInterface && isJava8InterfaceMethod(method)) {
+//        logger.log(TreeLogger.Type.SPAM, "Ignoring Java 8 interface method " + method.getName());
+//        continue;
+//      }
       if (!resolveMethod(branch, unresolvedType, method, typeParamLookup, context)) {
         // Already logged.
         return false;

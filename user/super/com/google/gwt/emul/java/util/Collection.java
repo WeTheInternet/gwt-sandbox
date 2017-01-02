@@ -91,38 +91,15 @@ public interface Collection<E> extends Iterable<E> {
   @JsIgnore
   <T> T[] toArray(T[] a);
 
-  @JsIgnore
-  default boolean removeIf(Predicate<? super E> predicate) {
-    Objects.requireNonNull(predicate);
-    boolean modified = false;
-    final Iterator<E> iter = iterator();
-    while (iter.hasNext()) {
-        if (predicate.test(iter.next())) {
-            iter.remove();
-            modified = true;
-        }
-    }
-    return modified;
-  }
-
-//  TODO implement Spliterator and Stream
-//  default Spliterator<E> spliterator() {
-//      return Spliterators.spliterator(this, 0);
-//  }
-//
-//  default Stream<E> stream() {
-//      return StreamSupport.stream(spliterator(), false);
-//  }
-//
 //  default Stream<E> parallelStream() {
 //      return StreamSupport.stream(spliterator(), true);
 //  }
-
-  @JsIgnore
-  default void forEach(Consumer<E> c) {
-    for (E e : this) {
-      c.accept(e);
-    }
-  }
+//
+//  @JsIgnore
+//  default void forEach(Consumer<? super E> c) {
+//    for (E e : this) {
+//      c.accept(e);
+//    }
+//  }
 
 }

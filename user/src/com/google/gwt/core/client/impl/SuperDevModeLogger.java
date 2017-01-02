@@ -17,22 +17,21 @@ package com.google.gwt.core.client.impl;
 
 import com.google.gwt.core.shared.impl.JsLogger;
 
-import javaemul.internal.ConsoleLogger;
-
 /**
  * The implementation of GWT.log() used when Super Dev Mode is on.
  */
 public class SuperDevModeLogger extends JsLogger {
 
   @Override
-  public void log(String message, Throwable t) {
-    ConsoleLogger console = ConsoleLogger.createIfSupported();
+  public native void log(String message, Throwable t)
+  /*-{
+    var console = @javaemul.internal.ConsoleLogger::createIfSupported()();
     if (console == null) {
       return;
     }
-    console.log("log", message);
+    console.@javaemul.internal.ConsoleLogger::log(Ljava/lang/String;Ljava/lang/String;)("log", message);
     if (t != null) {
-      console.log("log", t);
+      console.@javaemul.internal.ConsoleLogger::log(Ljava/lang/String;Ljava/lang/Throwable;)("log", t);
     }
-  }
+  }-*/;
 }

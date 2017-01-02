@@ -640,6 +640,9 @@ public class MethodInliner {
   private JExpression maybeCast(JExpression exp, JType targetType) {
     if (targetType instanceof JReferenceType) {
       assert exp.getType() instanceof JReferenceType;
+      if (!(exp.getType() instanceof  JReferenceType)) {
+        throw new AssertionError("Bad cast on type " + exp.getType() + "; value: " + exp+" from " + exp.getSourceInfo());
+      }
       targetType = merge((JReferenceType) exp.getType(), (JReferenceType) targetType);
     }
     if (!program.typeOracle.castSucceedsTrivially(exp.getType(), targetType)) {

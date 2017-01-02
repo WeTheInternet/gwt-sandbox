@@ -30,7 +30,7 @@ public class JMethod extends JAbstractMethod implements
 
   private JType returnType;
 
-	private boolean isDefault;
+  private boolean isDefault;
 
   JMethod(JClassType enclosingType, JMethod srcMethod) {
     super(srcMethod);
@@ -113,7 +113,7 @@ public class JMethod extends JAbstractMethod implements
   public boolean isDefaultMethod() {
     return isDefault;
   }
-  
+
   @Override
   public boolean isFinal() {
     return 0 != (getModifierBits() & TypeOracle.MOD_FINAL);

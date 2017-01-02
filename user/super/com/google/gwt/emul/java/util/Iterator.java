@@ -41,10 +41,4 @@ public interface Iterator<E> {
     throw new UnsupportedOperationException("remove");
   }
 
-  default void forEachRemaining(Consumer<? super E> action) {
-    Objects.requireNonNull(action);
-    while (hasNext())
-        action.accept(next());
-  }
-
 }

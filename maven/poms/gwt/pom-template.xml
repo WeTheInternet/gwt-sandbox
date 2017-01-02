@@ -26,7 +26,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-            <dependency>
                 <groupId>net.wetheinter</groupId>
                 <artifactId>jsinterop</artifactId>
                 <version>${jsinteropVersion}</version>
@@ -34,10 +33,22 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
+                <groupId>net.wetheinter</groupId>
+                <artifactId>jsinterop-annotations</artifactId>
+                <version>${jsinteropVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.wetheinter</groupId>
+                <artifactId>jsinterop-annotations</artifactId>
+                <version>${jsinteropVersion}</version>
+                <classifier>sources</classifier>
+            </dependency>
+            <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>3.1.0</version>
             </dependency>
+            <dependency>
               <groupId>net.wetheinter</groupId>
               <artifactId>gwt-user</artifactId>
               <version>${project.version}</version>

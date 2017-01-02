@@ -133,7 +133,7 @@ function maven-gwt() {
       zip -q $CUR_FILE --copy --out $SOURCES_FILE "*.java"
     fi
 
-    curExpandDir=$jarExpandDir-${i}
+    curExpandDir=$GWT_EXTRACT_DIR/sources-${i}
 
     pushd $pomDir
     gwtPomFile="$PWD/gwt/gwt-${i}/pom.xml"

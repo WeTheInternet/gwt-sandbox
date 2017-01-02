@@ -27,7 +27,7 @@ import static javaemul.internal.InternalPreconditions.checkCriticalNotNull;
 public interface Predicate<T> {
 
   static <T> Predicate<T> isEqual(Object targetRef) {
-    return targetRef == null ? Objects::isNull : targetRef::equals;
+    return targetRef == null ? java.util.Objects::isNull : targetRef::equals;
   }
 
   boolean test(T t);

@@ -68,6 +68,7 @@ java.lang.reflect.AnnotatedElement
     else {
       CONSTS = null;
     }
+    java.lang.reflect.AccessibleObject includeMe;
   }
 
   private static native JavaScriptObject initConstPool()

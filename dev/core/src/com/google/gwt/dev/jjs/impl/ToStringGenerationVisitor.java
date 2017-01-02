@@ -607,7 +607,7 @@ public class ToStringGenerationVisitor extends TextOutputVisitor {
     if (x.isAbstract()) {
       semi();
       newlineOpt();
-    } else if (x.getBody() != null){
+    } else {//if (x.getBody() != null){
       accept(x.getBody());
     }
     return false;

@@ -15,8 +15,6 @@
  */
 package com.google.gwt.dev.resource.impl;
 
-import org.apache.tools.ant.types.ZipScanner;
-
 import java.util.regex.Pattern;
 
 /**
@@ -230,14 +228,14 @@ public class DefaultFilters {
     return sb.toString();
   }
 
-  static ZipScanner getScanner(String[] includeList, String[] excludeList,
-      String[] skipList, boolean defaultExcludes, boolean caseSensitive) {
+  static PathMatcher getScanner(String[] includeList, String[] excludeList,
+                                String[] skipList, boolean defaultExcludes, boolean caseSensitive) {
     /*
      * Hijack Ant's ZipScanner to handle inclusions/exclusions exactly as Ant
      * does. We're only using its pattern-matching capabilities; the code path
      * I'm using never tries to hit the filesystem in Ant 1.6.5.
      */
-    ZipScanner scanner = new ZipScanner();
+    PathMatcher scanner = new PathMatcher();
     if (includeList.length > 0) {
       scanner.setIncludes(includeList);
     }
@@ -368,7 +366,7 @@ public class DefaultFilters {
 
     // don't create a catchAll in default cases
     ResourceFilter catchAll = new ResourceFilter() {
-      ZipScanner scanner = getScanner(includeList, excludeList, skipList,
+      PathMatcher scanner = getScanner(includeList, excludeList, skipList,
           defaultExcludes, caseSensitive);
 
       @Override

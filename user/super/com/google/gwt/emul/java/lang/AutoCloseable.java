@@ -15,6 +15,8 @@
  */
 package java.lang;
 
+import jsinterop.annotations.JsIgnore;
+
 /**
  * See <a
  * href="http://docs.oracle.com/javase/7/docs/api/java/lang/AutoCloseable.html">the
@@ -25,6 +27,7 @@ public interface AutoCloseable {
   /**
    * Closes this resource.
    */
+  @JsIgnore
   default void close() throws Exception {
   }
 }

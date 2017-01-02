@@ -62,7 +62,7 @@ public class CompileDir {
     return new File(dir, "war");
   }
 
-  File getDeployDir() {
+  public File getDeployDir() {
     return new File(getWarDir(), "WEB-INF/deploy");
   }
 
@@ -81,7 +81,7 @@ public class CompileDir {
     return new File(dir, "gen");
   }
 
-  File getWorkDir() {
+  public File getWorkDir() {
     return new File(dir, "work");
   }
 

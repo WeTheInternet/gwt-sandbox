@@ -16,13 +16,6 @@
 
 package com.google.gwt.dev.codeserver;
 
-import com.google.gwt.core.ext.TreeLogger;
-import com.google.gwt.core.ext.TreeLogger.Type;
-import com.google.gwt.core.ext.UnableToCompleteException;
-import com.google.gwt.dev.codeserver.CompileDir.PolicyFile;
-import com.google.gwt.dev.codeserver.Pages.ErrorPage;
-import com.google.gwt.dev.json.JsonObject;
-
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.HttpConnection;
 import org.eclipse.jetty.server.Request;
@@ -32,6 +25,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.GzipFilter;
 
+import com.google.gwt.core.ext.TreeLogger;
+import com.google.gwt.core.ext.TreeLogger.Type;
+import com.google.gwt.core.ext.UnableToCompleteException;
+import com.google.gwt.dev.codeserver.CompileDir.PolicyFile;
+import com.google.gwt.dev.codeserver.Pages.ErrorPage;
+import com.google.gwt.dev.json.JsonObject;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -45,22 +50,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.io.Buffer;
-import org.eclipse.jetty.server.AbstractHttpConnection;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.GzipFilter;
 
 /**
  * The web server for Super Dev Mode, also known as the code server. The URLs handled include:
@@ -503,7 +492,7 @@ public class WebServer {
       return new ErrorPage("invalid name for deploy file: " + rest);
     }
 
-    File fileToSend = outboxes.findDeployFile(rest);
+    File fileToSend = outboxTable.findDeployFile(rest);
     if (fileToSend == null) {
       return new ErrorPage("Deploy file not found: " + rest);
     }
