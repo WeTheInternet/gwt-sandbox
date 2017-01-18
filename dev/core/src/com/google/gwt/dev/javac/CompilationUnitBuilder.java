@@ -15,17 +15,17 @@
  */
 package com.google.gwt.dev.javac;
 
+import org.eclipse.jdt.core.compiler.CategorizedProblem;
+
 import com.google.gwt.dev.jjs.ast.JDeclaredType;
 import com.google.gwt.dev.resource.Resource;
 import com.google.gwt.dev.util.Util;
 
-import org.eclipse.jdt.core.compiler.CategorizedProblem;
-
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.zip.ZipException;
 
 /**
  * Builds a {@link CompilationUnit}.
@@ -146,7 +146,13 @@ public abstract class CompilationUnitBuilder {
           throw new RuntimeException("Unexpected error reading resource '" + resource + "'");
         }
         Util.copy(in, out);
-      } catch (IOException e) {
+      } catch (Exception e) {
+        if (e instanceof ZipException) {
+          throw new StaleJarError(typeName, resource.getLocation());
+        }
+        if (e instanceof NullPointerException && e.getMessage().startsWith("entry")) {
+          throw new StaleJarError(typeName, resource.getLocation());
+        }
         throw new RuntimeException("Unexpected error reading resource '" + resource + "'", e);
       }
       byte[] content = out.toByteArray();

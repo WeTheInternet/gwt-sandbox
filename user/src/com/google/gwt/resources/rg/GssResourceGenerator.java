@@ -1400,6 +1400,10 @@ public class GssResourceGenerator extends AbstractCssResourceGenerator implement
       throw new UnableToCompleteException();
     }
 
+    if (userMethod.isDefaultMethod() || userMethod.isStatic() || userMethod.getAnnotation(CssResource.IgnoreMethod.class) != null) {
+      // Ignore default methods.
+      return true;
+    }
     // the method doesn't match a style class nor a constant
     logger.log(Type.ERROR,
         "The following method [" + userMethod.getName() + "()] doesn't match a constant" +

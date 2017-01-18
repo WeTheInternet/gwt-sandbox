@@ -1,12 +1,12 @@
 /*
  * Copyright 2008 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * CSS file with GWT-specific at-rules.
  * <p>
  * Currently-supported accessor functions:
- * 
+ *
  * <ul>
  * <li>{@code String someClassName();} will allow the css class
  * <code>.someClassName</code> to be obfuscated at runtime. The function will
@@ -40,10 +40,10 @@ import java.lang.annotation.Target;
  * The defined value must be a raw number, a CSS length, or a percentage value
  * if it is to be returned as a numeric type.
  * </ul>
- * 
+ *
  * <p>
  * Currently-supported rules:
- * 
+ *
  * <ul>
  * <li>{@code @def NAME replacement-expression; .myClass background: NAME;}
  * Define a static constant. The replacement expression may be any CSS that
@@ -72,10 +72,10 @@ import java.lang.annotation.Target;
  * <li>{@code @url NAME siblingDataResource; .myClass background: NAME
  * repeat-x;} Use a {@link DataResource} to generate a <code>url('...'}</code> value.</li>
  * </ul>
- * 
+ *
  * <p>
  * Currently-supported CSS functions:
- * 
+ *
  * <ul>
  * <li>{@code literal("expression")} substitutes a property value that does not
  * conform to CSS2 parsing rules. The escape sequences {@code \"} and {@code \\}
@@ -85,7 +85,7 @@ import java.lang.annotation.Target;
  * optional suffix will be appended to the return value of the function. The
  * first name is resolved relative to the bundle interface passed to
  * {@link com.google.gwt.core.client.GWT#create(Class)}. An example:
- * 
+ *
  * <pre>
  * .bordersTheSizeOfAnImage {
  *   border-left: value('leftBorderImageResource.getWidth', 'px') solid blue;
@@ -93,7 +93,7 @@ import java.lang.annotation.Target;
  * </pre>
  * </li>
  * </ul>
- * 
+ *
  * <p>
  * Any class selectors that do not correspond with a String accessor method in
  * the return type will trigger a compilation error. This ensures that the
@@ -101,21 +101,21 @@ import java.lang.annotation.Target;
  * global CSS namespace. Strict mode can be disabled by annotating the
  * ClientBundle method declaration with {@link NotStrict}, however this is only
  * recommended for interacting with legacy CSS.
- * 
+ *
  * <p>
  * Given these interfaces:
- * 
+ *
  * <pre>
  * interface MyCss extends CssResource {
  *   String someClass();
  * }
- * 
+ *
  * interface MyBundle extends ClientBundle {
  *  {@literal @Source("my.css")}
  *   MyCss css();
  * }
  * </pre>
- * 
+ *
  * the source CSS will fail to compile if it does not contain exactly the one
  * class selector defined in the MyCss type.
  * <p>
@@ -124,25 +124,25 @@ import java.lang.annotation.Target;
  * marked as external will not be obfuscated and are not required to have string
  * accessor functions. Consider the following example in conjunction with the
  * above <code>MyCss</code> interface:
- * 
+ *
  * <pre>
    * {@literal @external} .foo, .bar;
    * .foo .someClass .bar { .... }
    * </pre>
- * 
+ *
  * The resulting CSS would look like:
- * 
+ *
  * <pre>
    * .foo .A1234 .bar { .... }
    * </pre>
- * 
+ *
  * If a <code>String foo()</code> method were defined in <code>MyCss</code>, it
  * would return the string value "<code>foo</code>".
  * <p>
  * The utility tool <code>com.google.gwt.resources.css.InterfaceGenerator</code>
  * can be used to automatically generate a Java interface from a
  * CssResource-compatible CSS file.
- * 
+ *
  * @see <a href="http://code.google.com/p/google-web-toolkit/wiki/CssResource"
  *      >CssResource design doc</a>
  */
@@ -153,10 +153,10 @@ public interface CssResource extends CssResourceBase {
    * The original CSS class name specified in the resource. This allows CSS
    * classes that do not correspond to Java identifiers to be mapped onto
    * obfuscated class accessors.
-   * 
+   *
    * <pre>
    * .some-non-java-ident { background: blue; }
-   * 
+   *
    * interface MyCssResource extends CssResource {
    *   {@literal @}ClassName("some-non-java-ident")
    *   String classAccessor();
@@ -177,30 +177,30 @@ public interface CssResource extends CssResourceBase {
    * <p>
    * This is an example of creating a descendant selector with two unrelated
    * types:
-   * 
+   *
    * <pre>
    *{@literal @ImportedWithPrefix}("some-prefix")
    * interface ToImport extends CssResource {
    *   String widget();
    * }
-   * 
+   *
    *{@literal @ImportedWithPrefix}("other-import")
    * interface OtherImport extends CssResource {
    *   String widget();
    * }
-   * 
+   *
    * interface Resources extends ClientBundle {
    *  {@literal @Import}(value = {ToImport.class, OtherImport.class})
    *  {@literal @Source}("my.css")
    *   CssResource usesImports();
    * }
-   * 
+   *
    * my.css:
-   * // Now I can refer to these classes defined elsewhere with no 
+   * // Now I can refer to these classes defined elsewhere with no
    * // fear of name collisions
    * .some-prefix-widget .other-import-widget {...}
    * </pre>
-   * 
+   *
    * If the imported CssResource type is lacking an {@link ImportedWithPrefix}
    * annotation, the simple name of the type will be used instead. In the above
    * example, without the annotation on <code>ToImport</code>, the class
@@ -221,7 +221,7 @@ public interface CssResource extends CssResourceBase {
   /**
    * Specifies the string prefix to use when one CssResource is imported into
    * the scope of another CssResource.
-   * 
+   *
    * @see Import
    */
   @Documented
@@ -237,7 +237,7 @@ public interface CssResource extends CssResourceBase {
    * method in the return type or an {@code @external} declaration should not
    * trigger a compilation error. This annotation is not recommended for new
    * code.
-   * 
+   *
    * <pre>
    * interface Resources extends ClientBundle {
    *  {@literal @NotStrict}
@@ -252,35 +252,40 @@ public interface CssResource extends CssResourceBase {
   public @interface NotStrict {
   }
 
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.METHOD)
+  public @interface IgnoreMethod {
+  }
+
   /**
    * Indicates that the String accessor methods defined in a CssResource will
    * return the same values across all implementations of that type.
    * <p>
    * This is an example of "stateful" class selectors being used:
-   * 
+   *
    * <pre>
    *{@literal @Shared}
    * interface FocusCss extends CssResource {
    *   String focused();
    *   String unfocused();
    * }
-   * 
+   *
    * interface PanelCss extends CssResource, FocusCss {
    *   String widget();
    * }
-   * 
+   *
    * interface InputCss extends CssResource, FocusCss {
    *   String widget();
    * }
-   * 
+   *
    * input.css:
    * *.focused .widget {border: thin solid blue;}
-   * 
+   *
    * Application.java:
    * myPanel.add(myInputWidget);
    * myPanel.addStyleName(instanceOfPanelCss.focused());
    * </pre>
-   * 
+   *
    * Because the <code>FocusCss</code> interface is tagged with {@code @Shared},
    * the <code>focused()</code> method on the instance of <code>PanelCss</code>
    * will match the <code>.focused</code> parent selector in
@@ -299,7 +304,7 @@ public interface CssResource extends CssResourceBase {
 
   /**
    * This annotation is a no-op.
-   * 
+   *
    * @deprecated Strict mode is now the default behavior for CssResource
    */
   @Deprecated
@@ -313,7 +318,7 @@ public interface CssResource extends CssResourceBase {
    * {@link com.google.gwt.dom.client.StyleInjector#injectStylesheet(String)} to
    * inject the contents of the CssResource into the DOM. Repeated calls to this
    * method on an instance of a CssResources will have no effect.
-   * 
+   *
    * @return <code>true</code> if this method mutated the DOM.
    */
   boolean ensureInjected();
