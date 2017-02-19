@@ -75,6 +75,7 @@ function maven-deploy-file() {
             -Durl=$mavenRepoUrl \
             -DrepositoryId=$mavenRepoId \
             -DpomFile=$pomFile \
+            -DgeneratePom=true
             $javadoc \
             $sources \
             -q"

@@ -100,6 +100,20 @@ function maven-gwt() {
         "jsinterop/${i}/*.java" "jsinterop/${i}/*.gwt.xml"
     zip $GWT_EXTRACT_DIR/gwt-user.jar --copy --out $GWT_EXTRACT_DIR/jsinterop-${i}-sources.jar \
         "jsinterop/${i}/*.java" "jsinterop/${i}/*.gwt.xml"
+
+
+
+    pushd $pomDir
+    gwtPomFile="$PWD/jsinterop/${i}/pom.xml"
+    popd
+
+
+    gwtPomFolder=META-INF/maven/net.wetheinter/jsinterop-${i}
+    mkdir -p $gwtPomFolder
+    cp $gwtPomFile $gwtPomFolder
+    zip -g $GWT_EXTRACT_DIR/jsinterop-${i}.jar $gwtPomFolder/pom.xml
+
+
     echo "Removing jsinterop/${i} from gwt-user"
     zip -d $GWT_EXTRACT_DIR/gwt-user.jar "jsinterop/${i}/*"
     echo "Removing jsinterop/${i} from gwt-servlet"

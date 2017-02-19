@@ -23,11 +23,6 @@
             <artifactId>asm</artifactId>
         </dependency>
         <dependency>
-            <groupId>colt</groupId>
-            <artifactId>colt</artifactId>
-            <version>1.2.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-util</artifactId>
         </dependency>
@@ -48,7 +43,6 @@
         <dependency>
             <groupId>ant</groupId>
             <artifactId>ant</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
@@ -103,17 +97,14 @@
         <dependency>
             <groupId>net.sourceforge.htmlunit</groupId>
             <artifactId>htmlunit</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-webapp</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -122,7 +113,6 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>apache-jsp</artifactId>
-            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
