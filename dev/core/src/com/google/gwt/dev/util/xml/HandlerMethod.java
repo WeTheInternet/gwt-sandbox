@@ -15,12 +15,13 @@
  */
 package com.google.gwt.dev.util.xml;
 
-import com.google.gwt.core.ext.UnableToCompleteException;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.google.gwt.core.ext.UnableToCompleteException;
 
 /**
  * Represents metadata about a handler method in a class derived from {@link Schema}.
@@ -72,9 +73,10 @@ public final class HandlerMethod {
   private static final int TYPE_END = 2;
   private static final int TYPE_TEXT = 3;
 
-  static {
+  private static void ensureRegistered() {
     ReflectiveParser.registerSchemaLevel(sArbitraryChildHandler.getClass());
   }
+  private static AtomicBoolean once = new AtomicBoolean(true);
 
   /**
    * Attempts to create a handler method from any method. You can pass in any
@@ -84,6 +86,10 @@ public final class HandlerMethod {
    */
   @SuppressWarnings("unchecked")
   public static HandlerMethod tryCreate(Method method) {
+    if (once.compareAndSet(true, false)) {
+      // We want to delay this registration to ensure it is done on the current thread's classloader.
+      ensureRegistered();
+    }
     String methodName = method.getName();
     String normalizedTagName = null;
     try {

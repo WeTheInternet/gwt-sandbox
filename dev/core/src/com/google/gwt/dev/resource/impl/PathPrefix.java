@@ -15,8 +15,6 @@
  */
 package com.google.gwt.dev.resource.impl;
 
-import org.apache.tools.ant.types.ZipScanner;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +62,7 @@ public final class PathPrefix {
   }
 
   private final Set<String> exclusions;
-  private ZipScanner exclusionScanner;
+  private PathMatcher exclusionScanner;
   private final List<ResourceFilter> filters;
   private final String prefix;
   private int priority = -1;
@@ -254,7 +252,7 @@ public final class PathPrefix {
 
   private void createExcludeFilter() {
     if (exclusionScanner == null && !exclusions.isEmpty()) {
-      exclusionScanner = new ZipScanner();
+      exclusionScanner = new PathMatcher();
       exclusionScanner.setIncludes(exclusions.toArray(new String[exclusions.size()]));
       exclusionScanner.init();
       exclusions.clear();
