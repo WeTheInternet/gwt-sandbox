@@ -13,10 +13,6 @@
  */
 package com.google.gwt.dev.resource.impl;
 
-import com.google.gwt.thirdparty.guava.common.annotations.VisibleForTesting;
-import com.google.gwt.thirdparty.guava.common.collect.ImmutableMap;
-import com.google.gwt.thirdparty.guava.common.collect.Maps;
-
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
@@ -24,6 +20,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+
+import com.google.gwt.thirdparty.guava.common.annotations.VisibleForTesting;
+import com.google.gwt.thirdparty.guava.common.collect.ImmutableMap;
+import com.google.gwt.thirdparty.guava.common.collect.Maps;
 
 /**
  * Manages {@link ResourceAccumulator}s for DirectoryClassPathEntry + PathPrefixSet pairs.
@@ -89,11 +89,14 @@ class ResourceAccumulatorManager {
         while (true) {
           try {
             refreshResources();
-            Thread.sleep(10);
+            Thread.sleep(100);
           } catch (Exception e) {
             e.printStackTrace();
           }
         }
+      }
+      {
+        setName("ResourceAccumulatorManager");
       }
     }.start();
   }
