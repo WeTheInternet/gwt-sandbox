@@ -15,6 +15,16 @@ package com.google.gwt.dev.jjs;
 
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.util.*;
+import java.util.zip.GZIPInputStream;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.core.ext.linker.*;
@@ -106,18 +116,6 @@ import com.google.gwt.dev.jjs.impl.codesplitter.CodeSplitters;
 import com.google.gwt.dev.jjs.impl.codesplitter.MultipleDependencyGraphRecorder;
 import com.google.gwt.dev.jjs.impl.codesplitter.ReplaceRunAsyncs;
 import com.google.gwt.dev.jjs.impl.gflow.DataflowOptimizer;
-import com.google.gwt.dev.js.BaselineCoverageGatherer;
-import com.google.gwt.dev.js.CoverageInstrumentor;
-import com.google.gwt.dev.js.DuplicateClinitRemover;
-import com.google.gwt.dev.js.EvalFunctionsAtTopScope;
-import com.google.gwt.dev.js.FreshNameGenerator;
-import com.google.gwt.dev.js.JsBreakUpLargeVarStatements;
-import com.google.gwt.dev.js.JsDuplicateCaseFolder;
-import com.google.gwt.dev.js.JsDuplicateFunctionRemover;
-import com.google.gwt.dev.js.JsForceInliningChecker;
-import com.google.gwt.dev.js.JsIncrementalNamer;
-import com.google.gwt.dev.js.JsInliner;
-import com.google.gwt.dev.js.JsLiteralInterner;
 import com.google.gwt.dev.js.*;
 import com.google.gwt.dev.js.JsNamer.IllegalNameException;
 import com.google.gwt.dev.js.ast.*;
@@ -137,16 +135,6 @@ import com.google.gwt.thirdparty.guava.common.collect.Iterables;
 import com.google.gwt.thirdparty.guava.common.collect.Lists;
 import com.google.gwt.thirdparty.guava.common.collect.Multimap;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
-
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.management.ManagementFactory;
-import java.util.*;
-import java.util.zip.GZIPInputStream;
 
 /**
  * A base for classes that compile Java <code>JProgram</code> representations into corresponding Js
@@ -1119,7 +1107,7 @@ public final class JavaToJavaScriptCompiler {
       // (4) Construct and return a value.
       Event createUnifiedAstEvent = SpeedTracerLogger.start(CompilerEventType.CREATE_UNIFIED_AST);
       UnifiedAst result = new UnifiedAst(
-          options, new AST(jprogram, jsProgram), singlePermutation, RecordRebinds.exec(jprogram));
+          options, new AST(jprogram, jsProgram), singlePermutation, RecordRebinds.exec(jprogram, precompilationContext));
       createUnifiedAstEvent.end();
       return result;
     } catch (Throwable e) {

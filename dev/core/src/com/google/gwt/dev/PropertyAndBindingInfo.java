@@ -15,18 +15,19 @@
  */
 package com.google.gwt.dev;
 
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.SortedMap;
+
 import com.google.gwt.thirdparty.guava.common.collect.ArrayListMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.Maps;
 import com.google.gwt.thirdparty.guava.common.collect.Multimap;
 import com.google.gwt.thirdparty.guava.common.collect.SortedSetMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.TreeMultimap;
-
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
 
 /**
  * Contains mappings for property names to property values and from request types (GWT.create) to
@@ -103,7 +104,7 @@ public class PropertyAndBindingInfo implements Serializable {
    */
   void assertRebindsEqual(PropertyAndBindingInfo other, Iterable<String> keysToCheck) {
     for (String key : keysToCheck) {
-      assert reboundTypeByGwtCreateType.get(key).equals(other.reboundTypeByGwtCreateType.get(key));
+      assert Objects.equals(reboundTypeByGwtCreateType.get(key), other.reboundTypeByGwtCreateType.get(key));
     }
   }
 
@@ -143,7 +144,14 @@ public class PropertyAndBindingInfo implements Serializable {
 
     SortedSetMultimap<String, String> result = TreeMultimap.create();
 
+    mainLoop:
     for (PropertyAndBindingInfo map : permutationPropertyAndBindingInfoList) {
+      for (String requestType : requestTypes) {
+        if (map.containsProperty(requestType)) {
+          result.put(requestType, map.getPropertyValue(requestType));
+        }
+      }
+
       for (Map.Entry<String, String> entry : map.reboundTypeByGwtCreateType.entrySet()) {
         if (!requestTypes.contains(entry.getKey())) {
           continue;
