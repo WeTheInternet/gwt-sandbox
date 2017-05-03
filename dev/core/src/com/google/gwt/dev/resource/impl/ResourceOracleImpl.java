@@ -15,6 +15,16 @@
  */
 package com.google.gwt.dev.resource.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.AccessControlException;
+import java.util.*;
+import java.util.Map.Entry;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.dev.cfg.ResourceLoader;
 import com.google.gwt.dev.cfg.ResourceLoaders;
@@ -29,24 +39,6 @@ import com.google.gwt.thirdparty.guava.common.collect.MapMaker;
 import com.google.gwt.thirdparty.guava.common.collect.SetMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
 import com.google.gwt.thirdparty.guava.common.io.Files;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.security.AccessControlException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * The normal implementation of {@code ResourceOracle}.
@@ -173,7 +165,13 @@ public class ResourceOracleImpl extends AbstractResourceOracle {
   public static ClassPathEntry createEntryForUrl(TreeLogger logger, URL url)
       throws URISyntaxException, IOException {
     if (url.getProtocol().equals("file")) {
-      File f = new File(url.toURI());
+      File f;
+      try {
+        f = new File(url.toURI()).getCanonicalFile();
+      } catch (IllegalArgumentException e) {
+        logger.log(TreeLogger.ERROR, "Bad Classpath URL: " + url, e);
+        throw e;
+      }
       String lowerCaseFileName = f.getName().toLowerCase(Locale.ROOT);
       if (f.isDirectory()) {
         return new DirectoryClassPathEntry(f);

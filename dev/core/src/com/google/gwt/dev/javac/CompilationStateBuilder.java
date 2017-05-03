@@ -584,6 +584,9 @@ public class CompilationStateBuilder {
       Util.copy(in, out);
     } catch (IOException e) {
       throw new RuntimeException("Unexpected error reading resource '" + resource + "'", e);
+    } catch (Throwable e) {
+      System.err.println("Unexpected error reading resource '" + resource + "'");
+      throw e;
     }
     byte[] content = out.toByteArray();
     return new ContentId(Shared.getTypeName(resource), Util.computeStrongName(content));
