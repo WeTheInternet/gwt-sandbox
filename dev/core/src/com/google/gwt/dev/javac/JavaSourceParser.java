@@ -15,15 +15,6 @@
  */
 package com.google.gwt.dev.javac;
 
-import com.google.gwt.core.ext.typeinfo.JType;
-import com.google.gwt.dev.javac.typemodel.JAbstractMethod;
-import com.google.gwt.dev.javac.typemodel.JClassType;
-import com.google.gwt.dev.javac.typemodel.JParameter;
-import com.google.gwt.dev.jjs.InternalCompilerException;
-import com.google.gwt.dev.resource.Resource;
-import com.google.gwt.dev.util.Name.BinaryName;
-import com.google.gwt.dev.util.Util;
-
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
@@ -39,6 +30,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.WeakHashMap;
+
+import com.google.gwt.core.ext.typeinfo.JType;
+import com.google.gwt.dev.javac.typemodel.JAbstractMethod;
+import com.google.gwt.dev.javac.typemodel.JClassType;
+import com.google.gwt.dev.javac.typemodel.JParameter;
+import com.google.gwt.dev.jjs.InternalCompilerException;
+import com.google.gwt.dev.resource.Resource;
+import com.google.gwt.dev.util.Name.BinaryName;
+import com.google.gwt.dev.util.Util;
 
 /**
  * Methods to do direct parsing of Java source -- currently the only uses are
@@ -180,9 +180,9 @@ public class JavaSourceParser {
   private static CompilationUnitDeclaration parseJava(String javaSource) {
     CodeSnippetParsingUtil parsingUtil = new CodeSnippetParsingUtil(true);
     CompilerOptions options = new CompilerOptions();
-    options.complianceLevel = ClassFileConstants.JDK1_8;
-    options.originalSourceLevel = ClassFileConstants.JDK1_8;
-    options.sourceLevel = ClassFileConstants.JDK1_8;
+    options.complianceLevel = ClassFileConstants.JDK9;
+    options.originalSourceLevel = ClassFileConstants.JDK9;
+    options.sourceLevel = ClassFileConstants.JDK9;
     CompilationUnitDeclaration unit = parsingUtil.parseCompilationUnit(
         javaSource.toString().toCharArray(), options.getMap(), true);
     if (unit.compilationResult().hasProblems()) {

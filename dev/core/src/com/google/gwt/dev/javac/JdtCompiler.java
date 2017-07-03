@@ -15,10 +15,42 @@
  */
 package com.google.gwt.dev.javac;
 
+import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ClassFile;
+import org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.eclipse.jdt.internal.compiler.Compiler;
+import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
+import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
+import org.eclipse.jdt.internal.compiler.ast.*;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
+import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
+import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
+import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.eclipse.jdt.internal.compiler.lookup.*;
+import org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
+import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.dev.CompilerContext;
 import com.google.gwt.dev.jdt.TypeRefVisitor;
+import com.google.gwt.dev.jjs.InternalCompilerException;
 import com.google.gwt.dev.jjs.ast.JDeclaredType;
 import com.google.gwt.dev.util.arg.SourceLevel;
 import com.google.gwt.dev.util.collect.Lists;
@@ -31,65 +63,6 @@ import com.google.gwt.thirdparty.guava.common.collect.ListMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.Maps;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
 import com.google.gwt.thirdparty.guava.common.io.BaseEncoding;
-
-import org.eclipse.jdt.core.compiler.CharOperation;
-import org.eclipse.jdt.internal.compiler.ClassFile;
-import org.eclipse.jdt.internal.compiler.CompilationResult;
-import org.eclipse.jdt.internal.compiler.Compiler;
-import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
-import org.eclipse.jdt.internal.compiler.ICompilerRequestor;
-import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Argument;
-import org.eclipse.jdt.internal.compiler.ast.Block;
-import org.eclipse.jdt.internal.compiler.ast.Clinit;
-import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.ConstructorDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.Expression;
-import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.ImportReference;
-import org.eclipse.jdt.internal.compiler.ast.Initializer;
-import org.eclipse.jdt.internal.compiler.ast.MethodDeclaration;
-import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFileReader;
-import org.eclipse.jdt.internal.compiler.classfmt.ClassFormatException;
-import org.eclipse.jdt.internal.compiler.env.ICompilationUnit;
-import org.eclipse.jdt.internal.compiler.env.INameEnvironment;
-import org.eclipse.jdt.internal.compiler.env.NameEnvironmentAnswer;
-import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
-import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
-import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
-import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
-import org.eclipse.jdt.internal.compiler.lookup.LocalTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
-import org.eclipse.jdt.internal.compiler.lookup.MethodScope;
-import org.eclipse.jdt.internal.compiler.lookup.MissingTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.NestedTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.UnresolvedReferenceBinding;
-import org.eclipse.jdt.internal.compiler.parser.Parser;
-import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
-import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
-import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Manages the process of compiling {@link CompilationUnit}s.
@@ -142,6 +115,71 @@ public class JdtCompiler {
           .setMethodArgs(new MethodArgNamesLookup())
           .setProblems(cud.compilationResult().getProblems());
       results.add(builder.build());
+    }
+  }
+  /**
+   * Static cache of all the JRE package names.
+   */
+  public static class JreIndex {
+    private static Set<String> packages = readPackages();
+
+    public static boolean contains(String name) {
+      return packages.contains(name);
+    }
+
+    private static void addPackageRecursively(Set<String> packages, String pkg) {
+      if (!packages.add(pkg)) {
+        return;
+      }
+
+      int i = pkg.lastIndexOf('/');
+      if (i != -1) {
+        addPackageRecursively(packages, pkg.substring(0, i));
+      }
+    }
+
+    private static Set<String> readPackages() {
+      HashSet<String> pkgs = new HashSet<String>();
+      String klass = "java/lang/Object.class";
+      URL url = ClassLoader.getSystemClassLoader().getResource(klass);
+      try {
+        JarURLConnection connection = (JarURLConnection) url.openConnection();
+        JarFile f = connection.getJarFile();
+        Enumeration<JarEntry> entries = f.entries();
+        while (entries.hasMoreElements()) {
+          JarEntry e = entries.nextElement();
+          String name = e.getName();
+          if (name.endsWith(".class")) {
+            String pkg = Shared.getSlashedPackageFrom(name);
+            addPackageRecursively(pkgs, pkg);
+          }
+        }
+        return pkgs;
+      } catch (ClassCastException e) {
+        // Java 9 does not use JarURLConnection, it uses new JavaRuntimeURLConnection
+        // However, for the purposes of discovering available packages,
+        // we can actually just consult the Module of the Object class...
+        try {
+
+          Class<?> finderCls = Thread.currentThread().getContextClassLoader()
+                .loadClass("java.lang.module.ModuleFinder");
+          final Object finder = finderCls.getMethod("ofSystem").invoke(null);
+          final Set modules = (Set) finder.getClass().getMethod("findAll").invoke(finder);
+          for (Object module : modules) {
+            final Object descriptor = module.getClass().getMethod("descriptor").invoke(module);
+            Set<String> pkgToAdd = (Set<String>) descriptor.getClass().getMethod("packages").invoke(descriptor);
+            pkgs.addAll(pkgToAdd);
+          }
+
+        } catch (ClassNotFoundException | IllegalAccessException
+            | InvocationTargetException | NoSuchMethodException e1) {
+          e1.printStackTrace();
+        }
+
+        return pkgs;
+      } catch (IOException e) {
+        throw new InternalCompilerException("Unable to find JRE", e);
+      }
     }
   }
 
@@ -655,6 +693,7 @@ public class JdtCompiler {
 
     long jdtSourceLevel = jdtLevelByGwtLevel.get(SourceLevel.DEFAULT_SOURCE_LEVEL);
     options.originalSourceLevel = jdtSourceLevel;
+    options.originalComplianceLevel = jdtSourceLevel;
     options.complianceLevel = jdtSourceLevel;
     options.sourceLevel = jdtSourceLevel;
     options.targetJDK = jdtSourceLevel;
@@ -683,6 +722,7 @@ public class JdtCompiler {
     long jdtSourceLevel = jdtLevelByGwtLevel.get(sourceLevel);
 
     options.originalSourceLevel = jdtSourceLevel;
+    options.originalComplianceLevel = jdtSourceLevel;
     options.complianceLevel = jdtSourceLevel;
     options.sourceLevel = jdtSourceLevel;
     options.targetJDK = jdtSourceLevel;
@@ -813,7 +853,8 @@ public class JdtCompiler {
    */
   private static final Map<SourceLevel, Long> jdtLevelByGwtLevel =
       ImmutableMap.<SourceLevel, Long>of(
-          SourceLevel.JAVA8, ClassFileConstants.JDK1_8);
+          SourceLevel.JAVA8, ClassFileConstants.JDK1_8,
+          SourceLevel.JAVA9, ClassFileConstants.JDK9);
 
   public JdtCompiler(CompilerContext compilerContext, UnitProcessor processor) {
     this.compilerContext = compilerContext;

@@ -15,9 +15,6 @@
  */
 package com.google.gwt.dev.util.arg;
 
-import com.google.gwt.thirdparty.guava.common.annotations.VisibleForTesting;
-import com.google.gwt.util.tools.Utility;
-
 /**
  * Java source level compatibility constants.
  */
@@ -76,28 +73,13 @@ public enum SourceLevel {
 
   private static SourceLevel getJvmBestMatchingSourceLevel() {
     // If everything fails set default to JAVA8.
-    String javaSpecLevel = System.getProperty("java.specification.version");
+    String javaSpecLevel = System.getProperty("java.specification.version", "1.8");
     return getBestMatchingVersion(javaSpecLevel);
   }
 
-  @VisibleForTesting
   public static SourceLevel getBestMatchingVersion(String javaVersionString) {
     // From java 9 forward, the spec version will not be prefixed with "1.".
-    if (javaVersionString.startsWith("1.")) {
-      try {
-        // Find the first version that is less than or equal to javaSpecLevel by iterating in reverse
-        // order.
-        SourceLevel[] sourceLevels = SourceLevel.values();
-        for (int i = sourceLevels.length - 1; i >= 0; i--) {
-          if (Utility.versionCompare(javaVersionString, sourceLevels[i].stringValue) >= 0) {
-            // sourceLevel is <= javaSpecLevel, so keep this one.
-            return sourceLevels[i];
-          }
-        }
-      } catch (IllegalArgumentException e) {
-        // If the version can not be parsed fallback to JAVA8.
-      }
-    } else {
+    if (!javaVersionString.startsWith("1.")) {
       // Java 9+
       return SourceLevel.valueOf("JAVA"+javaVersionString);
     }

@@ -23,7 +23,7 @@ import com.google.gwt.util.tools.Utility;
  */
 public enum SourceLevel {
   // Source levels must appear in ascending order for the default setting logic to work.
-  JAVA8("1.8", "8");
+  JAVA8("1.8", "8"), JAVA9("1.9", "9");
 
   /**
    * The default java sourceLevel.
@@ -82,18 +82,24 @@ public enum SourceLevel {
 
   @VisibleForTesting
   public static SourceLevel getBestMatchingVersion(String javaVersionString) {
-    try {
-      // Find the first version that is less than or equal to javaSpecLevel by iterating in reverse
-      // order.
-      SourceLevel[] sourceLevels = SourceLevel.values();
-      for (int i = sourceLevels.length - 1; i >= 0; i--) {
-        if (Utility.versionCompare(javaVersionString, sourceLevels[i].stringValue) >= 0) {
-          // sourceLevel is <= javaSpecLevel, so keep this one.
-          return sourceLevels[i];
+    // From java 9 forward, the spec version will not be prefixed with "1.".
+    if (javaVersionString.startsWith("1.")) {
+      try {
+        // Find the first version that is less than or equal to javaSpecLevel by iterating in reverse
+        // order.
+        SourceLevel[] sourceLevels = SourceLevel.values();
+        for (int i = sourceLevels.length - 1; i >= 0; i--) {
+          if (Utility.versionCompare(javaVersionString, sourceLevels[i].stringValue) >= 0) {
+            // sourceLevel is <= javaSpecLevel, so keep this one.
+            return sourceLevels[i];
+          }
         }
+      } catch (IllegalArgumentException e) {
+        // If the version can not be parsed fallback to JAVA8.
       }
-    } catch (IllegalArgumentException e) {
-      // If the version can not be parsed fallback to JAVA8.
+    } else {
+      // Java 9+
+      return SourceLevel.valueOf("JAVA"+javaVersionString);
     }
     // If everything fails set default to JAVA8.
     return JAVA8;
