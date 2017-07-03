@@ -420,18 +420,23 @@ public final class String implements Comparable<String>, CharSequence,
   }
 
   public boolean equalsIgnoreCase(String other) {
-    checkNotNull(this);
-    return equalsIgnoreCase(this, other);
+    String s = this;
+    checkNotNull(s);
+    return String.equalsLowerCase(s, other);
   }
 
-  private static native boolean equalsIgnoreCase(String s, String other) /*-{
+  private static native boolean equalsLowerCase(String s, String other) /*-{
     if (other == null) {
       return false;
     }
-    if (equals(other)) {
+    if (s == other) {
       return true;
     }
-    return length() == other.length() && toLowerCase().equals(other.toLowerCase());
+    if (s.length != other.length) {
+      return false;
+    }
+    return s.toLowerCase() == other.toLowerCase();
+
   }-*/;
 
   public byte[] getBytes() {
