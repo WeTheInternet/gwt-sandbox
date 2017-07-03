@@ -84,10 +84,17 @@ public class MultiDimArrayInjector implements MagicMethodGenerator, UnifyAstList
     }
     classLiteral = new JClassLiteral(info.makeChild(), cur);
     final List<JExpression> dims = Lists.addAll(sizedDims, emptyDims);
+    if (!(type instanceof JArrayType)) {
+      // this can happen when using Array.newInstance(MyClass.class) without any args;
+      // this is an abuse of the varargs, which are meant for multi-dimensional arrays
+      // (throws IllegalArgumentException in jvm if you try to do this)
+      logger.log(TreeLogger.ERROR, "Attempting to call Array.newInstance without any int size dimensions; " +
+          "you are abusing the varargs overload (must supply at least one int argument) @ " + methodCall);
+      throw new UnableToCompleteException();
+    }
     final JNewArray newArr = new JNewArray(info, (JArrayType)type, dims, null, classLiteral);
     return new JMethodCall(info, null, registerArray, newArr, new JClassLiteral(info.makeChild(), type));
   }
-
   @Override
   public boolean onUnifyAstPostProcess(final TreeLogger logger, final UnifyAstView ast,
       final UnifyVisitor visitor, final Queue<JMethod> todo) {
