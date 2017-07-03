@@ -13,20 +13,17 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.dev.MinimalRebuildCache;
 import com.google.gwt.dev.javac.JsInteropUtil;
 import com.google.gwt.dev.jjs.HasSourceInfo;
-import com.google.gwt.dev.jjs.ast.CanBeJsNative;
-import com.google.gwt.dev.jjs.ast.CanHaveSuppressedWarnings;
-import com.google.gwt.dev.jjs.ast.Context;
+import com.google.gwt.dev.jjs.ast.*;
 import com.google.gwt.dev.jjs.ast.HasJsInfo.JsMemberType;
-import com.google.gwt.dev.jjs.ast.HasJsName;
-import com.google.gwt.dev.jjs.ast.HasType;
-import com.google.gwt.dev.jjs.ast.JClassType;
-import com.google.gwt.dev.jjs.ast.JConstructor;
-import com.google.gwt.dev.jjs.ast.JDeclaredType;
 import com.google.gwt.dev.jjs.ast.JDeclaredType.NestedClassDisposition;
 import com.google.gwt.dev.jjs.ast.JExpression;
 import com.google.gwt.dev.jjs.ast.JExpressionStatement;
@@ -56,10 +53,6 @@ import com.google.gwt.thirdparty.guava.common.base.Predicate;
 import com.google.gwt.thirdparty.guava.common.collect.FluentIterable;
 import com.google.gwt.thirdparty.guava.common.collect.Iterables;
 import com.google.gwt.thirdparty.guava.common.collect.Maps;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Checks and throws errors for invalid JsInterop constructs.
@@ -286,7 +279,7 @@ public class JsInteropRestrictionChecker extends AbstractRestrictionChecker {
   }
 
   private void checkJsOverlay(JMember member) {
-    if (member.getEnclosingType().isJsoType() || member.isSynthetic()) {
+    if (member.getEnclosingType().isJsoType() || member.isSynthetic() || member.isIgnored()) {
       return;
     }
 
@@ -318,8 +311,9 @@ public class JsInteropRestrictionChecker extends AbstractRestrictionChecker {
     }
 
     JMethod method = (JMethod) member;
-
-    assert method.getOverriddenMethods().isEmpty();
+    assert method.isIgnored() || method.getOverriddenMethods().isEmpty()
+        : "Method " + method.getSignature()
+        + " cannot have overridden methods [" + method.getOverriddenMethods() + "]";
 
     if (method.getBody() == null
         || (!method.isFinal()

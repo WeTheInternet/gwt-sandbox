@@ -15,6 +15,10 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
+
 import com.google.gwt.core.ext.PropertyOracle;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.TreeLogger.Type;
@@ -66,10 +70,6 @@ import com.google.gwt.thirdparty.guava.common.collect.Maps;
 import com.google.gwt.thirdparty.guava.common.collect.Multimap;
 import com.google.gwt.thirdparty.guava.common.collect.Sets;
 import com.google.gwt.thirdparty.guava.common.collect.Sets.SetView;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.*;
 
 /**
  * Take independently-compiled types and merge them into a single AST.
@@ -1327,6 +1327,9 @@ public class UnifyAst implements UnifyAstView {
 
     JMethod targetMethod = JMethod.getExternalizedMethod(
         method.getEnclosingType().getName(), targetMethodSignature, false);
+    if (method.isIgnored()) {
+      targetMethod.setIgnored(method.isIgnored());
+    }
     JMethod resolvedTargetMethod = translate(method.getSourceInfo(), targetMethod);
 
     if (resolvedTargetMethod.isExternal()) {

@@ -27,6 +27,8 @@ public interface JMember extends HasEnclosingType, HasName, HasJsInfo, HasType, 
 
   boolean isPrivate();
 
+  boolean isIgnored();
+
   boolean needsDynamicDispatch();
 
   boolean isSynthetic();

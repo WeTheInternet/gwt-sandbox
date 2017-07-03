@@ -15,20 +15,6 @@
  */
 package com.google.gwt.dev.jjs.ast;
 
-import com.google.gwt.dev.common.InliningMode;
-import com.google.gwt.dev.javac.JsInteropUtil;
-import com.google.gwt.dev.jjs.InternalCompilerException;
-import com.google.gwt.dev.jjs.SourceInfo;
-import com.google.gwt.dev.jjs.SourceOrigin;
-import com.google.gwt.dev.jjs.ast.js.JsniMethodBody;
-import com.google.gwt.dev.jjs.impl.JjsUtils;
-import com.google.gwt.dev.jjs.impl.JsInteropRestrictionChecker;
-import com.google.gwt.dev.jjs.impl.UnifyAst;
-import com.google.gwt.dev.util.StringInterner;
-import com.google.gwt.dev.util.collect.Lists;
-import com.google.gwt.thirdparty.guava.common.collect.Iterables;
-import com.google.gwt.thirdparty.guava.common.collect.Sets;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -38,6 +24,19 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+
+import com.google.gwt.dev.common.InliningMode;
+import com.google.gwt.dev.javac.JsInteropUtil;
+import com.google.gwt.dev.jjs.InternalCompilerException;
+import com.google.gwt.dev.jjs.SourceInfo;
+import com.google.gwt.dev.jjs.SourceOrigin;
+import com.google.gwt.dev.jjs.ast.js.JsniMethodBody;
+import com.google.gwt.dev.jjs.impl.JjsUtils;
+import com.google.gwt.dev.jjs.impl.UnifyAst;
+import com.google.gwt.dev.util.StringInterner;
+import com.google.gwt.dev.util.collect.Lists;
+import com.google.gwt.thirdparty.guava.common.collect.Iterables;
+import com.google.gwt.thirdparty.guava.common.collect.Sets;
 
 /**
  * A Java method implementation.
@@ -64,6 +63,7 @@ public class JMethod extends JNode implements JMember, CanBeAbstract {
   private boolean syntheticAccidentalOverride = false;
   private Set<String> suppressedWarnings;
   private boolean doNotVisit = false;
+  private boolean ignored;
 
   @Override
   public void setJsMemberInfo(JsMemberType type, String namespace, String name, boolean exported) {
@@ -380,14 +380,23 @@ public class JMethod extends JNode implements JMember, CanBeAbstract {
 
     private final JDeclaredType enclosingType;
     private final String signature;
+    private final boolean ignored;
+    private final boolean doNotVisit;
 
     public ExternalSerializedForm(JMethod method) {
       enclosingType = method.getEnclosingType();
       signature = method.getSignature();
+      ignored = method.isIgnored();
+      doNotVisit = method.isDoNotVisit();
     }
 
     private Object readResolve() {
-      return new JMethod(signature, enclosingType, false);
+      final JMethod method = new JMethod(signature, enclosingType, false);
+      method.setIgnored(ignored);
+      if (doNotVisit) {
+        method.setDoNotVisit();
+      }
+      return method;
     }
   }
 
@@ -839,5 +848,14 @@ public class JMethod extends JNode implements JMember, CanBeAbstract {
    */
   void writeBody(ObjectOutputStream stream) throws IOException {
     stream.writeObject(body);
+  }
+
+  public void setIgnored(boolean ignored) {
+    this.ignored = ignored;
+  }
+
+  @Override
+  public boolean isIgnored() {
+    return ignored;
   }
 }

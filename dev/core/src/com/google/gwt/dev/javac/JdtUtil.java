@@ -15,17 +15,6 @@
  */
 package com.google.gwt.dev.javac;
 
-import com.google.gwt.dev.jjs.ast.JDeclaredType;
-import com.google.gwt.dev.util.Name.InternalName;
-import com.google.gwt.thirdparty.guava.common.base.Function;
-import com.google.gwt.thirdparty.guava.common.base.Joiner;
-import com.google.gwt.thirdparty.guava.common.base.Predicate;
-import com.google.gwt.thirdparty.guava.common.base.Strings;
-import com.google.gwt.thirdparty.guava.common.collect.FluentIterable;
-import com.google.gwt.thirdparty.guava.common.collect.ImmutableSet;
-import com.google.gwt.thirdparty.guava.common.collect.Iterables;
-import com.google.gwt.thirdparty.guava.common.collect.Lists;
-
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.Annotation;
@@ -37,6 +26,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import com.google.gwt.dev.jjs.ast.JDeclaredType;
+import com.google.gwt.dev.util.Name.InternalName;
+import com.google.gwt.thirdparty.guava.common.base.Function;
+import com.google.gwt.thirdparty.guava.common.base.Joiner;
+import com.google.gwt.thirdparty.guava.common.base.Predicate;
+import com.google.gwt.thirdparty.guava.common.base.Strings;
+import com.google.gwt.thirdparty.guava.common.collect.FluentIterable;
+import com.google.gwt.thirdparty.guava.common.collect.ImmutableSet;
+import com.google.gwt.thirdparty.guava.common.collect.Iterables;
+import com.google.gwt.thirdparty.guava.common.collect.Lists;
 
 /**
  * Utility functions to interact with JDT classes.
@@ -230,7 +230,7 @@ public final class JdtUtil {
     return null;
   }
 
-  static AnnotationBinding getAnnotationBySimpleName(AnnotationBinding[] annotations, String nameToFind) {
+  public static AnnotationBinding getAnnotationBySimpleName(AnnotationBinding[] annotations, String nameToFind) {
     if (annotations != null) {
       for (AnnotationBinding a : annotations) {
         ReferenceBinding annBinding = a.getAnnotationType();
@@ -290,7 +290,8 @@ public final class JdtUtil {
       AbstractMethodDeclaration abMethod = safeSourceMethod((MethodBinding) binding);
       return abMethod != null ? getAnnotationBySimpleName(abMethod.annotations, nameToFind) : null;
     } else if (binding instanceof FieldBinding) {
-      return getAnnotationBySimpleName(((FieldBinding) binding).sourceField().annotations, nameToFind);
+      FieldBinding fieldBinding = (FieldBinding) binding;
+      return getAnnotationBySimpleName(fieldBinding.sourceField().annotations, nameToFind);
     } else {
       return null;
     }
@@ -564,4 +565,35 @@ public final class JdtUtil {
     assert valueMethod != null;
     return valueMethod;
   }
+
+  public static boolean shouldIgnore(AnnotationBinding ignored, String namespace) {
+      if (ignored == null) {
+        // very likely to not-have an @Ignore annotation
+        return false;
+      }
+      assert namespace != null : "Must supply non-null namespace";
+      char[] match = "value".toCharArray();
+      boolean hadValue = false;
+      for (ElementValuePair pair : ignored.getElementValuePairs()) {
+        if (Arrays.equals(pair.getName(), match)) {
+          hadValue = true;
+          final Object value = pair.getValue();
+          if (value instanceof String) {
+            String v = (String) value;
+            if ("all".equals(v) || namespace.equals(v)) {
+              return true;
+            }
+          } else if (value instanceof String[]) {
+            String[] vs = (String[]) value;
+            for (String v : vs) {
+              if ("all".equals(v) || namespace.equals(v)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      // if we had a value, but did not match, return false.
+      return !hadValue;
+    }
 }

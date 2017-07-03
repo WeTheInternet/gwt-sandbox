@@ -15,12 +15,12 @@
  */
 package com.google.gwt.dev.jjs.ast;
 
+import java.io.Serializable;
+
 import com.google.gwt.dev.javac.JsInteropUtil;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
 import com.google.gwt.dev.util.StringInterner;
-
-import java.io.Serializable;
 
 /**
  * Java field definition.
@@ -97,6 +97,7 @@ public class JField extends JVariable implements JMember {
    * The access modifier; stored as an int to reduce memory / serialization footprint.
    */
   private final int access;
+  private boolean ignored;
 
   public JField(SourceInfo info, String name, JDeclaredType enclosingType, JType type,
       boolean isStatic, Disposition disposition, AccessModifier access) {
@@ -299,5 +300,14 @@ public class JField extends JVariable implements JMember {
     }
     return originalField.isExternal() && originalField.getSignature().equals(this.getSignature())
         && this.getEnclosingType().replaces(originalField.getEnclosingType());
+  }
+
+  public void setIgnored(boolean ignored) {
+    this.ignored = ignored;
+  }
+
+  @Override
+  public boolean isIgnored() {
+    return ignored;
   }
 }

@@ -15,41 +15,21 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
-import com.google.gwt.dev.javac.JdtUtil;
-import com.google.gwt.dev.jjs.InternalCompilerException;
-import com.google.gwt.dev.jjs.SourceInfo;
-import com.google.gwt.dev.jjs.SourceOrigin;
-import com.google.gwt.dev.jjs.ast.AccessModifier;
-import com.google.gwt.dev.jjs.ast.JArrayType;
-import com.google.gwt.dev.jjs.ast.JClassType;
-import com.google.gwt.dev.jjs.ast.JConstructor;
-import com.google.gwt.dev.jjs.ast.JDeclaredType;
-import com.google.gwt.dev.jjs.ast.JEnumType;
-import com.google.gwt.dev.jjs.ast.JField;
-import com.google.gwt.dev.jjs.ast.JInterfaceType;
-import com.google.gwt.dev.jjs.ast.JMethod;
-import com.google.gwt.dev.jjs.ast.JParameter;
-import com.google.gwt.dev.jjs.ast.JPrimitiveType;
-import com.google.gwt.dev.jjs.ast.JReferenceType;
-import com.google.gwt.dev.jjs.ast.JType;
-import com.google.gwt.dev.util.StringInterner;
-import com.google.gwt.thirdparty.guava.common.collect.Interner;
-
-import org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
-import org.eclipse.jdt.internal.compiler.lookup.BaseTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.FieldBinding;
-import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SyntheticArgumentBinding;
-import org.eclipse.jdt.internal.compiler.lookup.SyntheticMethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.*;
 import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.google.gwt.dev.javac.JdtUtil;
+import com.google.gwt.dev.jjs.InternalCompilerException;
+import com.google.gwt.dev.jjs.SourceInfo;
+import com.google.gwt.dev.jjs.SourceOrigin;
+import com.google.gwt.dev.jjs.ast.*;
+import com.google.gwt.dev.util.StringInterner;
+import com.google.gwt.thirdparty.guava.common.collect.Interner;
 
 /**
  * Creates unresolved references to types, fields, and methods.
@@ -202,6 +182,8 @@ public class ReferenceMapper {
     JDeclaredType enclosingType = (JDeclaredType) get(b.declaringClass);
     JMethod method =
         new JConstructor(info, (JClassType) enclosingType, AccessModifier.fromMethodBinding(b));
+    final AnnotationBinding ignored = JdtUtil.getAnnotationBySimpleName(b.getAnnotations(), "Ignore");
+    method.setIgnored(JdtUtil.shouldIgnore(ignored, "gwt"));
     enclosingType.addMethod(method);
 
     /*
@@ -245,6 +227,7 @@ public class ReferenceMapper {
     JMethod method =
         new JMethod(info, intern(b.selector), enclosingType, get(b.returnType), b.isAbstract(), b
             .isStatic(), b.isFinal(), AccessModifier.fromMethodBinding(b));
+
     enclosingType.addMethod(method);
     if (paramNames == null) {
       mapParameters(info, method, b, 0);
@@ -255,6 +238,8 @@ public class ReferenceMapper {
     if (b.isSynthetic()) {
       method.setSynthetic();
     }
+    final AnnotationBinding ignored = JdtUtil.getAnnotationBySimpleName(b.getAnnotations(), "Ignore");
+    method.setIgnored(JdtUtil.shouldIgnore(ignored, "gwt"));
     return method;
   }
 
@@ -263,6 +248,8 @@ public class ReferenceMapper {
     JField field = new JField(SourceOrigin.UNKNOWN, intern(binding.name), enclosingType,
         get(binding.type), binding.isStatic(), GwtAstBuilder.getFieldDisposition(binding),
         AccessModifier.fromFieldBinding(binding));
+    final AnnotationBinding ignored = JdtUtil.getAnnotationBySimpleName(binding.getAnnotations(), "Ignore");
+    field.setIgnored(JdtUtil.shouldIgnore(ignored, "gwt"));
     enclosingType.addField(field);
     return field;
   }
@@ -276,20 +263,24 @@ public class ReferenceMapper {
   private JDeclaredType createType(ReferenceBinding binding) {
     String name = JdtUtil.asDottedString(binding.compoundName);
     SourceInfo info = SourceOrigin.UNKNOWN;
+    final JDeclaredType result;
     if (binding.isClass()) {
-      return new JClassType(info, name, binding.isAbstract(), binding.isFinal());
+      result = new JClassType(info, name, binding.isAbstract(), binding.isFinal());
     } else if (binding.isInterface() || binding.isAnnotationType()) {
-      return new JInterfaceType(info, name);
+      result = new JInterfaceType(info, name);
     } else if (binding.isEnum()) {
       if (binding.isAnonymousType()) {
         // Don't model an enum subclass as a JEnumType.
-        return new JClassType(info, name, false, true);
+        result = new JClassType(info, name, false, true);
       } else {
-        return new JEnumType(info, name, binding.isAbstract());
+        result = new JEnumType(info, name, binding.isAbstract());
       }
     } else {
       throw new InternalCompilerException("ReferenceBinding is not a class, interface, or enum.");
     }
+    final AnnotationBinding ignored = JdtUtil.getAnnotationBySimpleName(binding.getAnnotations(), "Ignore");
+    result.setIgnored(JdtUtil.shouldIgnore(ignored, "gwt"));
+    return result;
   }
 
   private void ensureArgNames(int required) {

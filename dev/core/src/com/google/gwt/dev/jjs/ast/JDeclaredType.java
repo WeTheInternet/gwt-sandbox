@@ -144,6 +144,7 @@ public abstract class JDeclaredType extends JReferenceType
    * This type's implemented interfaces.
    */
   private List<JInterfaceType> superInterfaces = Lists.create();
+  private boolean ignored;
 
   public JDeclaredType(SourceInfo info, String name) {
     super(info, name);
@@ -645,5 +646,13 @@ public abstract class JDeclaredType extends JReferenceType
   @Override
   public void setSuppressedWarnings(Set<String> suppressedWarnings) {
     this.suppressedWarnings = suppressedWarnings;
+  }
+
+  public void setIgnored(boolean ignored) {
+    this.ignored = ignored;
+  }
+
+  public boolean isIgnored() {
+    return ignored;
   }
 }

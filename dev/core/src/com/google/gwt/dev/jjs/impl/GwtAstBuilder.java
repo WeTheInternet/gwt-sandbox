@@ -4174,7 +4174,9 @@ public class GwtAstBuilder {
 
   private JMethod createMethodFromBinding(SourceInfo info, MethodBinding binding,
       String[] paramNames) {
+    final AnnotationBinding ignored = JdtUtil.getAnnotationBySimpleName(binding, "Ignore");
     JMethod method = typeMap.createMethod(info, binding, paramNames);
+    method.setIgnored(JdtUtil.shouldIgnore(ignored, "gwt"));
     assert !method.isExternal();
     method.setBody(new JMethodBody(info));
     JsInteropUtil.maybeSetJsInteropProperties(method, shouldExport(method));
