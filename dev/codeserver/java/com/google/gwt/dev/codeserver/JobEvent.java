@@ -196,28 +196,6 @@ public final class JobEvent {
   }
 
   /**
-   * The approach taken to do the compile.
-   */
-  public enum CompileStrategy {
-    FULL("full"), // Compiled all the source.
-    INCREMENTAL("incremental"), // Only recompiled the source files that changed.
-    SKIPPED("skipped"); // Did not compile anything since nothing changed
-
-    final String jsonName;
-
-    CompileStrategy(String jsonName) {
-      this.jsonName = jsonName;
-    }
-
-    /**
-     * The string to use for serialization.
-     */
-    public String getJsonName() {
-      return jsonName;
-    }
-  }
-
-  /**
    * Creates a JobEvent.
    * This is public to allow external tests of code that implements {@link JobChangeListener}.
    * Normally all JobEvents are created in the code server.

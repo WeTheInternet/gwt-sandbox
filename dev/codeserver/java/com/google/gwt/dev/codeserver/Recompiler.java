@@ -38,7 +38,6 @@ import com.google.gwt.dev.cfg.PropertyCombinations.PermutationDescription;
 import com.google.gwt.dev.cfg.ResourceLoader;
 import com.google.gwt.dev.cfg.ResourceLoaders;
 import com.google.gwt.dev.codeserver.Job.Result;
-import com.google.gwt.dev.codeserver.JobEvent.CompileStrategy;
 import com.google.gwt.dev.javac.UnitCache;
 import com.google.gwt.dev.resource.impl.ResourceOracleImpl;
 import com.google.gwt.dev.resource.impl.ZipFileClassPathEntry;

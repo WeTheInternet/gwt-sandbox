@@ -18,7 +18,6 @@ package com.google.gwt.dev.codeserver;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.TreeLogger.Type;
 import com.google.gwt.dev.cfg.ModuleDef;
-import com.google.gwt.dev.codeserver.JobEvent.CompileStrategy;
 import com.google.gwt.dev.codeserver.JobEvent.Status;
 import com.google.gwt.dev.util.log.AbstractTreeLogger;
 import com.google.gwt.thirdparty.guava.common.base.Preconditions;

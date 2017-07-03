@@ -15,14 +15,14 @@
  */
 package com.google.gwt.dev;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.SortedSet;
+
 import com.google.gwt.dev.cfg.BindingProperties;
 import com.google.gwt.dev.cfg.BindingProperty;
 import com.google.gwt.dev.cfg.PermutationProperties;
 import com.google.gwt.thirdparty.guava.common.collect.Lists;
-
-import java.io.Serializable;
-import java.util.List;
-import java.util.SortedSet;
 
 /**
  * Represents the state of a single permutation for compile.
@@ -121,5 +121,9 @@ public final class Permutation implements Serializable {
   private void destroy() {
     orderedProps = Lists.newArrayList();
     propertyAndBindingInfos = Lists.newArrayList();
+  }
+
+  public boolean hasProperties() {
+    return !orderedProps.isEmpty();
   }
 }
