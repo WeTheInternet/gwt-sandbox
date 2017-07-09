@@ -15,6 +15,14 @@
  */
 package com.google.gwt.dev.jjs.impl;
 
+import javaemul.internal.annotations.DoNotInline;
+import javaemul.internal.annotations.ForceInline;
+import org.eclipse.jdt.core.compiler.CharOperation;
+import org.eclipse.jdt.internal.compiler.ast.*;
+import org.eclipse.jdt.internal.compiler.impl.Constant;
+import org.eclipse.jdt.internal.compiler.lookup.*;
+import org.eclipse.jdt.internal.compiler.util.Util;
+
 import com.google.gwt.dev.CompilerContext;
 import com.google.gwt.dev.common.InliningMode;
 import com.google.gwt.dev.javac.JdtUtil;
@@ -95,20 +103,15 @@ import com.google.gwt.dev.jjs.ast.JUnaryOperator;
 import com.google.gwt.dev.jjs.ast.JUnsafeTypeCoercion;
 import com.google.gwt.dev.jjs.ast.JVariable;
 import com.google.gwt.dev.jjs.ast.JWhileStatement;
+import com.google.gwt.dev.jjs.ast.*;
+import com.google.gwt.dev.jjs.ast.JField.Disposition;
 import com.google.gwt.dev.jjs.ast.js.JMultiExpression;
 import com.google.gwt.dev.jjs.ast.js.JsniClassLiteral;
 import com.google.gwt.dev.jjs.ast.js.JsniFieldRef;
 import com.google.gwt.dev.jjs.ast.js.JsniMethodBody;
 import com.google.gwt.dev.jjs.ast.js.JsniMethodRef;
 import com.google.gwt.dev.js.JsAbstractSymbolResolver;
-import com.google.gwt.dev.js.ast.JsContext;
-import com.google.gwt.dev.js.ast.JsExpression;
-import com.google.gwt.dev.js.ast.JsFunction;
-import com.google.gwt.dev.js.ast.JsModVisitor;
-import com.google.gwt.dev.js.ast.JsName;
-import com.google.gwt.dev.js.ast.JsNameRef;
-import com.google.gwt.dev.js.ast.JsNode;
-import com.google.gwt.dev.js.ast.JsParameter;
+import com.google.gwt.dev.js.ast.*;
 import com.google.gwt.dev.util.StringInterner;
 import com.google.gwt.dev.util.collect.Stack;
 import com.google.gwt.thirdparty.guava.common.base.Function;
@@ -229,16 +232,10 @@ import org.eclipse.jdt.internal.compiler.lookup.SyntheticMethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
 import org.eclipse.jdt.internal.compiler.lookup.VariableBinding;
-import org.eclipse.jdt.internal.compiler.util.Util;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -1402,7 +1399,7 @@ public class GwtAstBuilder {
                 // arguments point to the same outer local variable.
                 return enclosingLocal == sa.actualOuterLocalVariable
                     || (enclosingLocal instanceof SyntheticArgumentBinding)
-                        && ((SyntheticArgumentBinding) enclosingLocal).actualOuterLocalVariable == 
+                        && ((SyntheticArgumentBinding) enclosingLocal).actualOuterLocalVariable ==
                           sa.actualOuterLocalVariable;
               }
             }).orNull();
@@ -2206,11 +2203,35 @@ public class GwtAstBuilder {
       for (int i = x.resources.length - 1; i >= 0; i--) {
         // Needs to iterate back to front to be inline with the contents of the stack.
 
-        JDeclarationStatement resourceDecl = pop(x.resources[i]);
+        final Statement stmt = x.resources[i];
+        JStatement resourceDecl = pop(stmt);
 
-        JLocal resourceVar = (JLocal) curMethod.locals.get(x.resources[i].binding);
-        resourceVariables.add(0, resourceVar);
         tryBlock.addStmt(0, resourceDecl);
+
+        JLocal resourceVar;
+        final LocalVariableBinding binding;
+        if (stmt instanceof LocalDeclaration) {
+          binding = ((LocalDeclaration) stmt).binding;
+          resourceVar = (JLocal) curMethod.locals.get(binding);
+        } else {
+          if (stmt instanceof NameReference) {
+            final NameReference name = (NameReference) stmt;
+            if (name.binding instanceof LocalVariableBinding) {
+              // a try with resources that just references a name
+              // will only be added into the opening try block
+              // if it has a non-empty initializer
+
+              binding = (LocalVariableBinding) ((NameReference)stmt).binding;
+              resourceVar = (JLocal) curMethod.locals.get(binding);
+            } else {
+              throw new UnsupportedOperationException("Cannot find local variable binding for NameReference " + name);
+            }
+          } else {
+              throw new UnsupportedOperationException("Cannot find valid statement type for " + stmt);
+          }
+        }
+
+        resourceVariables.add(0, resourceVar);
       }
 
       // add exception variable
@@ -3050,6 +3071,23 @@ public class GwtAstBuilder {
     private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b, MethodInfo method) {
       return method.locals.get(b).makeRef(info);
     }
+//
+//    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b, MethodInfo cur) {
+//      JVariable variable = cur.locals.get(b);
+//      assert variable != null : "Null variable ref found in "+cur.method+" in "+cur.body
+//          + "\n body: "+cur.scope
+//          + " @"+info+";\nlocals: "+cur.locals
+//          + "\nBinding: "+b;
+//      if (variable instanceof JLocal) {
+//        return new JLocalRef(info, (JLocal) variable);
+//      } else {
+//        return new JParameterRef(info, (JParameter) variable);
+//      }
+//    }
+//
+//    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b) {
+//      return makeLocalRef(info, b, curMethod);
+//    }
 
     private JThisRef makeThisRef(SourceInfo info) {
       return new JThisRef(info, curClass.getClassOrInterface());
