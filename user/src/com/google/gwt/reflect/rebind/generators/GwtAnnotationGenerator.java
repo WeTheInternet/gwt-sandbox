@@ -770,7 +770,7 @@ public class GwtAnnotationGenerator {
     } catch (final Exception e) {
       // If a failure occurs, let the user know which type caused an exception during comparison
       logger.log(Type.ERROR, "Error encountering comparing annotation class to generated proxy;");
-      logger.log(Type.ERROR, fromSource.getClass().getName() +" or "+fromCache.getName()+" is causing this error.", e);
+      logger.log(Type.ERROR, fromSource.annotationType().getName() +" or "+fromCache.getName()+" is causing this error.", e);
       throw new UnableToCompleteException();
     }
   }
