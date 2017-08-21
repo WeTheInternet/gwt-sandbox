@@ -55,5 +55,9 @@ public abstract class Reader {
     return read(cbuf, 0, cbuf.length);
   }
 
+  public boolean ready() throws IOException {
+    return false;
+  }
+
   public abstract int read(char[] cbuf, int off, int len) throws IOException;
 }

@@ -41,6 +41,10 @@ public abstract class Charset implements Comparable<Charset> {
     }
   }
 
+  public static Charset defaultCharset() {
+    return EmulatedCharset.UTF_8;
+  }
+
   public static SortedMap<String, Charset> availableCharsets() {
     return AvailableCharsets.CHARSETS;
   }
