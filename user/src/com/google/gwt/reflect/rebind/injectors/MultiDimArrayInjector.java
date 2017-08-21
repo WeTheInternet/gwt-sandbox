@@ -58,15 +58,13 @@ public class MultiDimArrayInjector implements MagicMethodGenerator, UnifyAstList
     if (args.size() == 3) {
       // we have a typed call to GwtReflect.newArray(Class, int, int); we know we have two dimensions
       // the Array.newInstance call is (Class, [int), which is a length of 2
-      sizedDims = Lists.create(
-          (JExpression)extractImmutableNode(logger, JIntLiteral.class, args.get(1), ast, true)
-          , extractImmutableNode(logger, JIntLiteral.class, args.get(2), ast, true)
-          );
+      sizedDims = Lists.create( args.get(1) , args.get(2) );
     } else {
       assert args.size() == 2 : "Malformed arguments sent to MultiDimArrayInjector; "
           + "the only valid method calls have the signature (Class, int, int) or (Class, [int)";
       // we have an untyped call to Array.newInstance
-      // TODO: have a runtime fallback so we can perform non-strict int
+      // TODO: have a runtime fallback so we can fallback to "break at runtime" if we can't statically
+      // determine the size of the source array.
       final JNewArray newArr = extractImmutableNode(logger, JNewArray.class, args.get(1), ast, true);
       sizedDims = newArr.getInitializers();
     }

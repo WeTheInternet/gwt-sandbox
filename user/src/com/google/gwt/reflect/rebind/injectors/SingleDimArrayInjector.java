@@ -49,11 +49,9 @@ UnifyAstListener {
     }
     JType cur;
     final JType type = cur = ast.translate(clazz.getRefType());
-    final JIntLiteral size = ReflectionUtilAst.extractImmutableNode(logger,
-      JIntLiteral.class, methodCall.getArgs().get(1), ast, false);
 
     // Add absent array dimensions in case use supplies a Class[].class
-    List<JExpression> dims = Lists.create(size.makeStatement().getExpr());
+    List<JExpression> dims = Lists.create(methodCall.getArgs().get(1));
     while (cur instanceof JArrayType) {
       dims = Lists.add(dims, null);
       cur = ((JArrayType) cur).getElementType();
