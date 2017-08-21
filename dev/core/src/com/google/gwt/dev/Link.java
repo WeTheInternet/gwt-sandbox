@@ -27,15 +27,10 @@ import com.google.gwt.core.ext.linker.impl.JarEntryEmittedArtifact;
 import com.google.gwt.core.ext.linker.impl.StandardCompilationResult;
 import com.google.gwt.core.ext.linker.impl.StandardLinkerContext;
 import com.google.gwt.dev.CompileTaskRunner.CompileTask;
-import com.google.gwt.dev.cfg.BindingProperties;
-import com.google.gwt.dev.cfg.BindingProperty;
-import com.google.gwt.dev.cfg.ModuleDef;
-import com.google.gwt.dev.cfg.ModuleDefLoader;
-import com.google.gwt.dev.cfg.PropertyCombinations;
-import com.google.gwt.dev.cfg.ResourceLoader;
-import com.google.gwt.dev.cfg.ResourceLoaders;
+import com.google.gwt.dev.cfg.*;
 import com.google.gwt.dev.jjs.PermutationResult;
 import com.google.gwt.dev.jjs.impl.codesplitter.CodeSplitter;
+import com.google.gwt.dev.js.JsNamespaceOption;
 import com.google.gwt.dev.resource.ResourceOracle;
 import com.google.gwt.dev.util.NullOutputFileSet;
 import com.google.gwt.dev.util.OutputFileSet;
@@ -66,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -176,7 +172,7 @@ public class Link {
         new StandardLinkerContext(logger, module, publicResourceOracle,
             precompileOptions.getOutput());
     ArtifactSet artifacts = doSimulatedShardingLink(
-        logger, module, linkerContext, generatedArtifacts, permutations, resultFiles);
+        logger, module, linkerContext, generatedArtifacts, permutations, resultFiles, precompileOptions, linkOptions);
 
     doProduceOutput(logger, artifacts, linkerContext, module, precompileOptions.shouldSaveSource(),
         linkOptions);
@@ -436,11 +432,15 @@ public class Link {
    * and linking is happening on the same computer. It can tolerate
    * non-shardable linkers.
    */
-  private static ArtifactSet doSimulatedShardingLink(TreeLogger logger, ModuleDef module,
+  private static ArtifactSet doSimulatedShardingLink(
+      TreeLogger logger, ModuleDef module,
       StandardLinkerContext linkerContext, ArtifactSet generatedArtifacts, Permutation[] perms,
-      List<PersistenceBackedObject<PermutationResult>> resultFiles)
+      List<PersistenceBackedObject<PermutationResult>> resultFiles, PrecompileTaskOptions precompileOptions,
+      LinkOptions linkOptions
+  )
       throws UnableToCompleteException {
     ArtifactSet combinedArtifacts = new ArtifactSet();
+    addOptionsArtifact(combinedArtifacts, precompileOptions, linkOptions);
     for (int i = 0; i < perms.length; ++i) {
       ArtifactSet newArtifacts = finishPermutation(
           logger, perms[i], resultFiles.get(i), linkerContext, generatedArtifacts);
@@ -457,6 +457,59 @@ public class Link {
         legacyLinkedArtifacts, linkerContext);
 
     return linkerContext.invokeFinalLink(logger, thinnedArtifacts);
+  }
+
+  private static void addOptionsArtifact(
+      ArtifactSet artifacts,
+      PrecompileTaskOptions taskOpts,
+      LinkOptions linkOpts
+  ) {
+    final SortedSet<CompilePropertiesArtifact> existing = artifacts.find(CompilePropertiesArtifact.class);
+    final CompilePropertiesArtifact props;
+    if (existing.isEmpty()) {
+      props = new CompilePropertiesArtifact();
+      artifacts.add(props);
+    } else {
+      props = existing.first();
+    }
+    // now add everything the linker knows about for this compilation
+    // TODO: test and handle permutations
+    copyProps(props, taskOpts, linkOpts);
+  }
+
+  private static void copyProps(CompilePropertiesArtifact props, PrecompileTaskOptions taskOpts, LinkOptions linkOpts) {
+    Properties finalProps = taskOpts.getFinalProperties();
+    if (finalProps == null) {
+      finalProps = linkOpts.getFinalProperties();
+    }
+    final File genDir = taskOpts.getGenDir();
+    final List<String> moduleNames = taskOpts.getModuleNames();
+    final JsNamespaceOption namespace = taskOpts.getNamespace();
+    final String sourceMapPrefix = taskOpts.getSourceMapFilePrefix();
+    final File workDir = taskOpts.getWorkDir();
+    final File deployDir = linkOpts.getDeployDir();
+    final File extraDir = linkOpts.getExtraDir();
+    final File warDir = linkOpts.getWarDir();
+    final File workDir2 = linkOpts.getWorkDir();
+    assert workDir.equals(workDir2) : "Different work dirs?  Really?";
+
+    props.setGenDir(genDir == null ? workDir.getAbsolutePath() : genDir.getAbsolutePath());
+    props.setWorkDir(workDir.getAbsolutePath());
+    props.setWarDir(warDir == null ? workDir.getAbsolutePath() : warDir.getAbsolutePath());
+    if (extraDir != null) {
+      props.setExtraDir(extraDir.getAbsolutePath());
+    }
+    props.setDeployDir(deployDir == null ? workDir.getAbsolutePath() : deployDir.getAbsolutePath());
+    props.setJsNamespace(namespace);
+    props.setSourceMapPrefix(sourceMapPrefix);
+    props.setModuleNames(moduleNames);
+
+    if (finalProps != null) {
+      final SortedSet<BindingProperty> bindingProps = finalProps.getBindingProperties();
+      final SortedSet<ConfigurationProperty> configProps = finalProps.getConfigurationProperties();
+      props.setBindingProps(bindingProps);
+      props.setConfigProps(configProps);
+    }
   }
 
   /**
