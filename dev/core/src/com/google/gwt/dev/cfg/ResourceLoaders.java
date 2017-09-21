@@ -39,11 +39,18 @@ import java.util.Optional;
  */
 public class ResourceLoaders {
 
-  private static class ContextClassLoaderAdapter implements ResourceLoader {
-    private final ClassLoader contextClassLoader;
+  private static class ContextClassLoaderAdapter extends ClassLoaderAdapter {
 
     public ContextClassLoaderAdapter() {
-      this.contextClassLoader = Thread.currentThread().getContextClassLoader();
+      super(Thread.currentThread().getContextClassLoader());
+    }
+  }
+
+  private static class ClassLoaderAdapter implements ResourceLoader {
+    private final ClassLoader contextClassLoader;
+
+    public ClassLoaderAdapter(ClassLoader cl) {
+      this.contextClassLoader = cl;
     }
 
     @Override
@@ -51,7 +58,7 @@ public class ResourceLoaders {
       if (!(other instanceof ContextClassLoaderAdapter)) {
         return false;
       }
-      ContextClassLoaderAdapter otherAdapter = (ContextClassLoaderAdapter) other;
+      ClassLoaderAdapter otherAdapter = (ClassLoaderAdapter) other;
       return contextClassLoader.equals(otherAdapter.contextClassLoader);
     }
 
@@ -206,6 +213,10 @@ public class ResourceLoaders {
    */
   public static ResourceLoader forPathAndFallback(List<File> path, ResourceLoader fallback) {
     return new PrefixLoader(path, fallback);
+  }
+
+  public static ResourceLoader forClassLoader(Thread t) {
+    return new ClassLoaderAdapter(t.getContextClassLoader());
   }
 
   private ResourceLoaders() {
