@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.gwt.thirdparty.guava.common.annotations.VisibleForTesting;
 import com.google.gwt.thirdparty.guava.common.collect.ImmutableMap;
@@ -34,7 +36,7 @@ import com.google.gwt.thirdparty.guava.common.collect.Maps;
  * ClassPathEntry and PathPrefixSet instances to lazily discover when ResourceAccumulator instances
  * become eligible for destruction.
  */
-class ResourceAccumulatorManager {
+public class ResourceAccumulatorManager {
 
   /**
    * A hash key that is a combination of a DirectoryClassPathEntry and PathPrefixSet which also
@@ -117,7 +119,7 @@ class ResourceAccumulatorManager {
     return ImmutableMap.copyOf(resourceAccumulator.getResources());
   }
 
-  public static synchronized void refreshResources() throws IOException {
+  static synchronized void refreshResources() throws IOException {
     Iterator<Entry<DirectoryAndPathPrefix, ResourceAccumulator>> entriesIterator =
         resourceAccumulators.entrySet().iterator();
     while (entriesIterator.hasNext()) {
@@ -130,6 +132,92 @@ class ResourceAccumulatorManager {
       } else if (resourceAccumulator.isWatchServiceActive()) {
         resourceAccumulator.refreshResources();
       }
+    }
+  }
+
+  private static final Lock lock = new ReentrantLock();
+
+  /**
+   * Checks if the file monitors across all Gwt source directories
+   * have detected any changes, and runs either `fresh` or `stale` callbacks.
+   *
+   * While other (unfortunately) static methods in this class use synchronized,
+   * we need to be able to lock the freshness check without
+   * interfering / considering / deadlocking other threads
+   * who may (do) take the monitor on ResourceAccumulatorManager.class
+   * (due to synchronized static method) while we are running *your* callbacks,
+   * such as... recompiling / refreshing the state
+   * @param fresh
+   * @param stale
+   */
+  public static void checkCompileFreshness(Runnable fresh, Runnable stale) {
+    checkCompileFreshness(fresh, stale, false);
+  }
+  public static void checkCompileFreshness(Runnable fresh, Runnable stale, boolean runFreshAfterStale) {
+    lock.lock();
+    // We need to hold the lock longer than the call of this method;
+    // since we are sending callbacks to code that is free (encouraged) to
+    // send their callbacks off and return early as well,
+    // we need to defer the release of the lock, so that
+    // all subsequent requesters must wait in this method
+    // until these callbacks have finished.
+    final Runnable ifFresh = () -> {
+        // when we are fresh, we unlock and then we run;
+        // no need to make other threads wait for fresh.run()
+        lock.unlock();
+        fresh.run();
+    };
+    final Runnable ifStale = () -> {
+      // When stale, we want to run first, unlock later.
+      try {
+        stale.run(); // If stale doesn't block, we might wind up serving bad requests...
+        // Prevent any other thread from considering the compile fresh until ifStale has run successfully
+        for (ResourceAccumulator accumulator : resourceAccumulators.values()) {
+          // TODO: Be able to delete this clearing code
+          // by actually correcting the state during recompilation
+          accumulator.getStale().clear();
+        }
+      } finally {
+        // Once we unlock, all waiting threads should get the all clear to run fresh callback
+        lock.unlock();
+        if (runFreshAfterStale) {
+          fresh.run();
+        }
+      }
+    };
+
+    boolean isFresh = true;
+    try {
+      lock.lock();
+
+      Iterator<Entry<DirectoryAndPathPrefix, ResourceAccumulator>> entriesIterator =
+          resourceAccumulators.entrySet().iterator();
+      // TODO: also monitor jar files...  just directories is good enough for now.
+      while (entriesIterator.hasNext()) {
+        Entry<DirectoryAndPathPrefix, ResourceAccumulator> entry = entriesIterator.next();
+        DirectoryAndPathPrefix directoryAndPathPrefix = entry.getKey();
+        if (directoryAndPathPrefix.isOld()) {
+          isFresh = false;
+          break;
+        }
+        if (!entry.getValue().getStale().isEmpty()) {
+          isFresh = false;
+          break;
+        }
+      }
+
+    } finally {
+      // performs unlocks
+      if (isFresh) {
+        ifFresh.run();
+      } else {
+        ifStale.run();
+      }
+    }
+    if (isFresh) {
+      ifFresh.run();
+    } else {
+      ifStale.run();
     }
   }
 

@@ -40,6 +40,7 @@ import com.google.gwt.dev.cfg.ResourceLoaders;
 import com.google.gwt.dev.codeserver.Job.Result;
 import com.google.gwt.dev.javac.UnitCache;
 import com.google.gwt.dev.resource.impl.ResourceOracleImpl;
+import com.google.gwt.dev.resource.impl.ResourceAccumulatorManager;
 import com.google.gwt.dev.resource.impl.ZipFileClassPathEntry;
 import com.google.gwt.dev.util.log.CompositeTreeLogger;
 import com.google.gwt.dev.util.log.PrintWriterTreeLogger;
@@ -299,6 +300,11 @@ public class Recompiler {
   synchronized String getRecompileJs(TreeLogger logger) throws UnableToCompleteException {
     ModuleDef loadModule = loadModule(logger);
     return generateModuleRecompileJs(loadModule, logger);
+  }
+
+  public void checkCompileFreshness(Runnable ifFresh, Runnable ifStale) {
+    // TODO make ResourceAccumulatorManager not static... :'(
+    ResourceAccumulatorManager.checkCompileFreshness(ifFresh, ifStale);
   }
 
   private boolean doCompile(TreeLogger compileLogger, CompileDir compileDir, Job job)

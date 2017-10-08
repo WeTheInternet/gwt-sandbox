@@ -19,12 +19,14 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
 import java.util.Map;
+import java.util.Set;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
 import com.google.gwt.thirdparty.guava.common.collect.ArrayListMultimap;
 import com.google.gwt.thirdparty.guava.common.collect.Maps;
 import com.google.gwt.thirdparty.guava.common.collect.Multimap;
+import com.google.gwt.thirdparty.guava.common.collect.Sets;
 
 /**
  * Listens for and accumulates resources for a given root and PathPrefixSet.
@@ -40,10 +42,12 @@ class ResourceAccumulator {
   private WeakReference<PathPrefixSet> pathPrefixSetRef;
   private WatchService watchService;
   private boolean watchFileChanges = WATCH_FILE_CHANGES_DEFAULT;
+  private Set<Path> stale;
 
   public ResourceAccumulator(Path rootDirectory, PathPrefixSet pathPrefixSet) {
     this.rootDirectory = rootDirectory;
     this.pathPrefixSetRef = new WeakReference<PathPrefixSet>(pathPrefixSet);
+    this.stale = Sets.newHashSet();
   }
 
   public boolean isWatchServiceActive() {
@@ -120,6 +124,8 @@ class ResourceAccumulator {
           onNewPath(child);
         } else if (eventKind == ENTRY_DELETE) {
           onRemovedPath(child);
+        } else if (eventKind == ENTRY_MODIFY) {
+          onModified(child);
         }
       }
 
@@ -151,7 +157,7 @@ class ResourceAccumulator {
 
     if (watchService != null) {
       // Start watching the directory.
-      directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE);
+      directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
     }
 
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
@@ -162,7 +168,7 @@ class ResourceAccumulator {
     }
   }
 
-  private void onNewFile(Path file) {
+  private void onNewFile(Path file) throws IOException {
     FileResource resource = toFileResource(file);
     ResourceResolution resourceResolution = getPathPrefixSet().includesResource(resource.getPath());
     if (resourceResolution != null) {
@@ -175,6 +181,10 @@ class ResourceAccumulator {
     for (Path child : childPathsByParentPath.get(path)) {
       onRemovedPath(child);
     }
+  }
+
+  private void onModified(Path path) {
+    stale.add(path);
   }
 
   private FileResource toFileResource(Path path) {
@@ -193,4 +203,9 @@ class ResourceAccumulator {
     assert pathPrefixSet != null;
     return pathPrefixSet;
   }
+
+  public Set<Path> getStale() {
+    return stale;
+  }
+
 }
