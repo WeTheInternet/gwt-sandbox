@@ -144,7 +144,6 @@ public class PropertyAndBindingInfo implements Serializable {
 
     SortedSetMultimap<String, String> result = TreeMultimap.create();
 
-    mainLoop:
     for (PropertyAndBindingInfo map : permutationPropertyAndBindingInfoList) {
       for (String requestType : requestTypes) {
         if (map.containsProperty(requestType)) {
