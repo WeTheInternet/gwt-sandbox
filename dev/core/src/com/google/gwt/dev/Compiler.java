@@ -55,7 +55,7 @@ import java.util.concurrent.FutureTask;
  */
 public class Compiler {
 
-  static class ArgProcessor extends PrecompileTaskArgProcessor {
+  public static class ArgProcessor extends PrecompileTaskArgProcessor {
     public ArgProcessor(CompilerOptions options) {
       super(options);
 
