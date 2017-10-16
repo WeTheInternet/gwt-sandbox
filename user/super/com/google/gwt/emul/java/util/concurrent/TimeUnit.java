@@ -174,4 +174,34 @@ public enum TimeUnit {
   public abstract long toHours(long duration);
 
   public abstract long toDays(long duration);
+
+  abstract int excessNanos(long d, long m);
+
+    //For now, we have to hide all the convenience methods of TimeUnit;
+    //Any use of these blocking methods in javascript will result in {@link MethodNotSupportedException}
+
+//    public void timedWait(Object obj, long timeout)
+//    throws InterruptedException {
+//        if (timeout > 0) {
+//            long ms = toMillis(timeout);
+//            int ns = excessNanos(timeout, ms);
+//            obj.wait(ms, ns);
+//        }
+//    }
+//    public void timedJoin(Thread thread, long timeout)
+//    throws InterruptedException {
+//        if (timeout > 0) {
+//            long ms = toMillis(timeout);
+//            int ns = excessNanos(timeout, ms);
+//            thread.join(ms, ns);
+//        }
+//    }
+//    public void sleep(long timeout) throws InterruptedException {
+//        if (timeout > 0) {
+//            long ms = toMillis(timeout);
+//            int ns = excessNanos(timeout, ms);
+//            Thread.sleep(ms, ns);
+//        }
+//    }
+
 }

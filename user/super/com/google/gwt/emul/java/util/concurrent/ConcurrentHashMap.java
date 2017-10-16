@@ -142,4 +142,15 @@ public class ConcurrentHashMap<K, V> extends AbstractMap<K, V> implements Concur
   public Enumeration<K> keys() {
     return Collections.enumeration(keySet());
   }
+
+  @Override
+  public Object clone() {
+    return new ConcurrentHashMap<K, V>(this);
+  }
+
+  @Override
+  protected int getHashCode(Object key) {
+    // Coerce to int -- our classes all do this, but a user-written class might not.
+    return ~~key.hashCode();
+  }
 }
