@@ -153,7 +153,7 @@ public class ResourceAccumulatorManager {
   public static void checkCompileFreshness(Runnable fresh, Runnable stale) {
     checkCompileFreshness(fresh, stale, false);
   }
-  public static void checkCompileFreshness(Runnable fresh, Runnable stale, boolean runFreshAfterStale) {
+  public static void checkCompileFreshness(final Runnable fresh, final Runnable stale, final boolean runFreshAfterStale) {
     lock.lock();
     // We need to hold the lock longer than the call of this method;
     // since we are sending callbacks to code that is free (encouraged) to
@@ -161,27 +161,33 @@ public class ResourceAccumulatorManager {
     // we need to defer the release of the lock, so that
     // all subsequent requesters must wait in this method
     // until these callbacks have finished.
-    final Runnable ifFresh = () -> {
+    final Runnable ifFresh = new Runnable() {
+      @Override
+      public void run() {
         // when we are fresh, we unlock and then we run;
         // no need to make other threads wait for fresh.run()
         lock.unlock();
         fresh.run();
+      }
     };
-    final Runnable ifStale = () -> {
-      // When stale, we want to run first, unlock later.
-      try {
-        stale.run(); // If stale doesn't block, we might wind up serving bad requests...
-        // Prevent any other thread from considering the compile fresh until ifStale has run successfully
-        for (ResourceAccumulator accumulator : resourceAccumulators.values()) {
-          // TODO: Be able to delete this clearing code
-          // by actually correcting the state during recompilation
-          accumulator.getStale().clear();
-        }
-      } finally {
-        // Once we unlock, all waiting threads should get the all clear to run fresh callback
-        lock.unlock();
-        if (runFreshAfterStale) {
-          fresh.run();
+    final Runnable ifStale = new Runnable() {
+      @Override
+      public void run() {
+        // When stale, we want to run first, unlock later.
+        try {
+          stale.run(); // If stale doesn't block, we might wind up serving bad requests...
+          // Prevent any other thread from considering the compile fresh until ifStale has run successfully
+          for (ResourceAccumulator accumulator : resourceAccumulators.values()) {
+            // TODO: Be able to delete this clearing code
+            // by actually correcting the state during recompilation
+            accumulator.getStale().clear();
+          }
+        } finally {
+          // Once we unlock, all waiting threads should get the all clear to run fresh callback
+          lock.unlock();
+          if (runFreshAfterStale) {
+            fresh.run();
+          }
         }
       }
     };

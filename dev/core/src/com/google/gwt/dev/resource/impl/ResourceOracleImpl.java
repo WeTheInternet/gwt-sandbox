@@ -192,6 +192,11 @@ public class ResourceOracleImpl extends AbstractResourceOracle {
         }
         return null;
       }
+    } else if (url.getProtocol().equals("dynamic")) {
+      // TODO: read in "magic uri" dynamic:all or dynamic:list,
+      // to have dynamic source give us a DirectoryStream (or equivalent)
+      logger.log(TreeLogger.DEBUG, "Unhandled URL type for " + url, null);
+      return null;
     } else {
       logger.log(TreeLogger.WARN, "Unknown URL type for " + url, null);
       return null;
