@@ -3,16 +3,16 @@ package java.util.concurrent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CountdownLatch {
+public class CountDownLatch {
 
   private long count;
   private Logger gwtLogger = null;
 
-  public CountdownLatch(int count) {
+  public CountDownLatch(int count) {
     this.count = count;
     gwtLogger = Logger.getLogger("xapi");
   }
-  
+
   public void await(){
     gwtLogger.log(Level.WARNING, "Do not call CountdownLatch.await() in gwt; instead use X_Concurrent.await(latch, callback);");
   }
@@ -26,14 +26,14 @@ public class CountdownLatch {
   public long getCount() {
     return count;
   }
-  
+
   public void countDown(){
     count--;
   }
-  
+
   @Override
   public String toString() {
     return "CountDownLatch("+count+")";
   }
-  
+
 }

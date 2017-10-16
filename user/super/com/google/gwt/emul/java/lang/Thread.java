@@ -1,9 +1,9 @@
 package java.lang;
 
 /**
- * A <i>thread</i> is a thread of execution in a program. The Java 
- * Virtual Machine allows an application to have multiple threads of 
- * execution running concurrently. 
+ * A <i>thread</i> is a thread of execution in a program. The Java
+ * Virtual Machine allows an application to have multiple threads of
+ * execution running concurrently.
  * <p>
  * Compiled GWT does not have support for concurrency or blocking.
  * Although sleep can be achieved with a java applet,
@@ -17,10 +17,10 @@ package java.lang;
  * Using the reflection support, we can take translate a Class&lt;? extends Thread>
  * into a runAsync block of code which exports all reflection data needed to implement run()
  * as javascript commands into a web worker, which can be sent the script, a blob of
- * constants, and then accept "foreign object messages", to be able to operate on Objects 
+ * constants, and then accept "foreign object messages", to be able to operate on Objects
  * from the root page, and return Objects that make sense in the root page context.
  * <p>
- * It will actually be a subclass of Thread, called GwtThread, which will launch 
+ * It will actually be a subclass of Thread, called GwtThread, which will launch
  * a dedicated compile for that thread (it's own "classloader"), and the proxy
  * instance owned by the root page will handle de/serialization between threads.
  * <p>
@@ -32,13 +32,13 @@ package java.lang;
  * multi-classloader threaded environments; by transpiling the run method into reflection statements,
  * it will be possible to write code as if it is all running in the same environment,
  * but behind the scenes, just reduce everything to constants and reflection api calls.
- * 
+ *
  */
 public class Thread implements Runnable {
     interface Provider<T> {
       T get();
     }
-    
+
     static {
       //prepare our virtual thread manager
     }
@@ -48,21 +48,21 @@ public class Thread implements Runnable {
     private Runnable target;
 
     /**
-     * The minimum priority that a thread can have. 
+     * The minimum priority that a thread can have.
      */
     public final static int MIN_PRIORITY = 1;
    /**
-     * The default priority that is assigned to a thread. 
+     * The default priority that is assigned to a thread.
      */
     public final static int NORM_PRIORITY = 5;
     /**
-     * The maximum priority that a thread can have. 
+     * The maximum priority that a thread can have.
      */
     public final static int MAX_PRIORITY = 10;
 
     /* If stop was called before start */
     private boolean stopBeforeStart;
-    
+
     private static Provider<Thread> currentThread = new Provider<Thread>(){
       private transient Thread t;
       public Thread get() {
@@ -85,9 +85,9 @@ public class Thread implements Runnable {
     private Thread me;    // null
 
     private State state;
-    
+
     protected ClassLoader cl;
-    
+
     /**
      * Returns a reference to the currently executing thread object.
      *
@@ -98,18 +98,18 @@ public class Thread implements Runnable {
     }
 
     /**
-     * Causes the currently executing thread object to temporarily pause 
-     * and allow other threads to execute. 
+     * Causes the currently executing thread object to temporarily pause
+     * and allow other threads to execute.
      */
     public static void yield(){
       // does nothing in gwt.
       // might be used to ping workers to tell them to pause processing
     }
 
-    /** 
-     * Causes the currently executing thread to sleep (temporarily cease 
-     * execution) for the specified number of milliseconds, subject to 
-     * the precision and accuracy of system timers and schedulers. The thread 
+    /**
+     * Causes the currently executing thread to sleep (temporarily cease
+     * execution) for the specified number of milliseconds, subject to
+     * the precision and accuracy of system timers and schedulers. The thread
      * does not lose ownership of any monitors.
      *
      * @param      millis   the length of time to sleep in milliseconds.
@@ -122,7 +122,7 @@ public class Thread implements Runnable {
       sleep(millis, 0);
     }
     public static void sleep(long millis, int nanos) throws InterruptedException{
-      
+
     }
 
 
@@ -146,11 +146,11 @@ public class Thread implements Runnable {
     }
 
     /**
-     * Allocates a new <code>Thread</code> object. This constructor has 
+     * Allocates a new <code>Thread</code> object. This constructor has
      * the same effect as <code>Thread(null, null,</code>
-     * <i>gname</i><code>)</code>, where <b><i>gname</i></b> is 
-     * a newly generated name. Automatically generated names are of the 
-     * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer. 
+     * <i>gname</i><code>)</code>, where <b><i>gname</i></b> is
+     * a newly generated name. Automatically generated names are of the
+     * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer.
      *
      * @see     #Thread(ThreadGroup, Runnable, String)
      */
@@ -159,11 +159,11 @@ public class Thread implements Runnable {
     }
 
     /**
-     * Allocates a new <code>Thread</code> object. This constructor has 
+     * Allocates a new <code>Thread</code> object. This constructor has
      * the same effect as <code>Thread(null, target,</code>
-     * <i>gname</i><code>)</code>, where <i>gname</i> is 
-     * a newly generated name. Automatically generated names are of the 
-     * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer. 
+     * <i>gname</i><code>)</code>, where <i>gname</i> is
+     * a newly generated name. Automatically generated names are of the
+     * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer.
      *
      * @param   target   the object whose <code>run</code> method is called.
      * @see     #Thread(ThreadGroup, Runnable, String)
@@ -183,14 +183,14 @@ public class Thread implements Runnable {
     }
 
     /**
-     * Causes this thread to begin execution; 
+     * Causes this thread to begin execution;
      * This is achieved in gwt using javascript timeouts;
      * the scheduler tries to virtualize some functionality of threads,
      * but cannot achieve proper blocking, so beware discrepancies with normal java threading.
-     * 
+     *
      * In particular, {@link #sleep(long)} and {@link #yield()} will both throw unchecked exceptions,
      * which our scheduling virtualizer will catch to determine how long to wait until servicing a thread again.
-     * 
+     *
      * It is never legal to start a thread more than once.
      * In particular, a thread may not be restarted once it has completed
      * execution.
@@ -222,18 +222,18 @@ public class Thread implements Runnable {
           });
         }
     }
-    
+
     private static native void setTimeout(Runnable r)
     /*-{
        $wnd.setTimeout($entry(function(){r.@java.lang.Runnable::run()();}), 1);
     }-*/;
     /**
-     * If this thread was constructed using a separate 
-     * <code>Runnable</code> run object, then that 
-     * <code>Runnable</code> object's <code>run</code> method is called; 
-     * otherwise, this method does nothing and returns. 
+     * If this thread was constructed using a separate
+     * <code>Runnable</code> run object, then that
+     * <code>Runnable</code> object's <code>run</code> method is called;
+     * otherwise, this method does nothing and returns.
      * <p>
-     * Subclasses of <code>Thread</code> should override this method. 
+     * Subclasses of <code>Thread</code> should override this method.
      *
      * @see     #start()
      * @see     #stop()
@@ -257,9 +257,9 @@ public class Thread implements Runnable {
         //TODO: remove this thread from all active maps
     }
 
-    /** 
+    /**
      * Forces the thread to stop executing.
-     * 
+     *
      * In gwt, this merely prevents the thread from ever starting.
      */
     @Deprecated
@@ -277,11 +277,11 @@ public class Thread implements Runnable {
 
     /**
      * Interrupts this thread.
-     * 
+     *
      * Does nothing in gwt.
      */
     public void interrupt() {
-      
+
     }
 
     /**
@@ -292,8 +292,8 @@ public class Thread implements Runnable {
      * interrupted again, after the first call had cleared its interrupted
      * status and before the second call had examined it).
      *
-     * <p>A thread interruption ignored because a thread was not alive 
-     * at the time of the interrupt will be reflected by this method 
+     * <p>A thread interruption ignored because a thread was not alive
+     * at the time of the interrupt will be reflected by this method
      * returning false.
      *
      * @return  <code>true</code> if the current thread has been interrupted;
@@ -309,8 +309,8 @@ public class Thread implements Runnable {
      * Tests whether this thread has been interrupted.  The <i>interrupted
      * status</i> of the thread is unaffected by this method.
      *
-     * <p>A thread interruption ignored because a thread was not alive 
-     * at the time of the interrupt will be reflected by this method 
+     * <p>A thread interruption ignored because a thread was not alive
+     * at the time of the interrupt will be reflected by this method
      * returning false.
      *
      * @return  <code>true</code> if this thread has been interrupted;
@@ -331,8 +331,8 @@ public class Thread implements Runnable {
       return false;//TODO: store a flag
     }
     /**
-     * Tests if this thread is alive. A thread is alive if it has 
-     * been started and has not yet died. 
+     * Tests if this thread is alive. A thread is alive if it has
+     * been started and has not yet died.
      *
      * @return  <code>true</code> if this thread is alive;
      *          <code>false</code> otherwise.
@@ -352,7 +352,7 @@ public class Thread implements Runnable {
     }
 
     /**
-     * Changes the priority of this thread. 
+     * Changes the priority of this thread.
      */
     public final void setPriority(int newPriority) {
       if (newPriority > MAX_PRIORITY || newPriority < MIN_PRIORITY) {
@@ -372,12 +372,12 @@ public class Thread implements Runnable {
     }
 
     /**
-     * Changes the name of this thread to be equal to the argument 
-     * <code>name</code>. 
+     * Changes the name of this thread to be equal to the argument
+     * <code>name</code>.
      * <p>
-     * First the <code>checkAccess</code> method of this thread is called 
-     * with no arguments. This may result in throwing a 
-     * <code>SecurityException</code>. 
+     * First the <code>checkAccess</code> method of this thread is called
+     * with no arguments. This may result in throwing a
+     * <code>SecurityException</code>.
      *
      * @param      name   the new name for this thread.
      * @exception  SecurityException  if the current thread cannot modify this
@@ -403,29 +403,29 @@ public class Thread implements Runnable {
 
 
     /**
-     * Waits at most <code>millis</code> milliseconds for this thread to 
-     * die. A timeout of <code>0</code> means to wait forever. 
+     * Waits at most <code>millis</code> milliseconds for this thread to
+     * die. A timeout of <code>0</code> means to wait forever.
      *
      * @param      millis   the time to wait in milliseconds.
      * @exception  InterruptedException if any thread has interrupted
      *             the current thread.  The <i>interrupted status</i> of the
      *             current thread is cleared when this exception is thrown.
      */
-    public final synchronized void join(long millis) 
+    public final synchronized void join(long millis)
     throws InterruptedException {
-      
+
       //TODO: virtualize join by having the task manager ignore Threads waiting on others.
-      
+
       Thread t = currentThread();
       //make t wait on this
       if (t == this)
         return;
-      
+
     }
 
 
     /**
-     * Waits for this thread to die. 
+     * Waits for this thread to die.
      *
      * @exception  InterruptedException if any thread has interrupted
      *             the current thread.  The <i>interrupted status</i> of the
@@ -437,7 +437,7 @@ public class Thread implements Runnable {
 
     /**
      * Prints a stack trace of the current thread to the standard error stream.
-     * This method is used only for debugging. 
+     * This method is used only for debugging.
      *
      * @see     Throwable#printStackTrace()
      */
@@ -447,19 +447,19 @@ public class Thread implements Runnable {
 
 
     /**
-     * Returns a string representation of this thread, including the 
+     * Returns a string representation of this thread, including the
      * thread's name, priority, and thread group.
      *
      * @return  a string representation of this thread.
      */
     public String toString() {
-      return "Thread[" + getName() + "," + getPriority() + "," + 
+      return "Thread[" + getName() + "," + getPriority() + "," +
                 "" + "]";
     }
 
     /**
-     * Returns the identifier of this Thread.  
-     * 
+     * Returns the identifier of this Thread.
+     *
      * In gwt, we simply use the thread's hashcode
      *
      * @return this thread's ID.
@@ -470,36 +470,36 @@ public class Thread implements Runnable {
     }
 
     /**
-     * A thread state.  A thread can be in one of the following states: 
+     * A thread state.  A thread can be in one of the following states:
      * <ul>
      * <li>{@link #NEW}<br>
      *     A thread that has not yet started is in this state.
      *     </li>
      * <li>{@link #RUNNABLE}<br>
-     *     A thread executing in the Java virtual machine is in this state. 
+     *     A thread executing in the Java virtual machine is in this state.
      *     </li>
      * <li>{@link #BLOCKED}<br>
-     *     A thread that is blocked waiting for a monitor lock 
-     *     is in this state. 
+     *     A thread that is blocked waiting for a monitor lock
+     *     is in this state.
      *     </li>
      * <li>{@link #WAITING}<br>
-     *     A thread that is waiting indefinitely for another thread to 
-     *     perform a particular action is in this state. 
+     *     A thread that is waiting indefinitely for another thread to
+     *     perform a particular action is in this state.
      *     </li>
      * <li>{@link #TIMED_WAITING}<br>
-     *     A thread that is waiting for another thread to perform an action 
-     *     for up to a specified waiting time is in this state. 
+     *     A thread that is waiting for another thread to perform an action
+     *     for up to a specified waiting time is in this state.
      *     </li>
-     * <li>{@link #TERMINATED}<br> 
+     * <li>{@link #TERMINATED}<br>
      *     A thread that has exited is in this state.
      *     </li>
      * </ul>
      *
      * <p>
-     * A thread can be in only one state at a given point in time. 
+     * A thread can be in only one state at a given point in time.
      * These states are virtual machine states which do not reflect
      * any operating system thread states.
-     * 
+     *
      * @since   1.5
      * @see #getState
      */
@@ -508,7 +508,7 @@ public class Thread implements Runnable {
          * Thread state for a thread which has not yet started.
          */
         NEW,
-        
+
         /**
          * Thread state for a runnable thread.  A thread in the runnable
          * state is executing in the Java virtual machine but it may
@@ -516,39 +516,39 @@ public class Thread implements Runnable {
          * such as processor.
          */
         RUNNABLE,
-        
+
         /**
          * Thread state for a thread blocked waiting for a monitor lock.
          * A thread in the blocked state is waiting for a monitor lock
-         * to enter a synchronized block/method or 
+         * to enter a synchronized block/method or
          * reenter a synchronized block/method after calling
          * {@link Object#wait() Object.wait}.
          */
         BLOCKED,
-    
+
         /**
          * Thread state for a waiting thread.
-         * A thread is in the waiting state due to calling one of the 
+         * A thread is in the waiting state due to calling one of the
          * following methods:
          * <ul>
          *   <li>{@link Object#wait() Object.wait} with no timeout</li>
          *   <li>{@link #join() Thread.join} with no timeout</li>
          * </ul>
-         * 
+         *
          * <p>A thread in the waiting state is waiting for another thread to
-         * perform a particular action.  
+         * perform a particular action.
          *
          * For example, a thread that has called <tt>Object.wait()</tt>
-         * on an object is waiting for another thread to call 
-         * <tt>Object.notify()</tt> or <tt>Object.notifyAll()</tt> on 
-         * that object. A thread that has called <tt>Thread.join()</tt> 
+         * on an object is waiting for another thread to call
+         * <tt>Object.notify()</tt> or <tt>Object.notifyAll()</tt> on
+         * that object. A thread that has called <tt>Thread.join()</tt>
          * is waiting for a specified thread to terminate.
          */
         WAITING,
-        
+
         /**
          * Thread state for a waiting thread with a specified waiting time.
-         * A thread is in the timed waiting state due to calling one of 
+         * A thread is in the timed waiting state due to calling one of
          * the following methods with a specified positive waiting time:
          * <ul>
          *   <li>{@link #sleep Thread.sleep}</li>
@@ -569,7 +569,7 @@ public class Thread implements Runnable {
    * Returns the state of this thread.
    * This method is designed for use in monitoring of the system state,
    * not for synchronization control.
-   * 
+   *
    * @return this thread's state.
    * @since 1.5
    */
@@ -577,13 +577,13 @@ public class Thread implements Runnable {
       return state;
   }
 
-    
+
     /**
-     * Interface for handlers invoked when a <tt>Thread</tt> abruptly 
-     * terminates due to an uncaught exception. 
+     * Interface for handlers invoked when a <tt>Thread</tt> abruptly
+     * terminates due to an uncaught exception.
      * <p>When a thread is about to terminate due to an uncaught exception
      * the Java Virtual Machine will query the thread for its
-     * <tt>UncaughtExceptionHandler</tt> using 
+     * <tt>UncaughtExceptionHandler</tt> using
      * {@link #getUncaughtExceptionHandler} and will invoke the handler's
      * <tt>uncaughtException</tt> method, passing the thread and the
      * exception as arguments.
@@ -591,8 +591,8 @@ public class Thread implements Runnable {
      * explicitly set, then its <tt>ThreadGroup</tt> object acts as its
      * <tt>UncaughtExceptionHandler</tt>. If the <tt>ThreadGroup</tt> object
      * has no
-     * special requirements for dealing with the exception, it can forward 
-     * the invocation to the {@linkplain #getDefaultUncaughtExceptionHandler 
+     * special requirements for dealing with the exception, it can forward
+     * the invocation to the {@linkplain #getDefaultUncaughtExceptionHandler
      * default uncaught exception handler}.
      *
      * @see #setDefaultUncaughtExceptionHandler
@@ -600,8 +600,8 @@ public class Thread implements Runnable {
      * @see ThreadGroup#uncaughtException
      * @since 1.5
      */
-    public interface UncaughtExceptionHandler { 
-        /** 
+    public interface UncaughtExceptionHandler {
+        /**
          * Method invoked when the given thread terminates due to the
          * given uncaught exception.
          * <p>Any exception thrown by this method will be ignored by the
@@ -621,7 +621,7 @@ public class Thread implements Runnable {
     /**
      * Set the default handler invoked when a thread abruptly terminates
      * due to an uncaught exception, and no other handler has been defined
-     * for that thread. 
+     * for that thread.
      */
     public static void setDefaultUncaughtExceptionHandler(UncaughtExceptionHandler eh) {
          defaultUncaughtExceptionHandler = eh;
@@ -645,31 +645,35 @@ public class Thread implements Runnable {
      * <tt>ThreadGroup</tt> object is returned, unless this thread
      * has terminated, in which case <tt>null</tt> is returned.
      */
-    public UncaughtExceptionHandler getUncaughtExceptionHandler() { 
+    public UncaughtExceptionHandler getUncaughtExceptionHandler() {
         return uncaughtExceptionHandler != null ?
             uncaughtExceptionHandler : getDefaultUncaughtExceptionHandler();
     }
 
     /**
      * Set the handler invoked when this thread abruptly terminates
-     * due to an uncaught exception. 
+     * due to an uncaught exception.
      */
-    public void setUncaughtExceptionHandler(UncaughtExceptionHandler eh) { 
+    public void setUncaughtExceptionHandler(UncaughtExceptionHandler eh) {
         uncaughtExceptionHandler = eh;
     }
 
     /**
-     * Dispatch an uncaught exception to the handler. This method is 
+     * Dispatch an uncaught exception to the handler. This method is
      * intended to be called only by the JVM.
      */
     private void dispatchUncaughtException(Throwable e) {
         getUncaughtExceptionHandler().uncaughtException(this, e);
     }
-    
+
     public ClassLoader getContextClassLoader(){
       return cl;
     }
     public void setContextClassLoader(ClassLoader cl){
       this.cl = cl;
+    }
+
+    public static boolean holdsLock(Object o) {
+        return true;
     }
 }
