@@ -676,4 +676,8 @@ public class Thread implements Runnable {
     public static boolean holdsLock(Object o) {
         return true;
     }
+
+    public void setDaemon(boolean ignored) {
+
+    }
 }

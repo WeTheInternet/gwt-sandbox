@@ -17,9 +17,10 @@ import java.lang.reflect.Modifier;
  * <p>
  * Each method should be treated like GWT.create; you must send a Class literal,
  * not a class reference.
- * <p>
+ * <pre>
  * Literal: SomeClass.class<br>
  * Reference: Class<?> someClass;
+ * </pre>
  * <p>
  * Some methods will fail gracefully if you let a reference slip through. Gwt
  * production compiles will warn you if it can generate a sub-optimal solution,
