@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Holds the compiler output for one module.
  * TODO(skybrian) there will later be a separate Outbox for each set of binding properties.
  */
-class Outbox {
+public class Outbox {
 
   /**
    * The suffix that the GWT compiler uses when writing a sourcemap file.
@@ -54,7 +54,7 @@ class Outbox {
   private Job publishedJob; // may be null if the Result wasn't created by a Job.
   private Properties generatedSources;
 
-  Outbox(String id, Recompiler recompiler, Options options, TreeLogger logger)
+  public Outbox(String id, Recompiler recompiler, Options options, TreeLogger logger)
       throws UnableToCompleteException {
     Preconditions.checkArgument(isValidOutboxId(id));
     this.id = id;
@@ -70,14 +70,14 @@ class Outbox {
   /**
    * Forces the next recompile even if no input files have changed.
    */
-  void forceNextRecompile() {
+  public void forceNextRecompile() {
     recompiler.forceNextRecompile();
   }
 
   /**
    * A unique id for this outbox. (This should be treated as an opaque string.)
    */
-  String getId() {
+  public String getId() {
     return id;
   }
 
@@ -120,7 +120,7 @@ class Outbox {
   /**
    * Creates a Job whose output will be saved in this outbox.
    */
-  Job makeJob(Map<String, String> bindingProperties, TreeLogger parentLogger) {
+  public Job makeJob(Map<String, String> bindingProperties, TreeLogger parentLogger) {
     return new Job(this, bindingProperties, parentLogger, options);
   }
 
@@ -128,7 +128,7 @@ class Outbox {
    * Compiles the module again, possibly changing the output directory.
    * After returning, the result of the compile can be found via {@link Job#waitForResult}
    */
-  void recompile(Job job) {
+  public void recompile(Job job) {
     if (!job.wasSubmitted() || job.isDone()) {
       throw new IllegalStateException(
           "tried to recompile using a job in the wrong state:"  + job.getId());
@@ -171,14 +171,14 @@ class Outbox {
   /**
    * Returns the module name that will be sent to the compiler (before renaming).
    */
-  String getInputModuleName() {
+  public String getInputModuleName() {
     return recompiler.getInputModuleName();
   }
 
   /**
    * Returns the module name last received from the compiler (after renaming).
    */
-  String getOutputModuleName() {
+  public String getOutputModuleName() {
     return recompiler.getOutputModuleName();
   }
 
@@ -188,7 +188,7 @@ class Outbox {
    *
    * @throws RuntimeException if unable
    */
-  File findSourceMapForOnePermutation() {
+  public File findSourceMapForOnePermutation() {
     String moduleName = recompiler.getOutputModuleName();
 
     List<File> sourceMapFiles = getOutputDir().findSourceMapFiles(moduleName);
@@ -212,7 +212,7 @@ class Outbox {
    *
    * @throws RuntimeException if unable
    */
-  File findSourceMap(String strongName) {
+  public File findSourceMap(String strongName) {
     File dir = findSymbolMapDir();
     File file = new File(dir, strongName + SOURCEMAP_FILE_SUFFIX);
     if (!file.isFile()) {
@@ -226,7 +226,7 @@ class Outbox {
    *
    * @throws RuntimeException if unable
    */
-  File findSymbolMap(String strongName) {
+  public File findSymbolMap(String strongName) {
     File dir = findSymbolMapDir();
     File file = new File(dir, strongName + ".symbolMap");
     if (!file.isFile()) {
@@ -255,7 +255,7 @@ class Outbox {
    *   it starts with "gen/"), a generated file.
    * @return bytes in the file, or null if there's no such source file.
    */
-  InputStream openSourceFile(String path) throws IOException {
+  public InputStream openSourceFile(String path) throws IOException {
 
     if (path.startsWith("gen/")) {
       // generated file?
@@ -320,7 +320,7 @@ class Outbox {
    * with the module name (after renaming).
    * @return The location of the file, which might not actually exist.
    */
-  File getOutputFile(String urlPath) {
+  public File getOutputFile(String urlPath) {
     return new File(getOutputDir().getWarDir(), urlPath);
   }
 
@@ -332,7 +332,7 @@ class Outbox {
    * with the module name (after renaming).
    * @return The location of the file, which might not actually exist.
    */
-  File getDeployFile(String urlPath) {
+  public File getDeployFile(String urlPath) {
     return new File(getOutputDir().getDeployDir(), urlPath);
   }
 
@@ -340,15 +340,15 @@ class Outbox {
    * Returns the log file from the last time this module was recompiled. This changes
    * after each compile.
    */
-  File getCompileLog() {
+  public File getCompileLog() {
     return recompiler.getLastLog();
   }
 
-  File getGenDir() {
+  public File getGenDir() {
     return getOutputDir().getGenDir();
   }
 
-  File getWarDir() {
+  public File getWarDir() {
     return getOutputDir().getWarDir();
   }
 
@@ -364,7 +364,7 @@ class Outbox {
    * If it's not there, returns the empty list.
    * @return a PolicyFile record for each entry in the policy file.
    */
-  List<PolicyFile> readRpcPolicyManifest() throws IOException {
+  public List<PolicyFile> readRpcPolicyManifest() throws IOException {
     return getOutputDir().readRpcPolicyManifest(getOutputModuleName());
   }
 }

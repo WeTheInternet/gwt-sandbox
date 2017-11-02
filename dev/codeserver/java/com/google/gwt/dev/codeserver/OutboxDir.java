@@ -30,7 +30,7 @@ import java.io.IOException;
  * In addition, there are some files that are shared between recompiles, such as
  * the unit cache.
  */
-class OutboxDir {
+public class OutboxDir {
   private static final String COMPILE_DIR_PREFIX = "compile-";
   private static final int MAX_CREATE_DIRECTORY_RETRIES = 50;
 
@@ -73,7 +73,7 @@ class OutboxDir {
    * @param dir the directory to use. It need not exist, but
    * the parent dir should exist.
    */
-  static OutboxDir create(File dir, TreeLogger logger) throws IOException {
+  public static OutboxDir create(File dir, TreeLogger logger) throws IOException {
     if (!dir.isDirectory() && !dir.mkdir()) {
       throw new IOException("can't create app directory: " + dir);
     }

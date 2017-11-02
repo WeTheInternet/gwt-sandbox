@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <p>Jobs are thread-safe.
  */
-class Job {
+public class Job {
   private static final ConcurrentMap<String, AtomicInteger> prefixToNextId =
       new ConcurrentHashMap<String, AtomicInteger>();
 
@@ -91,7 +91,7 @@ class Job {
    *     (Otherwise, more than one permutation will be compiled.)
    * @param parentLogger  The parent of the logger that will be used for this job.
    */
-  Job(Outbox box, Map<String, String> bindingProperties,
+  public Job(Outbox box, Map<String, String> bindingProperties,
       TreeLogger parentLogger, Options options) {
     this.id = chooseNextId(box);
     this.outbox = box;
@@ -122,53 +122,53 @@ class Job {
    * <p>Note that the number doesn't have any particular relationship
    * with the output directory's name since jobs can be submitted out of order.
    */
-  String getId() {
+  public String getId() {
     return id;
   }
 
   /**
    * The module name that will be sent to the compiler.
    */
-  String getInputModuleName() {
+  public String getInputModuleName() {
     return inputModuleName;
   }
 
   /**
    * The binding properties to use for this recompile.
    */
-  ImmutableSortedMap<String, String> getBindingProperties() {
+  public ImmutableSortedMap<String, String> getBindingProperties() {
     return bindingProperties;
   }
 
   /**
    * The outbox that will serve the job's result (if successful).
    */
-  Outbox getOutbox() {
+  public Outbox getOutbox() {
     return outbox;
   }
 
   /**
    * Returns the logger for this job. (Creates it on first use.)
    */
-  TreeLogger getLogger() {
+  public TreeLogger getLogger() {
     return logSupplier.get();
   }
 
   /**
    * Blocks until we have the result of this recompile.
    */
-  Result waitForResult() {
+  public Result waitForResult() {
     return Futures.getUnchecked(getFutureResult());
   }
 
   /**
    * Returns a Future that will contain the result of this recompile.
    */
-  ListenableFuture<Result> getFutureResult() {
+  public ListenableFuture<Result> getFutureResult() {
     return result;
   }
 
-  Exception getListenerFailure() {
+  public Exception getListenerFailure() {
     return listenerFailure;
   }
 
@@ -352,7 +352,7 @@ class Job {
   /**
    * The result of a recompile.
    */
-  static class Result {
+  public static class Result {
 
     /**
      * non-null if successful
@@ -378,6 +378,18 @@ class Job {
 
     boolean isOk() {
       return error == null;
+    }
+
+    public CompileDir getOutputDir() {
+      return outputDir;
+    }
+
+    public String getOutputModuleName() {
+      return outputModuleName;
+    }
+
+    public Throwable getError() {
+      return error;
     }
   }
 }

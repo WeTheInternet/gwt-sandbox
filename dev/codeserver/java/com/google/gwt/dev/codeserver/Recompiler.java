@@ -86,7 +86,7 @@ public class Recompiler {
   private final Options options;
   private final UnitCache unitCache;
 
-  Recompiler(OutboxDir outboxDir, LauncherDir launcherDir,
+  public Recompiler(OutboxDir outboxDir, LauncherDir launcherDir,
       String inputModuleName, Options options,
       UnitCache unitCache, MinimalRebuildCacheManager minimalRebuildCacheManager) {
     this.outboxDir = outboxDir;
@@ -420,7 +420,7 @@ public class Recompiler {
     return outputModuleName.get();
   }
 
-  ResourceLoader getResourceLoader() {
+  public ResourceLoader getResourceLoader() {
     return resourceLoader.get();
   }
 

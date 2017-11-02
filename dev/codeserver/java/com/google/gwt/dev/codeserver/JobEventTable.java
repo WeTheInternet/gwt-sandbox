@@ -29,7 +29,7 @@ import java.util.Set;
  * Contains the current status of each {@link Job}.
  * (That is, the most recently reported event.)
  */
-class JobEventTable {
+public class JobEventTable {
 
   /**
    * The most recent event sent by each job.
@@ -51,14 +51,14 @@ class JobEventTable {
   /**
    * Returns the event that's currently published for the given job.
    */
-  synchronized JobEvent getPublishedEvent(Job job) {
+  public synchronized JobEvent getPublishedEvent(Job job) {
     return eventsByJobId.get(job.getId());
   }
 
   /**
    * Publishes the progress of a job after it changed. (This replaces any previous progress.)
    */
-  synchronized void publish(JobEvent event, TreeLogger logger) {
+  public synchronized void publish(JobEvent event, TreeLogger logger) {
     String id = event.getJobId();
 
     eventsByJobId.put(id, event);
@@ -88,11 +88,11 @@ class JobEventTable {
   /**
    * Returns true if the job's status was ever published.
    */
-  synchronized boolean wasSubmitted(Job job) {
+  public synchronized boolean wasSubmitted(Job job) {
     return eventsByJobId.containsKey(job.getId());
   }
 
-  synchronized boolean isActive(Job job) {
+  public synchronized boolean isActive(Job job) {
     return activeJobIds.contains(job.getId());
   }
 
@@ -116,7 +116,7 @@ class JobEventTable {
    * submitted.
    * TODO: hook this up.
    */
-  synchronized ImmutableList<JobEvent> getActiveEvents() {
+  public synchronized ImmutableList<JobEvent> getActiveEvents() {
     ImmutableList.Builder<JobEvent> builder = ImmutableList.builder();
     for (String id : activeJobIds) {
       JobEvent p = eventsByJobId.get(id);

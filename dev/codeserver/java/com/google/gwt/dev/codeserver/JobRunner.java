@@ -78,7 +78,7 @@ public class JobRunner {
   /**
    * Submits a job to be executed. (Returns immediately.)
    */
-  synchronized void submit(final Job job) {
+  public synchronized void submit(final Job job) {
     if (table.wasSubmitted(job)) {
       throw new IllegalStateException("job already submitted: " + job.getId());
     }

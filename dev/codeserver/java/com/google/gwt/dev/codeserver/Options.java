@@ -161,7 +161,7 @@ public class Options {
   /**
    * Returns the arguments passed to {@link #parseArgs}.
    */
-  ImmutableList<String> getArgs() {
+  public ImmutableList<String> getArgs() {
     return args;
   }
 
@@ -204,7 +204,7 @@ public class Options {
   /**
    * The top level of the directory tree where the code server keeps compiler output.
    */
-  File getWorkDir() {
+  public File getWorkDir() {
     return workDir;
   }
 
@@ -213,14 +213,14 @@ public class Options {
    * or null if not supplied.
    * (For example, nocache.js and public resource files will go here.)
    */
-  File getLauncherDir() {
+  public File getLauncherDir() {
     return launcherDir;
   }
 
   /**
    * The names of the module that will be compiled (along with all its dependencies).
    */
-  List<String> getModuleNames() {
+  public List<String> getModuleNames() {
     return moduleNames;
   }
 
@@ -235,64 +235,70 @@ public class Options {
    * Compiles faster by creating a JavaScript file per class. Can't be turned on at the same time as
    * shouldCompileIncremental().
    */
-  boolean isIncrementalCompileEnabled() {
+  public boolean isIncrementalCompileEnabled() {
     return incremental;
   }
 
   /**
    * Whether the codeServer should start without precompiling modules.
    */
-  boolean getNoPrecompile() {
+  public boolean getNoPrecompile() {
     return noPrecompile;
   }
 
   /**
+   * Allows callers to programmatically disable precompile without futzing around with args.
+   */
+  public void setNoPrecompile(boolean noPrecompile) {
+    this.noPrecompile = noPrecompile;
+  }
+  /**
    * The tree logger level.
    */
-  TreeLogger.Type getLogLevel() {
+  public TreeLogger.Type getLogLevel() {
     return logLevel;
   }
 
   /**
    * Java source level compatibility,
    */
-  SourceLevel getSourceLevel() {
+  public SourceLevel getSourceLevel() {
     return sourceLevel;
   }
 
   /**
    * If true, just compile the modules, then exit.
    */
-  boolean isCompileTest() {
+  public boolean isCompileTest() {
     return isCompileTest;
   }
 
   /**
    * The IP address where the code server should listen.
    */
-  String getBindAddress() {
+  public String getBindAddress() {
     return bindAddress;
   }
 
-  int getCompileTestRecompiles() {
+  public int getCompileTestRecompiles() {
     return compileTestRecompiles;
   }
 
   /**
    * The hostname to put in a URL pointing to the code server.
    */
-  String getPreferredHost() {
+  public String getPreferredHost() {
     return preferredHost;
   }
 
   /**
    * The port where the code server will listen for HTTP requests.
    */
-  int getPort() {
+  public int getPort() {
     return port;
   }
 
-  List<File> getSourcePath() {
+  public List<File> getSourcePath() {
     return sourcePath;
   }
 
@@ -300,26 +306,26 @@ public class Options {
    * If true, run the compiler in "strict" mode, which fails the compile if any Java file
    * cannot be compiled, whether or not it is used.
    */
-  boolean isFailOnError() {
+  public boolean isFailOnError() {
     return failOnError;
   }
 
-  boolean shouldGenerateJsInteropExports() {
+  public boolean shouldGenerateJsInteropExports() {
     return generateJsInteropExports;
   }
 
-  WhitelistRegexFilter getJsInteropExportFilter() {
+  public WhitelistRegexFilter getJsInteropExportFilter() {
     return jsInteropExportFilter;
   }
 
-  JsOutputOption getOutput() {
+  public JsOutputOption getOutput() {
     if (output == null) {
       return isIncrementalCompileEnabled() ? JsOutputOption.OBFUSCATED : JsOutputOption.PRETTY;
     }
     return output;
   }
 
-  ListMultimap<String, String> getProperties() {
+  public ListMultimap<String, String> getProperties() {
     return properties;
   }
 

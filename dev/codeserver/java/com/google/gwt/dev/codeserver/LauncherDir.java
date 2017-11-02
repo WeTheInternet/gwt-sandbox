@@ -40,7 +40,7 @@ import java.net.URL;
  * This is usually enough to launch Super Dev Mode without running the
  * production GWT compiler first.
  */
-class LauncherDir {
+public class LauncherDir {
   private final File launcherDir;
   private final Options options;
 
@@ -106,7 +106,7 @@ class LauncherDir {
   /**
    * Returns a new LauncherDir or null if not enabled.
    */
-  static LauncherDir maybeCreate(Options options) {
+  public static LauncherDir maybeCreate(Options options) {
     if (options.getLauncherDir() == null) {
       return null;
     }
