@@ -28,6 +28,20 @@ import static javaemul.internal.InternalPreconditions.checkNotNull;
 public abstract class AbstractMap<K, V> implements Map<K, V> {
 
   /**
+   * Ensures that RPC will consider type parameter K to be exposed.
+   * It _should_ be pruned by dead code elimination.
+   */
+  @SuppressWarnings("unused")
+  private K exposeKey;
+
+  /**
+   * Ensures that RPC will consider type parameter V to be exposed.
+   * It _should_ be pruned by dead code elimination.
+   */
+  @SuppressWarnings("unused")
+  private V exposeValue;
+
+  /**
    * A mutable {@link Map.Entry} shared by several {@link Map} implementations.
    */
   public static class SimpleEntry<K, V> extends AbstractEntry<K, V> {

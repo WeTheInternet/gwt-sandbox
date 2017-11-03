@@ -18,12 +18,14 @@
 
 package java.util.concurrent;
 
-import java.util.AbstractMap;
+import java.util.AbstractHashMap;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+
 
 /**
  * Minimal emulation of {@link java.util.concurrent.ConcurrentHashMap}.
@@ -34,7 +36,7 @@ import java.util.Set;
  * @param <K> key type
  * @param <V> value type
  */
-public class ConcurrentHashMap<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> {
+public class ConcurrentHashMap<K, V> extends AbstractHashMap<K, V> implements ConcurrentMap<K, V> {
 
   private final Map<K, V> backingMap;
 
@@ -143,14 +145,22 @@ public class ConcurrentHashMap<K, V> extends AbstractMap<K, V> implements Concur
     return Collections.enumeration(keySet());
   }
 
-  @Override
   public Object clone() {
     return new ConcurrentHashMap<K, V>(this);
   }
 
   @Override
+  protected boolean equals(Object value1, Object value2) {
+    return java.util.Objects.equals(value1, value2);
+  }
+
+  @Override
   protected int getHashCode(Object key) {
-    // Coerce to int -- our classes all do this, but a user-written class might not.
+    // Coerce to int -- our classes all do this, but a user-written hashCode function may not.
+    // While I can say all day "you shouldn't put a random js function to be your hashcode",
+    // it is javascript at the end of the day, and you really can do what you want with it.
     return ~~key.hashCode();
   }
+
+
 }

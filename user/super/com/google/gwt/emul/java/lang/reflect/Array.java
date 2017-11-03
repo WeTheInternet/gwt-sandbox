@@ -19,6 +19,7 @@ import static javaemul.internal.InternalPreconditions.checkArgument;
 import static javaemul.internal.InternalPreconditions.checkNotNull;
 
 import javaemul.internal.ArrayHelper;
+import javaemul.internal.NativeArray;
 
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.UnsafeNativeLong;
@@ -448,8 +449,9 @@ public final class Array {
     int seedId = constId(componentType);
     Object result = newArray(seedId, length);
     if (result == null) {
-      throw new UnsupportedOperationException("Array for type "+componentType+" not initialized. "
-          +"Call Array.newInstance("+componentType.getName()+".class, 0) to register this type");
+      throw new UnsupportedOperationException("Array for type " + componentType + " not initialized. "
+          + "Call Array.newInstance(" + componentType.getName() + ".class, 0) to register this type");
+    }
     return result;
   }
 
@@ -471,6 +473,7 @@ public final class Array {
   public static Object newInstance(Class<?> componentType, int... dimensions)
   throws IllegalArgumentException, NegativeArraySizeException {
     return newMultiDimArray(componentType, dimensions);
+  }
 
   public static Object newMultiDimArray(Class<?> componentType, int[] dimensions)
   throws IllegalArgumentException, NegativeArraySizeException {
@@ -485,9 +488,12 @@ public final class Array {
     if (position < dimensions.length) {
       int size = dimensions[position];
       Class<?> component = arrayType.getComponentType();
+
+      NativeArray arr = ArrayHelper.asNativeArray(array);
+
       while (size-->0) {
         Object child = newArray(constId(component), 0);
-        setUnsafe(array, size, child);
+        arr.concat(child);
         fillArray(child, component, dimensions, position+1);
       }
     }
@@ -503,7 +509,7 @@ public final class Array {
    }-*/;
 
   public static <T> T[] clone(T[] array) {
-    return javaemul.internal.ArrayHelper.clone(array, 0, array.length);
+    return ArrayHelper.clone(array, 0, array.length);
   }
 
   public static native boolean[] clone(boolean[] array)
@@ -551,7 +557,7 @@ public final class Array {
   public static native String join(Object array)
   /*-{
      // No type checking because the code that knows about this method will
-     // do it's own checking if required.  For now, this is only used by
+     // do it's own checking if required.  For now, this hidden method is only used by
      // the annotation support, who can guarantee the value is never null,
      // and always a native array.
      return array.join(", ");
