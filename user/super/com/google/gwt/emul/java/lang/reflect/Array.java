@@ -54,6 +54,16 @@ public final class Array {
     }
   }
 
+  public static byte getBoolean(Object array, int index) {
+    checkArgument(array instanceof boolean[]);
+    return getByteImpl(array, index);
+  }
+
+  private static boolean getBooleanImpl(Object array, int index) {
+    boolean[] typedArray = (boolean[]) array;
+    return typedArray[index];
+  }
+
   public static byte getByte(Object array, int index) {
     checkArgument(array instanceof byte[]);
     return getByteImpl(array, index);
@@ -380,12 +390,13 @@ public final class Array {
   /*-{
     return cls.@java.lang.Class::constId;
   }-*/;
+
   private static native <T> boolean initFactory(int id, T[] seed)
   /*-{
      if (!@java.lang.reflect.Array::factories[id]) {
        @java.lang.reflect.Array::factories[id] = @javaemul.internal.ArrayHelper::createFrom([Ljava/lang/Object;I)(seed, 0);
      }
-   }-*/;n
+   }-*/;
 
   private static native void saveType(int id, Class<?> arrayClass)
   /*-{
