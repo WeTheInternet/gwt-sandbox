@@ -25,7 +25,7 @@ import junit.framework.TestCase;
 import java.util.Set;
 
 /**
- * Test for the module def loading
+ * Test for the module def loading.
  */
 public class ModuleDefLoaderTest extends TestCase {
 

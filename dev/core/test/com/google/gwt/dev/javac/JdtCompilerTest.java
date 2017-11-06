@@ -52,7 +52,7 @@ public class JdtCompilerTest extends JdtCompilerTestBase {
   }
 
   /**
-   * Test for issue 8566
+   * Test for issue 8566.
    */
   public void testCompileEmptyFileWithImports() throws Exception {
     assertUnitCompilesWithNoErrors("com.example.EmptyWithImports",

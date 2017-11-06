@@ -15,12 +15,12 @@
  */
 package com.google.gwt.dev.jjs.ast;
 
-import java.io.Serializable;
-
 import com.google.gwt.dev.javac.JsInteropUtil;
 import com.google.gwt.dev.jjs.SourceInfo;
 import com.google.gwt.dev.jjs.SourceOrigin;
 import com.google.gwt.dev.util.StringInterner;
+
+import java.io.Serializable;
 
 /**
  * Java field definition.

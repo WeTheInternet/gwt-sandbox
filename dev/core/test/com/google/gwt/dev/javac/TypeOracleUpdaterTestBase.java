@@ -220,9 +220,8 @@ public abstract class TypeOracleUpdaterTestBase extends TestCase {
       }
       return results.toArray(new TypeData[results.size()]);
     }
-
   }
-  
+
   protected static final CheckedJavaResource CU_AfterAssimilate = new CheckedJavaResource(
       AfterAssimilate.class) {
     @Override
@@ -772,7 +771,7 @@ public abstract class TypeOracleUpdaterTestBase extends TestCase {
       return null;
     }
   }
-  
+
   protected static void recordAssignability(Map<JClassType, Set<JClassType>> assignabilityMap,
       JClassType from, JClassType to) {
     Set<JClassType> set = assignabilityMap.get(from);

@@ -27,7 +27,7 @@ import java.io.ByteArrayOutputStream;
  */
 public class CompiledClassTest extends TestCase {
   static byte[] dummyByteCode = {
-    (byte) 0xDE, (byte) 0xAD, (byte)0xBE, (byte)0xEF
+    (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF
   };
 
   public void testCompiledClassSerialization() throws Exception {

@@ -150,7 +150,6 @@ public class GeneratedClassnameFinderTest extends TestCase {
     assertEquals(1, new TopLevelTester().getGeneratedClasses().size());
   }
 
-
 }
 
 /**
@@ -234,7 +233,7 @@ class JavacWeirdnessTester {
   private abstract static class Apple implements Fruit {
   }
 
-  private static interface Fruit {
+  private interface Fruit {
   }
 
   private static class Fuji extends Apple {
@@ -381,7 +380,7 @@ class StaticTester {
   private abstract static class Apple implements Fruit {
   }
 
-  private static interface Fruit {
+  private interface Fruit {
     void bar();
   }
 

@@ -58,7 +58,6 @@ public class ResolveGenericsTest extends AsmTestCase {
     }
   }
 
-
   /**
    * A logger that fails the tests if an error is logged.
    */

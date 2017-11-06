@@ -18,7 +18,6 @@ package com.google.gwt.dev.javac;
 import com.google.gwt.dev.javac.testing.impl.Java7MockResources;
 import com.google.gwt.dev.util.arg.SourceLevel;
 
-
 /**
  * Test class for language features introduced in Java 7.
  *

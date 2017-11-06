@@ -468,7 +468,6 @@ public class JsniReferenceResolverTest extends CheckerTestCase {
     shouldGenerateNoWarning(buggy);
   }
 
-
   public void testJsoStaticMethod() {
     MockJavaResource buggy = JavaResourceBase.createMockJavaResource("Buggy",
        "class Buggy {",
@@ -741,10 +740,8 @@ public class JsniReferenceResolverTest extends CheckerTestCase {
         "  }-*/;",
         "}");
 
-
     shouldGenerateNoError(buggy);
   }
-
 
   public void testImportedClassField() {
     MockJavaResource buggy = JavaResourceBase.createMockJavaResource("some.Buggy",

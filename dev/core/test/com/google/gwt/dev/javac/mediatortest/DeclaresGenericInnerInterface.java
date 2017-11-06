@@ -22,7 +22,7 @@ package com.google.gwt.dev.javac.mediatortest;
  */
 public class DeclaresGenericInnerInterface<T> {
   /**
-   * A generic inner interface
+   * A generic inner interface.
    */
   public interface Inner<T> { }
 }
