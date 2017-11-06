@@ -100,7 +100,7 @@ public class JEnumTypeTest extends TestCase {
   }
 
   /**
-   * Test method for {@link JEnumType#getConstructors()}
+   * Test method for {@link JEnumType#getConstructors()}.
    *
    * @throws NotFoundException
    * @throws NotFoundException
@@ -114,7 +114,7 @@ public class JEnumTypeTest extends TestCase {
   }
 
   /**
-   * Test method for {@link JEnumType#getMethods()}
+   * Test method for {@link JEnumType#getMethods()}.
    *
    * @throws NotFoundException
    */
@@ -150,7 +150,7 @@ public class JEnumTypeTest extends TestCase {
     JClassType aClass = (JClassType) constants[0].getType().isClass();
     {
       JMethod[] methods = aClass.getInheritableMethods();
-      assertEquals(10, methods.length);
+      assertEquals(15, methods.length);
       boolean found = false;
       for (JMethod method : methods) {
         if ("name".equals(method.getName())) {
@@ -162,7 +162,7 @@ public class JEnumTypeTest extends TestCase {
     }
     {
       JMethod[] methods = aClass.getOverridableMethods();
-      assertEquals(4, methods.length);
+      assertEquals(9, methods.length);
       // TODO(jat): verify getExtra is from A's anonymous subclass of
       // EnumInterface when/if that is implemented.
       boolean found = false;

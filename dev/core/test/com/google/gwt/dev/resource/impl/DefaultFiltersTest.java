@@ -19,7 +19,6 @@ import com.google.gwt.dev.resource.impl.DefaultFilters.FilterFileType;
 
 import junit.framework.TestCase;
 
-import org.apache.tools.ant.types.ZipScanner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -579,7 +578,7 @@ public class DefaultFiltersTest extends TestCase {
   private ResourceFilterString getAntFilter(String includes[],
       String excludes[], String skips[], boolean defaultExcludes,
       final FilterFileType filterFileType, String tag) {
-    final ZipScanner scanner = DefaultFilters.getScanner(includes, excludes,
+    final PathMatcher scanner = DefaultFilters.getScanner(includes, excludes,
         skips, defaultExcludes, true);
     return new ResourceFilterString(new ResourceFilter() {
       @Override

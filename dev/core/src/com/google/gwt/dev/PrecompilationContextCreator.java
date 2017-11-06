@@ -56,9 +56,9 @@ class PrecompilationContextCreator {
     final RebindOracle[] rebindOracles = new RebindOracle[propertyCombinations.size()];
     final StandardGeneratorContext generatorContext =
         new StandardGeneratorContext(compilerContext, compilationState, generatorArtifacts, true);
-    BindingProperty[] orderedProperties = propertyCombinations.getOrderedProperties();
+    final BindingProperty[] orderedProperties = propertyCombinations.getOrderedProperties();
     final ConfigurationProperties configurationProperties = new ConfigurationProperties(module);
-    Deque<Rule> rules = module.getRules();
+    final Deque<Rule> rules = module.getRules();
     for (int i = 0; i < propertyCombinations.size(); ++i) {
       BindingProperties bindingProperties = new BindingProperties(orderedProperties,
           propertyCombinations.getOrderedPropertyValues(i), configurationProperties);

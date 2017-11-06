@@ -200,7 +200,7 @@ java.lang.reflect.AnnotatedElement
 
   public static boolean isClassMetadataEnabled() {
     // This body may be replaced by the compiler
-    return false;
+    return true;
   }
 
   /**
@@ -223,7 +223,7 @@ java.lang.reflect.AnnotatedElement
     } else {
       synthesizeClassNamesFromTypeId(clazz, typeId);
     }
-    clazz.constId = clazz.remember();
+    clazz.constId = clazz.doRemember();
     return clazz;
   }
 
@@ -288,7 +288,7 @@ java.lang.reflect.AnnotatedElement
     clazz.@Class::canonicalName =
         @Class::join(*)('.', [packageName , @Class::join(*)(".", compoundName)]);
     clazz.@Class::simpleName = compoundName[compoundName.length - 1];
-    clazz.@Class::constId = clazz.@Class::remember()();
+    clazz.@Class::constId = clazz.@Class::doRemember()();
   }-*/;
 
   /**
@@ -434,7 +434,7 @@ java.lang.reflect.AnnotatedElement
 
   protected static boolean isRememberClassByName() {
     // TODO replace System.getProperty calls such that they become JStringLiterals
-    return "true".equals(System.getProperty("gwt.reflect.remember.names", "true"));
+    return "true".equals(System.getProperty("gwt.reflect.remember.names", "false"));
   }
 
   /**
@@ -453,14 +453,23 @@ java.lang.reflect.AnnotatedElement
     arrayLiterals = null;
   }
 
+  private int doRemember() {
+    return isRememberClassByName() ? rememberName() : remember();
+  }
+
   private native int remember()
   /*-{
     var pos = @java.lang.Class::CONSTS.c.length;
     @java.lang.Class::CONSTS.c[pos] = this;
-    if (@java.lang.Class::isRememberClassByName()()) {
-      var n = this.@java.lang.Class::getName()();
-      @java.lang.Class::CONSTS.n[n] = this;
-    }
+    return pos;
+  }-*/;
+
+  private native int rememberName()
+  /*-{
+    var pos = @java.lang.Class::CONSTS.c.length;
+    @java.lang.Class::CONSTS.c[pos] = this;
+    var n = this.@java.lang.Class::getName()();
+    @java.lang.Class::CONSTS.n[n] = this;
     return pos;
   }-*/;
 

@@ -91,7 +91,7 @@ public class ResourceAccumulatorManager {
         while (true) {
           try {
             refreshResources();
-            Thread.sleep(100);
+            Thread.sleep(10);
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -99,6 +99,7 @@ public class ResourceAccumulatorManager {
       }
       {
         setName("ResourceAccumulatorManager");
+        setDaemon(true);
       }
     }.start();
   }
@@ -154,6 +155,7 @@ public class ResourceAccumulatorManager {
     checkCompileFreshness(fresh, stale, false);
   }
   public static void checkCompileFreshness(final Runnable fresh, final Runnable stale, final boolean runFreshAfterStale) {
+
     lock.lock();
     // We need to hold the lock longer than the call of this method;
     // since we are sending callbacks to code that is free (encouraged) to
@@ -194,7 +196,6 @@ public class ResourceAccumulatorManager {
 
     boolean isFresh = true;
     try {
-      lock.lock();
 
       Iterator<Entry<DirectoryAndPathPrefix, ResourceAccumulator>> entriesIterator =
           resourceAccumulators.entrySet().iterator();
@@ -203,6 +204,10 @@ public class ResourceAccumulatorManager {
         Entry<DirectoryAndPathPrefix, ResourceAccumulator> entry = entriesIterator.next();
         DirectoryAndPathPrefix directoryAndPathPrefix = entry.getKey();
         if (directoryAndPathPrefix.isOld()) {
+          isFresh = false;
+          break;
+        }
+        if (!entry.getValue().isWatchServiceActive()) {
           isFresh = false;
           break;
         }
@@ -219,11 +224,6 @@ public class ResourceAccumulatorManager {
       } else {
         ifStale.run();
       }
-    }
-    if (isFresh) {
-      ifFresh.run();
-    } else {
-      ifStale.run();
     }
   }
 

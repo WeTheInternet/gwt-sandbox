@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
+import java.nio.file.WatchEvent.Kind;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +36,10 @@ class ResourceAccumulator {
 
   private static final boolean WATCH_FILE_CHANGES_DEFAULT = Boolean.parseBoolean(
       System.getProperty("gwt.watchFileChanges", "true"));
+  private static final boolean WATCH_FILE_MODIFICATIONS_DEFAULT = Boolean.parseBoolean(
+      System.getProperty("gwt.watchFileModifications", "true"));
+  private static final Kind<?>[] WITH_MODIFICATIONS = {ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY};
+  private static final Kind<?>[] WITHOUT_MODIFICATIONS = {ENTRY_CREATE, ENTRY_DELETE};
 
   private Map<AbstractResource, ResourceResolution> resolutionsByResource;
   private Multimap<Path, Path> childPathsByParentPath;
@@ -42,6 +47,7 @@ class ResourceAccumulator {
   private WeakReference<PathPrefixSet> pathPrefixSetRef;
   private WatchService watchService;
   private boolean watchFileChanges = WATCH_FILE_CHANGES_DEFAULT;
+  private boolean watchFileModifications = WATCH_FILE_MODIFICATIONS_DEFAULT;
   private Set<Path> stale;
 
   public ResourceAccumulator(Path rootDirectory, PathPrefixSet pathPrefixSet) {
@@ -124,7 +130,7 @@ class ResourceAccumulator {
           onNewPath(child);
         } else if (eventKind == ENTRY_DELETE) {
           onRemovedPath(child);
-        } else if (eventKind == ENTRY_MODIFY) {
+        } else if (watchFileModifications && eventKind == ENTRY_MODIFY) {
           onModified(child);
         }
       }
@@ -157,7 +163,8 @@ class ResourceAccumulator {
 
     if (watchService != null) {
       // Start watching the directory.
-      directory.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+      directory.register(watchService,
+          watchFileModifications ? WITH_MODIFICATIONS : WITHOUT_MODIFICATIONS);
     }
 
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {

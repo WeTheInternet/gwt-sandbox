@@ -40,6 +40,7 @@ import org.eclipse.jdt.internal.compiler.env.IBinaryTypeAnnotation;
 import org.eclipse.jdt.internal.compiler.env.ITypeAnnotationWalker;
 import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.BinaryTypeBinding.ExternalAnnotationStatus;
 import org.eclipse.jdt.internal.compiler.lookup.ClassScope;
 import org.eclipse.jdt.internal.compiler.lookup.CompilationUnitScope;
 import org.eclipse.jdt.internal.compiler.lookup.LookupEnvironment;
@@ -53,7 +54,7 @@ import java.util.List;
  */
 public class BinaryTypeReferenceRestrictionsCheckerTest extends TestCase {
   /**
-   * Mocks a binary type
+   * Mocks a binary type.
    */
   static class MockBinaryType implements IBinaryType {
     private final String qualifiedTypeName;
@@ -89,6 +90,11 @@ public class BinaryTypeReferenceRestrictionsCheckerTest extends TestCase {
     @Override
     public char[] getFileName() {
       return (qualifiedTypeName.replace('.', File.separatorChar) + ".java").toCharArray();
+    }
+
+    @Override
+    public char[] getModule() {
+      return null;
     }
 
     @Override
@@ -170,6 +176,11 @@ public class BinaryTypeReferenceRestrictionsCheckerTest extends TestCase {
     public ITypeAnnotationWalker enrichWithExternalAnnotationsFor(
         ITypeAnnotationWalker walker, Object member, LookupEnvironment environment) {
       return walker;
+    }
+
+    @Override
+    public ExternalAnnotationStatus getExternalAnnotationStatus() {
+      return null;
     }
   }
 

@@ -1118,15 +1118,21 @@ public class GwtAstBuilder {
 
       // and add any locals that were storing captured outer variables as arguments to the call
       // first
+      int samArg = 0;
       for (JField localField : locals) {
-        samCall.addArg(new JFieldRef(info, new JThisRef(info, innerLambdaClass),
-            localField, innerLambdaClass));
+        JType samArgumentType = lambdaMethod.getParams().get(samArg).getType();
+        JExpression capture = new JFieldRef(info, new JThisRef(info, innerLambdaClass),
+            localField, innerLambdaClass);
+        samCall.addArg(maybeInsertCasts(capture, samArgumentType));
+        samArg++;
       }
 
       // and now we propagate the rest of the actual interface method parameters on the end
       // (e.g. ClickEvent e)
       for (JParameter param : samMethod.getParams()) {
-        samCall.addArg(param.makeRef(info));
+        JType samArgumentType = lambdaMethod.getParams().get(samArg).getType();
+        samCall.addArg(maybeInsertCasts(param.makeRef(info), samArgumentType));
+        samArg++;
       }
 
       // we either add a return statement, or don't, depending on what the interface wants
@@ -1749,12 +1755,12 @@ public class GwtAstBuilder {
             || !referredMethodBinding.isVarargs()
             || (paramNumber < varArg)) {
           destParam = referredMethodBinding.parameters[paramNumber];
-          paramExpr = boxOrUnboxExpression(paramExpr, samParameterBinding, destParam);
+          paramExpr = maybeInsertCasts(paramExpr, samParameterBinding, destParam);
           samCall.addArg(paramExpr);
         } else if (!samParameterBinding.isArrayType()) {
           // else add trailing parameters to var-args initializer list for an array
           destParam = referredMethodBinding.parameters[varArg].leafComponentType();
-          paramExpr = boxOrUnboxExpression(paramExpr, samParameterBinding, destParam);
+          paramExpr = maybeInsertCasts(paramExpr, samParameterBinding, destParam);
           varArgInitializers.add(paramExpr);
         }
         paramNumber++;
@@ -1773,7 +1779,7 @@ public class GwtAstBuilder {
       // TODO(rluble): Make this a call to JjsUtils.makeMethodEndStatement once boxing/unboxing
       // is handled there.
       if (samMethod.getType() != JPrimitiveType.VOID) {
-        JExpression samExpression = boxOrUnboxExpression(samCall, referredMethodBinding.returnType,
+        JExpression samExpression = maybeInsertCasts(samCall, referredMethodBinding.returnType,
             declarationSamBinding.returnType);
         samMethodBody.getBlock().addStmt(maybeBoxOrUnbox(samExpression, x).makeReturnStatement());
       } else {
@@ -1814,7 +1820,10 @@ public class GwtAstBuilder {
       push(allocLambda);
     }
 
-    private JExpression boxOrUnboxExpression(JExpression expr, TypeBinding fromType,
+    /**
+     * Inserts necessary casts for boxing, unboxing or erasure reasons if needed.
+     */
+    private JExpression maybeInsertCasts(JExpression expr, TypeBinding fromType,
         TypeBinding toType) {
       if (fromType == TypeBinding.VOID || toType == TypeBinding.VOID) {
         return expr;
@@ -1833,6 +1842,16 @@ public class GwtAstBuilder {
         return expr;
       }
       return new JCastOperation(expr.getSourceInfo(), typeMap.get(castToType), expr);
+    }
+
+    /**
+     * Inserts necessary casts for boxing, unboxing or erasure reasons if needed.
+     */
+    private JExpression maybeInsertCasts(JExpression expr, JType toType) {
+      if (expr.getType() == toType) {
+        return expr;
+      }
+      return new JCastOperation(expr.getSourceInfo(), toType, expr);
     }
 
     @Override
@@ -2894,23 +2913,6 @@ public class GwtAstBuilder {
       return method.locals.get(b).makeRef(info);
     }
 
-//    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b, MethodInfo cur) {
-//      JVariable variable = cur.locals.get(b);
-//      assert variable != null : "Null variable ref found in "+cur.method+" in "+cur.body
-//          + "\n body: "+cur.scope
-//          + " @"+info+";\nlocals: "+cur.locals
-//          + "\nBinding: "+b;
-//      if (variable instanceof JLocal) {
-//        return new JLocalRef(info, (JLocal) variable);
-//      } else {
-//        return new JParameterRef(info, (JParameter) variable);
-//      }
-//    }
-//
-//    private JExpression makeLocalRef(SourceInfo info, LocalVariableBinding b) {
-//      return makeLocalRef(info, b, curMethod);
-//    }
-
     private JThisRef makeThisRef(SourceInfo info) {
       return new JThisRef(info, curClass.getClassOrInterface());
     }
@@ -2918,10 +2920,6 @@ public class GwtAstBuilder {
     private JExpression resolveThisReference(SourceInfo info, ReferenceBinding targetType,
         boolean exactMatch, BlockScope scope) {
       targetType = (ReferenceBinding) targetType.erasure();
-//      if (targetType.isInterface()) {
-//        // Java8 super reference to default method from subtype, X.super.someDefaultMethod
-//        return makeThisRef(info);
-//      }
 
       Object[] path = scope.getEmulationPath(targetType, exactMatch, false);
       if (path == null) {
@@ -3344,10 +3342,6 @@ public class GwtAstBuilder {
             // throw new InternalCompilerException("No emulation path.");
             return null;
           }
-//        VariableBinding[] path = nearestMethodScope.getEmulationPath(b);
-//        if (path == null) {
-//          result = makeLocalRef(info, b);
-//        } else {
           assert path.length == 1;
           if (curMethod.scope.isInsideInitializer()
               && path[0] instanceof SyntheticArgumentBinding) {

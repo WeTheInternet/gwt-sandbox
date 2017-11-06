@@ -15,7 +15,7 @@
  */
 package java.lang.reflect;
 
-import jsinterop.annotations.JsIgnore;
+//import jsinterop.annotations.JsIgnore;
 
 /**
  * This interface makes {@link java.lang.reflect.Type} available to GWT clients.
@@ -24,7 +24,7 @@ import jsinterop.annotations.JsIgnore;
  */
 public interface Type {
 
-  @JsIgnore
+//  @JsIgnore
   default String getTypeName() {
     // All types will include a toString method, but if they wish to make toString
     // more informative than the default typeName, they can override this method.

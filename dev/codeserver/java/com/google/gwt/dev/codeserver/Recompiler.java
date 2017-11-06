@@ -114,7 +114,7 @@ public class Recompiler {
    * Compiles the first time, while Super Dev Mode is starting up.
    * Either this method or {@link #initWithoutPrecompile} should be called first.
    */
-  synchronized Job.Result precompile(Job job) throws UnableToCompleteException {
+  public synchronized Job.Result precompile(Job job) throws UnableToCompleteException {
     Result result = compile(job);
     job.onFinished(result);
     assert result.isOk();
@@ -131,7 +131,7 @@ public class Recompiler {
    *
    * @param job should already be in the "in progress" state.
    */
-  synchronized Job.Result recompile(Job job) {
+  public synchronized Job.Result recompile(Job job) {
 
     Job.Result result;
     try {
@@ -197,7 +197,7 @@ public class Recompiler {
    * Creates a dummy output directory without compiling the module.
    * Either this method or {@link #precompile} should be called first.
    */
-  synchronized Job.Result initWithoutPrecompile(TreeLogger logger)
+  public synchronized Job.Result initWithoutPrecompile(TreeLogger logger)
       throws UnableToCompleteException {
 
     long startTime = System.currentTimeMillis();

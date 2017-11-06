@@ -184,7 +184,12 @@ public class CompilationUnitTypeOracleUpdaterFromSourceTest extends TypeOracleUp
     assertEquals(1, typeOracle.getTypes().length);
   }
 
-  public void testJava8InterfaceExclusions() throws TypeOracleException {
+  /**
+   * Minimum source level is now java 8,
+   * so instead of hiding default and static interface methods,
+   * we now want to assert that the default is (now) to retain them.
+   */
+  public void testJava8InterfaceInclusions() throws TypeOracleException {
     String java8Interface = Joiner.on("\n").join(
         "package test.java8;",
         "interface Java8Interface {",
@@ -198,8 +203,10 @@ public class CompilationUnitTypeOracleUpdaterFromSourceTest extends TypeOracleUp
     resources.add(CU_Object);
     buildTypeOracle();
 
-    assertEquals(1, typeOracle.findType("test.java8.Java8Interface").getMethods().length);
+    assertEquals(3, typeOracle.findType("test.java8.Java8Interface").getMethods().length);
     assertEquals("m", typeOracle.findType("test.java8.Java8Interface").getMethods()[0].getName());
+    assertEquals("n", typeOracle.findType("test.java8.Java8Interface").getMethods()[1].getName());
+    assertEquals("o", typeOracle.findType("test.java8.Java8Interface").getMethods()[2].getName());
     assertNotNull(typeOracle.findType(CU_Object.getTypeName()));
     assertEquals(2, typeOracle.getTypes().length);
   }

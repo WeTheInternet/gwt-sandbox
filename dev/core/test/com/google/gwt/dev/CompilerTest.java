@@ -16,6 +16,7 @@
 package com.google.gwt.dev;
 
 import com.google.gwt.core.ext.TreeLogger;
+import com.google.gwt.core.ext.TreeLogger.Type;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.dev.UnstableNestedAnonymousGenerator.OutputVersion;
 import com.google.gwt.dev.cfg.EntryMethodHolderGenerator;
@@ -957,7 +958,7 @@ public class CompilerTest extends ArgProcessorTestBase {
 
     assertEquals(SourceLevel.JAVA8, SourceLevel.getBestMatchingVersion("1.7"));
     assertEquals(SourceLevel.JAVA8, SourceLevel.getBestMatchingVersion("1.8"));
-    assertEquals(SourceLevel.JAVA8, SourceLevel.getBestMatchingVersion("1.9"));
+    assertEquals(SourceLevel.JAVA9, SourceLevel.getBestMatchingVersion("1.9"));
 
     // not proper version strings => default to JAVA8.
     assertEquals(SourceLevel.JAVA8, SourceLevel.getBestMatchingVersion("1.6u3"));
@@ -2554,7 +2555,8 @@ public class CompilerTest extends ArgProcessorTestBase {
       options.addModuleName(topLevelModule);
       options.setWarDir(new File(firstCompileWorkDir, "war"));
       options.setExtraDir(new File(firstCompileWorkDir, "extra"));
-      TreeLogger logger = TreeLogger.NULL;
+      TreeLogger logger = //new PrintWriterTreeLogger();
+                            TreeLogger.NULL;
 
       // Run the compiler once here.
       Compiler.compile(logger, options);

@@ -270,7 +270,15 @@ public class UnitTestTreeLogger extends TreeLogger {
       missingEntries.removeAll(actualEntries);
       List<LogEntry> unexpectedEntries = Lists.newArrayList(actualEntries);
       unexpectedEntries.removeAll(expectedEntries);
-      Assert.fail("Wrong log count: missing=" + missingEntries + ", unexpected=" + unexpectedEntries);
+      try {
+        Assert.fail("Wrong log count: missing=" + missingEntries + ", unexpected=" + unexpectedEntries);
+      } finally {
+        System.err.println("Offending logs (" + expectedEntries.size()+"): ");
+        for (LogEntry log : actualEntries) {
+          System.err.println(log);
+        }
+
+      }
     }
 
     for (int i = 0; i < expectedEntries.size(); ++i) {

@@ -27,7 +27,9 @@ import com.google.gwt.core.ext.linker.ArtifactSet;
 import com.google.gwt.core.ext.typeinfo.TypeOracle;
 import com.google.gwt.dev.CompilerContext;
 import com.google.gwt.dev.MinimalRebuildCache;
+import com.google.gwt.dev.cfg.ConfigurationProperty;
 import com.google.gwt.dev.cfg.Properties;
+import com.google.gwt.dev.cfg.Property;
 import com.google.gwt.dev.javac.CompilationProblemReporter;
 import com.google.gwt.dev.javac.CompilationState;
 import com.google.gwt.dev.javac.CompilationUnit;
@@ -448,7 +450,7 @@ public class UnifyAst implements UnifyAstView {
             getExpression(gwtGetPropertyCall.getArgs().get(1)) : null;
       } catch (UnableToCompleteException e) {
         error(gwtGetPropertyCall,
-            "Only string constants may be used as arguments to System.getProperty()");
+            "Only string constants may be used as property names in System.getProperty()");
         return null;
       }
 
@@ -459,12 +461,28 @@ public class UnifyAst implements UnifyAstView {
         return null;
       }
 
+      if (isMultivaluedProperty(propertyName)) {
+        error(gwtGetPropertyCall,
+            "Property '" + propertyName + "' is multivalued. " +
+                "Multivalued properties are not supported by System.getProperty().");
+        return null;
+      }
+
       if (defaultValueExpression != null) {
         defaultValueExpression = accept(defaultValueExpression);
       }
 
       return JPermutationDependentValue.createRuntimeProperty(
           program, gwtGetPropertyCall.getSourceInfo(), propertyName, defaultValueExpression);
+    }
+
+    private boolean isMultivaluedProperty(String propertyName) {
+      Property property = compilerContext.getModule().getProperties().find(propertyName);
+      if (!(property instanceof ConfigurationProperty)) {
+        return false;
+      }
+
+      return ((ConfigurationProperty) property).allowsMultipleValues();
     }
 
     private JStringLiteral getStringLiteral(JExpression inst) throws UnableToCompleteException {
@@ -1645,6 +1663,9 @@ public class UnifyAst implements UnifyAstView {
     // we use a config property to allow use-defined magic methods.
     List<UnifyAstListener> listeners = new ArrayList<UnifyAstListener>();
     try {
+      if (rebindPermutationOracle.getGeneratorContext() == null) {
+        return listeners;
+      }
       PropertyOracle props = rebindPermutationOracle.getGeneratorContext().getPropertyOracle();
       List<String> methods = new ArrayList<String>();
       if (props == null) {

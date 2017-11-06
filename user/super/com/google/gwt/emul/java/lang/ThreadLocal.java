@@ -30,6 +30,9 @@ public class ThreadLocal<T> {
   private T value;
 
   public T get() {
+    if (value == null) {
+      value = initialValue();
+    }
     return value;
   }
 
@@ -45,5 +48,9 @@ public class ThreadLocal<T> {
     ThreadLocal<S> threadLocal = new ThreadLocal<>();
     threadLocal.set(supplier.get());
     return threadLocal;
+  }
+
+  protected T initialValue() {
+    return null;
   }
 }
