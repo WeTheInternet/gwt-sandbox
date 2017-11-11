@@ -19,7 +19,6 @@ import java.util.Queue;
 
 public class MultiDimArrayInjector implements MagicMethodGenerator, UnifyAstListener {
 
-
   private JMethod registerArray;
   private JMethod newArrayMethod;
 
@@ -49,12 +48,6 @@ public class MultiDimArrayInjector implements MagicMethodGenerator, UnifyAstList
     List<JExpression> emptyDims = Lists.create(), sizedDims;
     JType type = ast.translate(clazz.getRefType());
 
-    JType cur = type;
-    while (cur instanceof JArrayType) {
-      cur = ((JArrayType)cur).getElementType();
-      emptyDims = Lists.add(emptyDims, null);
-    }
-
     if (args.size() == 3) {
       // we have a typed call to GwtReflect.newArray(Class, int, int); we know we have two dimensions
       // the Array.newInstance call is (Class, [int), which is a length of 2
@@ -75,7 +68,7 @@ public class MultiDimArrayInjector implements MagicMethodGenerator, UnifyAstList
 
     JClassLiteral classLiteral = null;
 
-    cur = type;
+    JType cur = type;
     while (cur instanceof JArrayType) {
       // Add array type wrappers for the number of requested dimensions
       cur = ((JArrayType) cur).getElementType();

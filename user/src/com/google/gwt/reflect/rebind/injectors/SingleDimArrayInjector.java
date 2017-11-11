@@ -47,22 +47,16 @@ UnifyAstListener {
         .toArray(new JExpression[2]);
       return new JMethodCall(info, null, newArrayMethod, args);
     }
-    JType cur;
-    final JType type = cur = ast.translate(clazz.getRefType());
+    final JType type = ast.translate(clazz.getRefType());
 
-    // Add absent array dimensions in case use supplies a Class[].class
     List<JExpression> dims = Lists.create(methodCall.getArgs().get(1));
-    while (cur instanceof JArrayType) {
-      dims = Lists.add(dims, null);
-      cur = ((JArrayType) cur).getElementType();
-    }
 
     // Toss on an extra array dimension
     final JArrayType arrayType = ast.getProgram().getTypeArray(type);
 
     // Collect up the class literals
-    JClassLiteral classLit = null;
-    cur = arrayType;
+    JClassLiteral classLit;
+    JType cur = arrayType;
     while (cur instanceof JArrayType) {
       cur = ((JArrayType) cur).getElementType();
     }

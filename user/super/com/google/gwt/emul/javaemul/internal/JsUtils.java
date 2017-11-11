@@ -56,11 +56,27 @@ public class JsUtils {
     return map[key];
   }-*/;
 
+  @UncheckedCast
+  public static native <T> T getIndex(Object map, int key) /*-{
+    return map[key];
+  }-*/;
+
   public static native void setProperty(Object map, String key, Object value) /*-{
     map[key] = value;
   }-*/;
 
+  public static native void setIndex(Object map, int key, Object value) /*-{
+    map[key] = value;
+  }-*/;
+
   public static native void setPropertySafe(Object map, String key, Object value) /*-{
+    try {
+      // This may throw exception in strict mode.
+      map[key] = value;
+    } catch(ignored) { }
+  }-*/;
+
+  public static native void setIndexSafe(Object map, int key, Object value) /*-{
     try {
       // This may throw exception in strict mode.
       map[key] = value;

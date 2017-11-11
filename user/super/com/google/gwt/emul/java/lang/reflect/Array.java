@@ -20,6 +20,7 @@ import static javaemul.internal.InternalPreconditions.checkNotNull;
 
 import javaemul.internal.ArrayHelper;
 import javaemul.internal.NativeArray;
+import javaemul.internal.JsUtils;
 
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.UnsafeNativeLong;
@@ -48,10 +49,11 @@ public final class Array {
       return getLongImpl(array, index);
     } else if (array instanceof short[]) {
       return getShortImpl(array, index);
-    } else  {
-      checkArgument(array instanceof Object[]);
+    } else if (array instanceof Object[]) {
       Object[] typedArray = (Object[]) array;
       return typedArray[index];
+    } else {
+      return JsUtils.getIndex(array, index);
     }
   }
 
@@ -220,7 +222,7 @@ public final class Array {
       } else if (value instanceof Double) {
         setDouble(array, index, ((Double) value).doubleValue());
       } else {
-        checkArgument(false);
+        JsUtils.setIndex(array, index, value);
       }
     }
   }
@@ -362,7 +364,7 @@ public final class Array {
   }
 
   private static JavaScriptObject factories = JavaScriptObject.createArray();
-  private static JavaScriptObject classes = JavaScriptObject.createArray();
+  private static NativeArray classes = new NativeArray();
 
   public static <T> T[] register(T[] array, Class componentType) {
     if (array == null) {
@@ -402,18 +404,6 @@ public final class Array {
   private static native void saveType(int id, Class<?> arrayClass)
   /*-{
     @java.lang.reflect.Array::classes[id] = arrayClass;
-  }-*/;
-
-  private static native Class<?> findType(int id, int length)
-  /*-{
-    var cls = @java.lang.reflect.Array::classes[id];
-    while(length-->0) {
-      if (!cls) {
-        return null;
-      }
-      cls = @java.lang.reflect.Array::classes[cls.@java.lang.Class::constId];
-    }
-    return cls;
   }-*/;
 
   /**
@@ -477,15 +467,34 @@ public final class Array {
 
   public static Object newMultiDimArray(Class<?> componentType, int[] dimensions)
   throws IllegalArgumentException, NegativeArraySizeException {
-    Class<?> arrayType = findType(constId(componentType), dimensions.length);
+    Class<?> cls = componentType;
+    for (int i = dimensions.length; i-->0;) {
+      int constId = constId(cls);
+      cls = JsUtils.getIndex(classes, constId);
+      if (cls == null) {
+        assert false : "Misconfigured use of array reflection; cannot find registered array type for " + componentType;
+        throw new IllegalArgumentException();
+      }
+    }
+    final Class<?> arrayType = cls;
     int size = dimensions.length > 0 ? dimensions[0] : 0;
     Object result = newArray(constId(arrayType), size);
-    fillArray(result, arrayType, dimensions, 0);
+
+    // Now, compute how many dimensions to leave empty
+    // (however many array dimensions are on the source componentType)
+    int skipDims = 0;
+    cls = componentType;
+    while (cls.isArray()) {
+      cls = cls.getComponentType();
+      skipDims ++;
+    }
+
+    fillArray(result, arrayType, dimensions, dimensions.length - skipDims, 0);
     return result;
   }
 
-  private static void fillArray(Object array, Class<?> arrayType, int[] dimensions, int position) {
-    if (position < dimensions.length) {
+  private static void fillArray(Object array, Class<?> arrayType, int[] dimensions, int fillDims, int position) {
+    if (position < fillDims) {
       int size = dimensions[position];
       Class<?> component = arrayType.getComponentType();
 
@@ -494,7 +503,7 @@ public final class Array {
       while (size-->0) {
         Object child = newArray(constId(component), 0);
         arr.concat(child);
-        fillArray(child, component, dimensions, position+1);
+        fillArray(child, component, dimensions, fillDims,position+1);
       }
     }
   }
