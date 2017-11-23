@@ -807,6 +807,10 @@ public class GwtReflect {
     }
   }
 
+  public static Package getPackage(final String name, ClassLoader backup) {
+    return GwtReflectJre.getPackage(name, backup);
+  }
+
   public static <T> Constructor<T> getPublicConstructor(final Class<T> c,
       final Class<?>... params) {
     try {

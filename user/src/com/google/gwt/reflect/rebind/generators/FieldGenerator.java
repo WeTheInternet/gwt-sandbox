@@ -287,7 +287,17 @@ public abstract class FieldGenerator extends MemberGenerator implements MagicMet
 
       appendAnnotationSupplier(logger, instantiate, field, retention, ctx);
 
-      instantiate.print(");");
+      instantiate.print(")");
+
+//      if (retention.keepTypeParameters()) {
+//          instantiate.println()
+//                     .println(".withType(");
+//          final com.google.gwt.core.ext.typeinfo.JType genericType = field.getType();
+//          printTypeBuilder(genericType, instantiate);
+//          instantiate.println(")");
+//      }
+
+      instantiate.print(";");
 
       final String src = out.toString();
       pw.println(src);

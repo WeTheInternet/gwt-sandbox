@@ -7,7 +7,7 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.reflect.shared.ReflectUtil;
 
 /**
- * 
+ *
  */
 public class Field extends AccessibleObject implements Member {
 
@@ -15,6 +15,7 @@ public class Field extends AccessibleObject implements Member {
   private transient String signature;
 
   private JavaScriptObject accessor;
+  private Type genericType;
 
   // Generics infrastructure
 
@@ -46,7 +47,12 @@ public class Field extends AccessibleObject implements Member {
   /**
    */
   public Type getGenericType() {
-    return getType();
+    return genericType == null ? getType() : genericType;
+  }
+
+  public Field withGenericType(Type type) {
+    this.genericType = type;
+    return this;
   }
 
   /**

@@ -655,4 +655,18 @@ public abstract class MemberGenerator {
     return false;
   }
 
+  public void printTypeBuilder(JType type, MethodBuffer out) {
+    if (type.isPrimitive() != null) {
+
+    } else if (type.isArray() != null) {
+
+    } else if (type.isParameterized() != null) {
+
+    } else if (type.isWildcard() != null) {
+
+    } else if (type.isRawType() != null) {
+
+    } else if (type.isGenericType() != null){
+    }
+  }
 }

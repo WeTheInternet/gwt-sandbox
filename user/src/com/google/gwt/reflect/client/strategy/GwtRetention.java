@@ -64,7 +64,7 @@ import com.google.gwt.reflect.shared.GwtReflect;
 @Retention(RetentionPolicy.CLASS)
 public @interface GwtRetention {
 
-  final int 
+  final int
     PUBLIC = 1,
     PRIVATE = 2,
     PROTECTED = 4,
@@ -132,14 +132,14 @@ public @interface GwtRetention {
    * just remember to always access members by their declaring class),
    */
   boolean keepPublicSuperMembers() default true;
-  
+
   /**
    * If you want to keep your parameter annotations, you must set this member to true
    * <p>
    * If it is a common request to keep complete jvm parity,
-   * this default might change, so there is no harm in explicitly setting it 
+   * this default might change, so there is no harm in explicitly setting it
    * to false when you are trimming code bloat.
-   * 
+   *
    */
   int annotationRetention() default ReflectionStrategy.RUNTIME;
 
@@ -147,12 +147,20 @@ public @interface GwtRetention {
    * If you want to keep your parameter annotations, you must set this member to true
    * <p>
    * If it is a common request to keep complete jvm parity,
-   * this default might change, so there is no harm in explicitly setting it 
+   * this default might change, so there is no harm in explicitly setting it
    * to false when you are trimming code bloat.
-   * 
+   *
    */
   boolean keepParameterAnnotations() default false;
-  
+
+  /**
+   * @return true if you want to keep type parameter information on a given member.
+   *
+   * The default is false as there should, generally, be fewer cases where this is required.
+   * {@code List<Foo>} being the most likely use case to have this.
+   */
+  boolean keepTypeParameters() default false;
+
   /**
    * Any additional dependencies to declare?
    * <p>
