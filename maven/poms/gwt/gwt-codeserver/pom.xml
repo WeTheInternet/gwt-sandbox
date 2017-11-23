@@ -18,5 +18,33 @@
         <groupId>net.wetheinter</groupId>
         <artifactId>gwt-dev</artifactId>
       </dependency>
+
+      <!--
+      These are all now optional in gwt-dev, but we'll make them required here.
+      If you still use legacy dev mode, you should depend on gwt-codeserver to get these
+      (or add them yourself).
+       -->
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-servlets</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-annotations</artifactId>
+        <exclusions>
+          <exclusion>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>apache-jsp</artifactId>
+      </dependency>
     </dependencies>
 </project>
