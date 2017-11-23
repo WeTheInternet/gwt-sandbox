@@ -19,14 +19,12 @@ import com.google.gwt.core.ext.Generator;
 import com.google.gwt.resources.gss.ast.CssDotPathNode;
 import com.google.gwt.resources.gss.ast.CssJavaExpressionNode;
 import com.google.gwt.resources.gss.ast.CssRuntimeConditionalRuleNode;
+import com.google.gwt.thirdparty.common.css.compiler.ast.*;
 import com.google.gwt.thirdparty.common.css.compiler.ast.CssAtRuleNode.Type;
-import com.google.gwt.thirdparty.common.css.compiler.ast.CssConditionalBlockNode;
-import com.google.gwt.thirdparty.common.css.compiler.ast.CssConditionalRuleNode;
-import com.google.gwt.thirdparty.common.css.compiler.ast.CssNode;
-import com.google.gwt.thirdparty.common.css.compiler.ast.CssRootNode;
-import com.google.gwt.thirdparty.common.css.compiler.ast.CssTree;
-import com.google.gwt.thirdparty.common.css.compiler.ast.CssValueNode;
+import com.google.gwt.thirdparty.common.css.compiler.passes.CodeBuffer;
 import com.google.gwt.thirdparty.common.css.compiler.passes.CompactPrinter;
+import com.google.gwt.thirdparty.common.css.compiler.passes.CompactPrintingVisitor;
+import com.google.gwt.thirdparty.common.css.compiler.passes.TemplateCompactPrintingVisitor;
 
 import java.util.Stack;
 
@@ -53,7 +51,7 @@ import java.util.Stack;
  * will be translated to
  * {@code "(com.foo.bar() ? (\".foo{padding:5px}\") : (\".foo{padding:15px}\")) + (\".bar{width:10px}\")"}
  */
-public class CssPrinter extends CompactPrinter {
+public class CssPrinter extends CompactPrintingVisitor implements CssCompilerPass {
   /**
    * This value is used by {@link #concat} to help create a more balanced AST
    * tree by producing parenthetical expressions.
@@ -74,11 +72,11 @@ public class CssPrinter extends CompactPrinter {
   private int concatenationNumber;
 
   public CssPrinter(CssTree tree) {
-    super(tree);
+    super(tree.getVisitController(), new CodeBuffer());
   }
 
   public CssPrinter(CssNode node) {
-    super(node);
+    super(node.getVisitController(), new CodeBuffer());
   }
 
   @Override
@@ -103,7 +101,9 @@ public class CssPrinter extends CompactPrinter {
     masterStringBuilder = new StringBuilder();
     concatenationNumber = 0;
 
-    super.runPass();
+    resetBuffer();
+
+    visitController.startVisit(this);
 
     css = masterStringBuilder
         .toString()
@@ -111,6 +111,10 @@ public class CssPrinter extends CompactPrinter {
         .replaceAll(" \\+ \\(\"\"\\)", "")
         // remove possible empty string concatenation '("") + ' at the  beginning
         .replaceAll("^\\(\"\"\\) \\+ ", "");
+  }
+
+  private void resetBuffer() {
+    buffer.reset();
   }
 
   @Override
@@ -211,5 +215,9 @@ public class CssPrinter extends CompactPrinter {
     resetBuffer();
 
     return content;
+  }
+
+  private String getOutputBuffer() {
+    return buffer.getOutput();
   }
 }
