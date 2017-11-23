@@ -412,7 +412,7 @@ public final class JdtUtil {
   }
 
   public static String signature(TypeBinding binding) {
-    assert !binding.isIntersectionType18() && !binding.isIntersectionType();
+    assert !binding.isIntersectionType18() && !binding.isIntersectionType() : "Intersection not allowed: " + binding.debugName();
     if (binding.isBaseType()) {
       return String.valueOf(binding.sourceName());
     } else {
