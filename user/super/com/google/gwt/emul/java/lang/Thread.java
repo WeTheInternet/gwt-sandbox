@@ -145,41 +145,24 @@ public class Thread implements Runnable {
   this.me = this;
     }
 
-    /**
-     * Allocates a new <code>Thread</code> object. This constructor has
-     * the same effect as <code>Thread(null, null,</code>
-     * <i>gname</i><code>)</code>, where <b><i>gname</i></b> is
-     * a newly generated name. Automatically generated names are of the
-     * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer.
-     *
-     * @see     #Thread(ThreadGroup, Runnable, String)
-     */
     public Thread() {
   init(null, "Thread-" + hashCode(), 0);
     }
 
-    /**
-     * Allocates a new <code>Thread</code> object. This constructor has
-     * the same effect as <code>Thread(null, target,</code>
-     * <i>gname</i><code>)</code>, where <i>gname</i> is
-     * a newly generated name. Automatically generated names are of the
-     * form <code>"Thread-"+</code><i>n</i>, where <i>n</i> is an integer.
-     *
-     * @param   target   the object whose <code>run</code> method is called.
-     * @see     #Thread(ThreadGroup, Runnable, String)
-     */
     public Thread(Runnable target) {
   init(target, "Thread-" + hashCode(), 0);
     }
 
-    /**
-     * Allocates a new <code>Thread</code> object.
-     *
-     * @param   target   the object whose <code>run</code> method is called.
-     * @param   name     the name of the new thread.
-     */
+    public Thread(ThreadGroup group, Runnable target) {
+  init(target, "Thread-" + hashCode(), 0);
+    }
+
     public Thread(Runnable target, String name) {
-  init(target, name, 0);
+        init(target, name, 0);
+    }
+
+    public Thread(ThreadGroup group, Runnable target, String name) {
+        init(target, name, 0);
     }
 
     /**
