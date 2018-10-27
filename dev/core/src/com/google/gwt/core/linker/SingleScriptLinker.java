@@ -160,9 +160,32 @@ public class SingleScriptLinker extends SelectionScriptLinker {
     out.print("})();");
     out.newlineOpt();
 
+    writeMagicComment(logger, context, out);
+
     return emitString(logger, out.toString(), context.getModuleName()
         + ".nocache.js");
   }
+
+  private void writeMagicComment(TreeLogger logger, LinkerContext context, DefaultTextOutput out) {
+
+  }
+
+  protected String getSourceMapUrl(LinkerContext context, String strongName) {
+    String val = getStringConfigurationProperty(context, "includeSourceMapUrl",  "false");
+
+    if ("false".equalsIgnoreCase(val)) {
+      return null;
+    }
+
+    if ("true".equalsIgnoreCase(val)) {
+      return "sourceMap0.json";
+    }
+
+    return val.replaceAll("__HASH__", context.getModuleName()) // single script will treat HASH=module name
+        .replaceAll("__FRAGMENT__", "0")
+        .replaceAll("__MODULE__", context.getModuleName());
+  }
+
 
   /**
    * Unimplemented. Normally required by

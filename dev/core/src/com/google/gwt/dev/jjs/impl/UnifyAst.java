@@ -385,7 +385,7 @@ public class UnifyAst implements UnifyAstView {
       if (target.isDoNotVisit()) {
         // Replace the body of the method with an empty block
         JMethodBody newBody = new JMethodBody(x.getSourceInfo());
-        logger.log(Type.WARN, "Replacing magic method body with a default return type; " +
+        logger.log(Type.WARN, "Replacing magic method " + target.getSignature() + " body with a return null; " +
             target.getOriginalReturnType()+" <--> " + target.getType() + " : " + x);
         if (target.getOriginalReturnType().isPrimitiveType()) {
           newBody.getBlock().addStmt(new JReturnStatement(x.getSourceInfo(), target.getOriginalReturnType().getDefaultValue()));

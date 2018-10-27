@@ -146,6 +146,10 @@ public final class System {
     System.out = out;
   }
 
+  public static String getenv(String arg) {
+    return null;
+  }
+
   private static boolean arrayTypeMatch(Class<?> srcComp, Class<?> destComp) {
     if (srcComp.isPrimitive()) {
       return srcComp.equals(destComp);

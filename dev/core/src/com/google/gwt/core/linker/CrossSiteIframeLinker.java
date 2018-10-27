@@ -16,18 +16,17 @@
 
 package com.google.gwt.core.linker;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
+
 import com.google.gwt.core.ext.LinkerContext;
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
-import com.google.gwt.core.ext.linker.ArtifactSet;
-import com.google.gwt.core.ext.linker.CompilationResult;
-import com.google.gwt.core.ext.linker.ConfigurationProperty;
-import com.google.gwt.core.ext.linker.EmittedArtifact;
+import com.google.gwt.core.ext.linker.*;
 import com.google.gwt.core.ext.linker.EmittedArtifact.Visibility;
-import com.google.gwt.core.ext.linker.LinkerOrder;
 import com.google.gwt.core.ext.linker.LinkerOrder.Order;
-import com.google.gwt.core.ext.linker.ScriptReference;
-import com.google.gwt.core.ext.linker.Shardable;
 import com.google.gwt.core.ext.linker.impl.PropertiesMappingArtifact;
 import com.google.gwt.core.ext.linker.impl.PropertiesUtil;
 import com.google.gwt.core.ext.linker.impl.ResourceInjectionUtil;
@@ -39,11 +38,6 @@ import com.google.gwt.thirdparty.guava.common.base.Joiner;
 import com.google.gwt.thirdparty.guava.common.base.Splitter;
 import com.google.gwt.util.tools.Utility;
 import com.google.gwt.util.tools.shared.StringUtils;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
 
 /**
  * This linker uses an iframe to hold the code and a script tag to download the
@@ -172,19 +166,6 @@ public class CrossSiteIframeLinker extends SelectionScriptLinker {
     }
 
     return ss.toString();
-  }
-
-  protected boolean getBooleanConfigurationProperty(LinkerContext context,
-      String name, boolean def) {
-    String value = getStringConfigurationProperty(context, name, null);
-    if (value != null) {
-      if (value.equalsIgnoreCase("true")) {
-        return true;
-      } else if (value.equalsIgnoreCase("false")) {
-        return false;
-      }
-    }
-    return def;
   }
 
   @Override
@@ -529,18 +510,6 @@ public class CrossSiteIframeLinker extends SelectionScriptLinker {
     return val.replaceAll("__HASH__", strongName)
         .replaceAll("__FRAGMENT__", String.valueOf(fragmentId))
         .replaceAll("__MODULE__", context.getModuleName());
-  }
-
-  protected String getStringConfigurationProperty(LinkerContext context,
-      String name, String def) {
-    for (ConfigurationProperty property : context.getConfigurationProperties()) {
-      if (property.getName().equals(name) && property.getValues().size() > 0) {
-        if (property.getValues().get(0) != null) {
-          return property.getValues().get(0);
-        }
-      }
-    }
-    return def;
   }
 
   protected void includeJs(StringBuffer selectionScript, TreeLogger logger, String jsSource,

@@ -585,4 +585,30 @@ public abstract class SelectionScriptLinker extends AbstractLinker {
       CompilationResult result) throws UnableToCompleteException {
     return script;
   }
+
+  protected boolean getBooleanConfigurationProperty(LinkerContext context,
+                                                    String name, boolean def) {
+    String value = getStringConfigurationProperty(context, name, null);
+    if (value != null) {
+      if (value.equalsIgnoreCase("true")) {
+        return true;
+      } else if (value.equalsIgnoreCase("false")) {
+        return false;
+      }
+    }
+    return def;
+  }
+
+  protected String getStringConfigurationProperty(LinkerContext context,
+                                                  String name, String def) {
+    for (ConfigurationProperty property : context.getConfigurationProperties()) {
+      if (property.getName().equals(name) && property.getValues().size() > 0) {
+        if (property.getValues().get(0) != null) {
+          return property.getValues().get(0);
+        }
+      }
+    }
+    return def;
+  }
+
 }

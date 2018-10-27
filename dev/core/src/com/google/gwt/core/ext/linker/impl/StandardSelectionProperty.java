@@ -15,17 +15,17 @@
  */
 package com.google.gwt.core.ext.linker.impl;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import com.google.gwt.core.ext.TreeLogger;
 import com.google.gwt.core.ext.UnableToCompleteException;
 import com.google.gwt.core.ext.linker.ConfigurationProperty;
 import com.google.gwt.core.ext.linker.PropertyProviderGenerator;
 import com.google.gwt.core.ext.linker.SelectionProperty;
 import com.google.gwt.dev.cfg.BindingProperty;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * The standard implementation of {@link SelectionProperty} from a
@@ -103,7 +103,12 @@ public class StandardSelectionProperty implements SelectionProperty {
     StringBuilder b = new StringBuilder();
     b.append(getName()).append(" : [");
     for (String value : getPossibleValues()) {
-      b.append(" ").append(value);
+      boolean selected = value.equals(activeValue);
+      b.append(selected ? " _":" ");
+      b.append(value);
+      if (selected) {
+        b.append("_");
+      }
     }
     b.append(" ]");
     return b.toString();

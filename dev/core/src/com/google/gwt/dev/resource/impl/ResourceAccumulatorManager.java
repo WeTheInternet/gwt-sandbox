@@ -194,7 +194,7 @@ public class ResourceAccumulatorManager {
       }
     };
 
-    boolean isFresh = true;
+    boolean isFresh = !resourceAccumulators.isEmpty(); // cannot be fresh if there's no accumulators
     try {
 
       Iterator<Entry<DirectoryAndPathPrefix, ResourceAccumulator>> entriesIterator =

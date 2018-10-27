@@ -20,6 +20,7 @@ import static javaemul.internal.Coercions.ensureInt;
 import static javaemul.internal.InternalPreconditions.checkArraySize;
 
 import javaemul.internal.ArrayHelper;
+import java.io.Serializable;
 
 /**
  * This implementation uses a dense array holding bit groups of size 31 to keep track of when bits
@@ -31,7 +32,7 @@ import javaemul.internal.ArrayHelper;
  * public static BitSet valueOf(ByteBuffer)
  * public static BitSet valueOf(LongBuffer)
  */
-public class BitSet {
+public class BitSet implements Serializable {
   private static final int WORD_MASK = 0x7fffffff;
   private static final int BITS_PER_WORD = 31;
 

@@ -35,30 +35,15 @@
 
 package com.google.gwt.thirdparty.xapi.source.read;
 
-import com.google.gwt.thirdparty.xapi.collect.impl.SimpleStack;
-import com.google.gwt.thirdparty.xapi.dev.source.TypeDefinitionException;
-import com.google.gwt.thirdparty.xapi.source.read.JavaModel.AnnotationMember;
-import com.google.gwt.thirdparty.xapi.source.read.JavaModel.HasAnnotations;
-import com.google.gwt.thirdparty.xapi.source.read.JavaModel.HasModifier;
-import com.google.gwt.thirdparty.xapi.source.read.JavaModel.IsAnnotation;
-import com.google.gwt.thirdparty.xapi.source.read.JavaModel.IsGeneric;
-import com.google.gwt.thirdparty.xapi.source.read.JavaModel.IsParameter;
-import com.google.gwt.thirdparty.xapi.source.read.JavaModel.IsType;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.AnnotationMemberVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.AnnotationVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.ClassBodyVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.ClassVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.GenericVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.JavadocVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.MethodVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.ModifierVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.ParameterVisitor;
-import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.TypeData;
-
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+
+import com.google.gwt.thirdparty.xapi.collect.impl.SimpleStack;
+import com.google.gwt.thirdparty.xapi.dev.source.TypeDefinitionException;
+import com.google.gwt.thirdparty.xapi.source.read.JavaModel.*;
+import com.google.gwt.thirdparty.xapi.source.read.JavaVisitor.*;
 
 @SuppressWarnings("rawtypes")
 public class JavaLexer {
@@ -1655,7 +1640,6 @@ public class JavaLexer {
           pos = eatAnnotationBody(NO_OP_ANNOTATION_VISITOR, null, chars, pos);
         }
         pos = eatWhitespaceAndComments(chars, pos);
-        System.out.println(chars.charAt(pos)+"\n"+chars.subSequence(pos, pos + 10)+"\n\n\n");
       }
       pos = visitModifier(NO_OP_MOD_VISITOR, null, chars, pos);
       pos = eatJavaname(chars, pos);
