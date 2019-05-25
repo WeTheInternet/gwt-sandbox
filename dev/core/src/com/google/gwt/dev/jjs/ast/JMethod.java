@@ -809,7 +809,10 @@ public class JMethod extends JNode implements JMember, CanBeAbstract {
   protected void visitChildren(JVisitor visitor) {
     params = visitor.acceptImmutable(params);
     if (body != null) {
-      body = (JAbstractMethodBody) visitor.accept(body);
+      final JAbstractMethodBody newBody = (JAbstractMethodBody) visitor.accept(body);
+      if (newBody != body) {
+        setBody(newBody);
+      }
     }
   }
 
