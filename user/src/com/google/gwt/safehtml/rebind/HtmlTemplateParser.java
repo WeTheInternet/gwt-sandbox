@@ -268,10 +268,10 @@ final class HtmlTemplateParser {
       final String attribute = streamHtmlParser.getAttribute();
       Preconditions.checkState(!tag.equals(""),
           "streamHtmlParser.getTag() should not be empty  while in "
-              + "attribute value context; at %s", getTemplateParsedSoFar());
+              + "attribute value context; at " + getTemplateParsedSoFar());
       Preconditions.checkState(!attribute.equals(""),
           "streamHtmlParser.getAttribute() should not be empty while in "
-              + "attribute value context; at %s", getTemplateParsedSoFar());
+              + "attribute value context; at " + getTemplateParsedSoFar());
       if (!streamHtmlParser.isAttributeQuoted()) {
         logger.log(TreeLogger.ERROR,
             "Template variable in unquoted attribute value: "
@@ -291,8 +291,7 @@ final class HtmlTemplateParser {
         // is true and the URL does not appear at the very beginning of the
         // attribute.
         Preconditions.checkState(lookBehind == '"' || lookBehind == '\'',
-            "At the start of a quoted attribute, lookBehind should be a quote character; at %s",
-            getTemplateParsedSoFar());
+            "At the start of a quoted attribute, lookBehind should be a quote character; at " + getTemplateParsedSoFar());
         // If the character immediately succeeding the template parameter is
         // a quote that matches the one that started the attribute, we know
         // that the parameter comprises the entire attribute.
