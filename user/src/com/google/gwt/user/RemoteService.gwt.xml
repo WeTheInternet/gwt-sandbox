@@ -17,6 +17,7 @@
   <inherits name="com.google.gwt.http.HTTP"/>
   <inherits name="com.google.gwt.user.AsyncCallback" />
   <inherits name="com.google.gwt.user.RemoteServiceDTO" />
+  <inherits name="com.google.gwt.user.RemoteServiceWarnings" />
   <source path="client" includes="rpc/">
     <skip name="rpc/AsyncCallback.java" />
     <skip name="rpc/CustomFieldSerializer.java" />
@@ -27,17 +28,6 @@
     <skip name="rpc/SerializationStreamWriter.java" />
   </source>
   <super-source path="translatable" includes="com/google/gwt/user/client/rpc/**" />
-
-  <!--
-    Declare a property to determine whether warnings for final instance
-    fields should be suppressed.
-  -->
-  <define-property name="gwt.suppressNonStaticFinalFieldWarnings" values="true,false" />
-
-  <!--
-      Default warning for non-static, final fields enabled
-  -->
-  <set-property name="gwt.suppressNonStaticFinalFieldWarnings" value="false" />
 
   <!--
       If this is ever turned on by default, fix up RPCSuiteWithElision
