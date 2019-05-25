@@ -46,6 +46,7 @@ public class Thread implements Runnable {
     private char  name[];
     private int         priority = NORM_PRIORITY;
     private Runnable target;
+    private boolean daemon;
 
     /**
      * The minimum priority that a thread can have.
@@ -566,7 +567,7 @@ public class Thread implements Runnable {
      * terminates due to an uncaught exception.
      * <p>When a thread is about to terminate due to an uncaught exception
      * the Java Virtual Machine will query the thread for its
-     * <tt>UncaughtExceptionHandler</tt> using
+     * <tt>UncaughtExceptionHandler</tt> using.
      * {@link #getUncaughtExceptionHandler} and will invoke the handler's
      * <tt>uncaughtException</tt> method, passing the thread and the
      * exception as arguments.
@@ -660,7 +661,11 @@ public class Thread implements Runnable {
         return true;
     }
 
-    public void setDaemon(boolean ignored) {
+    public void setDaemon(boolean daemon) {
+        this.daemon = daemon;
+    }
 
+    public boolean isDaemon() {
+        return daemon;
     }
 }
